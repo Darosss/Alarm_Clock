@@ -25,6 +25,7 @@ class Alarms:
         self.d_f_s = "sounds"
         self.path = Path(__file__).parent
         self.check_day = tk.IntVar(value=1)
+        print('kekw')
 
         # print(Path(__file__).parent)
         # print(glob.glob(f"{Path(__file__).parent}/sounds/*.mp3"))
