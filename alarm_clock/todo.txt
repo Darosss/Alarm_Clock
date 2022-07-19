@@ -1,0 +1,34 @@
+Alarm clock
+Mini gierka na zasadzie klik i klik next
+
+all:
+    take data from config:
+        fe. styles
+        window resolution
+
+
+alarm:
+    do alarms:
+        alarms from config
+                opcja uploadu soundsow(no needed)
+
+
+stopwatch:
+    do stopwatch:
+        set time
+        count time
+        pause time
+        save time
+        list all stopwatch
+        description fo stopwatch
+timer:
+    do timer:
+        set timer
+        countdown timer
+        pause timer
+        description of timer
+
+all look:
+    when all finished:
+        repair classes / functions
+        better appeareacne
