@@ -2,8 +2,6 @@ import pkg_resources
 pkg_resources.require("playsound==1.2.2")
 from playsound import playsound
 import multiprocessing
-import os
-from pathlib import Path
 from tkinter import ttk
 import tkinter as tk
 from datetime import datetime
@@ -30,6 +28,7 @@ class Alarms:
     def __create_edit_alarm_frame(self, append):
         self.edit_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
         self.edit_frame.grid(column=0, row=0, sticky="nsew")
+    # function for creating editing for alarm frame
 
     def __create_alarm_boxes_frame(self, append, config_sound, count, width=30):
         self.alarms_frame = ttk.Frame(append, style=self.styleName)
@@ -57,10 +56,12 @@ class Alarms:
         add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
 
         return self.alarms_frame
+    #create all alarms etc. it should be from config
 
     def create_frames_for_alarm(self, append, config_sound, config_count):
         self.__create_alarm_boxes_frame(append, config_sound, config_count)
         self.__create_edit_alarm_frame(append)
+    #create inside frames for editing and normal alarms
 
     def edit_alarm(self, alarm):
         def save_alarm(what_save, hour, snd_save):
@@ -131,7 +132,7 @@ class Alarms:
             if day in alarm['text']:
                 self.check_days[inx].config(variable=self.check_day)
             self.check_days[inx].grid(row=5 + inx, column=1, sticky='w')
-        # this loop is creating each day of the week and add it to checkbutton in array and add to grid
+    # this loop is creating each day of the week and add it to checkbutton in array and add to grid
    
     def delete_alarm_box(self, alarm, checkbox, owner):
             def clear_edit_frame():
@@ -143,7 +144,7 @@ class Alarms:
             owner.destroy()
             checkbox.destroy()
             clear_edit_frame()
-        # that's function that is destroying described above
+    # that's function that is destroying described above
 
     def create_alarm(self, append, text, row_alarm): 
         # state = 'disabled' should be from config: 
@@ -173,9 +174,9 @@ class Alarms:
 
         delete_alarm.grid(column=4, row=row_alarm + 2, padx=5, pady=1, sticky='w')
         delete_alarm.config(command=lambda btn=alarm_box, ch_bx=turned_on_check, dlt=delete_alarm: self.delete_alarm_box(btn, ch_bx, dlt))
-        # delete buttons that are right near alarm that user want to delete
-        # the buttons are calling function delete_alarm_box which are deleting
-        # them and 'their' alarm to which they are bounded to
+    # delete buttons that are right near alarm that user want to delete
+    # the buttons are calling function delete_alarm_box which are deleting
+    # them and 'their' alarm to which they are bounded to
 
     def add_alarm(self, frame):
      # this function is for adding new alarm, which maybe should be here, idk
@@ -185,7 +186,8 @@ class Alarms:
         alarm_text = dt_string + "\n" + today_name + "\n None"
         row_alarm_box = frame.grid_size()[1]
         self.create_alarm(frame, alarm_text, row_alarm_box)
-   
+    # function which for add new alarm box
+
     def check_alarms(self):
         alarms = []
         for alarm in self.alarms_frame.grid_slaves():
@@ -198,6 +200,7 @@ class Alarms:
             al = snoozed_alarm.split("\n")
             alarms.append(al)
         return alarms
+    # check which alarm is enabled
 
     def alarm_popup(self, text, sound):
         def stop_alarm():
@@ -223,6 +226,7 @@ class Alarms:
         ttk.Button(top, text="Mute sound", command=lambda: p.kill()).pack(side='right')
         ttk.Button(top, text="Snooze", command=lambda alarm=text: [snooze_alarm(), stop_alarm()]
                    ).pack(side='right')
+    # if alarm == set time = popup window with alarm
 
     def set_alarms(self):
         alarms = self.check_alarms()
@@ -234,11 +238,11 @@ class Alarms:
             if today[0:3] in str(current_alarm[1]):
                 if dt_string in str(current_alarm[0]):
                     self.alarm_popup(now_time, f"{current_alarm[2]}")
-        alarms.after(1000, self.set_alarms)
-        # plan taki:
-        # wyskakuje nowe okno(ktore moze miga?) pokazuje ze czas przepylnal i jest tam wiadomosc(jesli byla napisana)
-        # muzyka dzwiek gra przez caly czas az do momentu max. dzwieku
-        # po tym czasie zostaje sam alarm bez dzwieku
-        # tutaj skonczylem sprawdzic jak to z klasami i co pozmieniac ale moze pozniej
-        # klasa1: tworzy framy i ustawia
-        # klasa2: tworzy alarm i edity itd?
+        self.alarms_frame.after(1000, self.set_alarms)
+    # plan taki:
+    # wyskakuje nowe okno(ktore moze miga?) pokazuje ze czas przepylnal i jest tam wiadomosc(jesli byla napisana)
+    # muzyka dzwiek gra przez caly czas az do momentu max. dzwieku
+    # po tym czasie zostaje sam alarm bez dzwieku
+    # tutaj skonczylem sprawdzic jak to z klasami i co pozmieniac ale moze pozniej
+    # klasa1: tworzy framy i ustawia
+    # klasa2: tworzy alarm i edity itd?
