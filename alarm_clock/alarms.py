@@ -12,26 +12,55 @@ import glob2 as glob
 
 
 class Alarms:
-    def __init__(self, window, alarms, style, day_names, snoozed_time):
-        # init(self, alarms from config)
+    def __init__(self, app_window, alarms, style, day_names, snoozed_time):
+        # init(self, aplication tk, alarms from config, style from user, day_names from user, snooze time from user)
         self.alarms = alarms
         self.styleName = style
-        self.window = window
+        self.app_window = app_window
         self.day_names = day_names
         self.edit_frame = None
         self.alarms_frame = None
         self.check_days = [None] * len(self.day_names)
+        # check if i can do it without assigning None
         self.snoozed_alarms = []
         self.snoozed_time = snoozed_time
         self.music_list = []
-        self.d_f_s = "sounds"
-        self.path = Path(__file__).parent
         self.check_day = tk.IntVar(value=1)
 
-    def create_edit_alarm_frame(self, append):
+    def __create_edit_alarm_frame(self, append):
         self.edit_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
         self.edit_frame.grid(column=0, row=0, sticky="nsew")
-        return self.edit_frame
+
+    def __create_alarm_boxes_frame(self, append, config_sound, count, width=30):
+        self.alarms_frame = ttk.Frame(append, style=self.styleName)
+        
+        ttk.Label(self.alarms_frame, text='Alarms' , justify='center', font=('calibri', 25, 'bold'),
+                  borderwidth=1, relief="solid").grid(column=0, row=0, sticky='new')
+        
+        # add buttons for adding new alarms
+        add_button = tk.Button(self.alarms_frame, text="Add", height=1, width=width)
+        
+        # debug alarm is 5 sec from start program
+        # for loop for every alarm giving in config or default
+        # should now change it to config 
+        for i in range(count):
+            seconds = 12 + (i * 25)
+            soon = datetime.now() + timedelta(seconds=seconds)
+            dt_string = soon.strftime("%H:%M:%S")
+            today = soon.strftime("%a")
+            self.create_alarm(self.alarms_frame, f"{dt_string}\n{today}\n{config_sound}", i)
+
+        self.alarms_frame.config(borderwidth=15, relief='sunken')
+        self.alarms_frame.grid(column=1, row=0, sticky="nsew")
+   
+        add_button.grid(column=2, row=0, padx=5, pady=1)
+        add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
+
+        return self.alarms_frame
+
+    def create_frames_for_alarm(self, append, config_sound, config_count):
+        self.__create_alarm_boxes_frame(append, config_sound, config_count)
+        self.__create_edit_alarm_frame(append)
 
     def edit_alarm(self, alarm):
         def save_alarm(what_save, hour, snd_save):
@@ -65,6 +94,9 @@ class Alarms:
                 widgets.destroy()
         # create empty array for checkboxes
         clear_edit_frame()
+        self.music_list.clear()
+        for file in glob.glob("sounds/*.mp3"):
+            self.music_list.append(file)
         # clear everything inside edit box
         ttk.Label(self.edit_frame, anchor='center', width=20,
                   font=("default", 20), text=f' {alarm["text"]}'
@@ -100,9 +132,8 @@ class Alarms:
                 self.check_days[inx].config(variable=self.check_day)
             self.check_days[inx].grid(row=5 + inx, column=1, sticky='w')
         # this loop is creating each day of the week and add it to checkbutton in array and add to grid
-
-    def create_alarm(self, append, text, row_alarm):
-        def delete_alarm_box(alarm, checkbox, owner):
+   
+    def delete_alarm_box(self, alarm, checkbox, owner):
             def clear_edit_frame():
                 for widgets in self.edit_frame.winfo_children():
                     widgets.destroy()
@@ -114,6 +145,13 @@ class Alarms:
             clear_edit_frame()
         # that's function that is destroying described above
 
+    def create_alarm(self, append, text, row_alarm): 
+        # state = 'disabled' should be from config: 
+        # is alarm on or off by user
+
+        # plan is that program will read config file at the start and check
+        # how many alarms is used and create them at start of program
+        # if there are none, it will load default fe. 5 alarms
         def toggle_alarm(alarm, checkbox):
             if "selected" in checkbox.state():
                 alarm.config(state="normal")
@@ -124,73 +162,33 @@ class Alarms:
         width = 30
         delete_txt = "x"
         alarm_box = tk.Button(append, text=text, width=width, height=height, name=f"alarm_box{row_alarm}")
+        delete_alarm = tk.Button(append, text=delete_txt, height=height // 2, width=width // 5)
+        turned_on_check = ttk.Checkbutton(append, text="Turned on")
+
         alarm_box.grid(column=0, row=row_alarm + 2)
         alarm_box.config(state="disabled", command=lambda btn=alarm_box: self.edit_alarm(btn))
-
-        #state disabled zamiana na konfig czy wlaczony zy nie
-        # plan is that program will read config file at the start and check
-        # how many alarms is used and create them at start of program
-        # if there are none, it will load default fe. 5 alarms
-
-        turned_on_check = ttk.Checkbutton(append, text="Turned on")
+   
         turned_on_check.grid(column=2, row=row_alarm + 2, padx=5, pady=1, sticky='w')
         turned_on_check.config(command=lambda btn=alarm_box, check=turned_on_check: toggle_alarm(btn, check))
 
-
-        delete_alarm = tk.Button(append, text=delete_txt, height=height // 2, width=width // 5)
         delete_alarm.grid(column=4, row=row_alarm + 2, padx=5, pady=1, sticky='w')
-        delete_alarm.config(command=lambda btn=alarm_box, ch_bx=turned_on_check, dlt=delete_alarm: delete_alarm_box(btn, ch_bx, dlt))
+        delete_alarm.config(command=lambda btn=alarm_box, ch_bx=turned_on_check, dlt=delete_alarm: self.delete_alarm_box(btn, ch_bx, dlt))
         # delete buttons that are right near alarm that user want to delete
         # the buttons are calling function delete_alarm_box which are deleting
         # them and 'their' alarm to which they are bounded to
 
-
     def add_alarm(self, frame):
+     # this function is for adding new alarm, which maybe should be here, idk
         now = datetime.now()
         dt_string = now.strftime("%H:%M:%S")
-        now_day = now.strftime("%a")
-        alarm_text = dt_string + "\n" + now_day + "\n None"
+        today_name = now.strftime("%a")
+        alarm_text = dt_string + "\n" + today_name + "\n None"
         row_alarm_box = frame.grid_size()[1]
         self.create_alarm(frame, alarm_text, row_alarm_box)
-    # this function is for adding new alarm, which maybe should be here, idk
-
-    def create_alarm_boxes_frame(self, append, config_sound, count, width=30):
-        self.alarms_frame = ttk.Frame(append, style=self.styleName)
-        self.alarms_frame.grid(column=1, row=0, sticky="nsew")
-        self.alarms_frame['borderwidth'] = 15
-        self.alarms_frame['relief'] = 'sunken'
-        # frames border for debugging for now
-        ttk.Label(self.alarms_frame, text='Alarms' , justify='center', font=('calibri', 25, 'bold'),
-                  borderwidth=1, relief="solid").grid(column=0, row=0, sticky='new')
-
-        add_button = tk.Button(self.alarms_frame, text="Add", height=1, width=width)
-        add_button.grid(column=2, row=0, padx=5, pady=1)
-        add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
-        # add buttons for adding new alarms
-        
-        for file in glob.glob("sounds/*.mp3"):
-            self.music_list.append(file)
-        # this gets all sounds from sounds dir
-        for i in range(count):
-            seconds = 12 + (i * 25)
-            soon = datetime.now() + timedelta(seconds=seconds)
-            dt_string = soon.strftime("%H:%M:%S")
-            today = soon.strftime("%a")
-            # debug alarm is 5 sec from start program
-            self.create_alarm(self.alarms_frame, f"{dt_string}\n{today}\n{self.d_f_s}\{config_sound}", i)
-        # for loop for every alarm giving in config or default
-
-        self.alarms_frame.grid(column=1, row=0, sticky="nsew")
-        return self.alarms_frame
-
-    def create_frames_for_alarm(self, append, config_sound, config_count):
-        self.create_alarm_boxes_frame(append, config_sound, config_count)
-        self.create_edit_alarm_frame(append)
-
+   
     def check_alarms(self):
         alarms = []
         for alarm in self.alarms_frame.grid_slaves():
-            # if "alarm_box" in alarm:
             if "alarm_box" not in str(alarm):
                 continue
             if alarm['state'] == "normal":
@@ -213,7 +211,7 @@ class Alarms:
             snoozed_alarm_time = time_string + "\n" + day_string
             self.snoozed_alarms.append(snoozed_alarm_time)
 
-        top = tk.Toplevel(self.window)
+        top = tk.Toplevel(self.app_window)
         top.geometry("750x250")
         top.title(text)
         top.overrideredirect(True)
@@ -236,7 +234,7 @@ class Alarms:
             if today[0:3] in str(current_alarm[1]):
                 if dt_string in str(current_alarm[0]):
                     self.alarm_popup(now_time, f"{current_alarm[2]}")
-        self.window.after(1000, self.set_alarms)
+        alarms.after(1000, self.set_alarms)
         # plan taki:
         # wyskakuje nowe okno(ktore moze miga?) pokazuje ze czas przepylnal i jest tam wiadomosc(jesli byla napisana)
         # muzyka dzwiek gra przez caly czas az do momentu max. dzwieku
