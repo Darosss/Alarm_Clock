@@ -1,3 +1,6 @@
+import pkg_resources
+pkg_resources.require("playsound==1.2.2")
+from playsound import playsound
 import multiprocessing
 import os
 from pathlib import Path
@@ -5,7 +8,6 @@ from tkinter import ttk
 import tkinter as tk
 from datetime import datetime
 from datetime import timedelta
-from playsound import playsound
 import glob2 as glob
 
 
@@ -25,11 +27,6 @@ class Alarms:
         self.d_f_s = "sounds"
         self.path = Path(__file__).parent
         self.check_day = tk.IntVar(value=1)
-        print('kekw')
-
-        # print(Path(__file__).parent)
-        # print(glob.glob(f"{Path(__file__).parent}/sounds/*.mp3"))
-        # check_day for global variable for checkbox?
 
     def create_edit_alarm_frame(self, append):
         self.edit_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
@@ -56,8 +53,7 @@ class Alarms:
                     found = True
                     info_save(found)
                     new_alarm += f"{d['text']} "
-            print(snd_save)
-            new_alarm += f"\n{self.d_f_s}/{snd_save}"
+            new_alarm += f"\n{snd_save}"
             if not found:
                 info_save(found)
                 return
@@ -83,7 +79,7 @@ class Alarms:
         hours.insert(0, f"{hour_text[0]}:{hour_text[1]}:{hour_text[2]}")
 
         selected_snd = tk.StringVar()
-        selected_snd.set(alarm_text[2].split("/")[1])
+        selected_snd.set(alarm_text[2].split("\\")[1])
         choose_music = tk.OptionMenu(self.edit_frame, selected_snd, "",*self.music_list)
         choose_music.grid(column=2, row=0)
         choose_music.config()
@@ -170,9 +166,7 @@ class Alarms:
         # add buttons for adding new alarms
         
         for file in glob.glob(f"{self.path}\sounds\*.mp3"):
-            file_split = file.split("\\")
-            # print(file_split)
-            self.music_list.append(file_split[len(file_split)  - 1])
+            self.music_list.append(file)
         # this gets all sounds from sounds dir
 
         for i in range(count):
@@ -181,7 +175,7 @@ class Alarms:
             dt_string = soon.strftime("%H:%M:%S")
             today = soon.strftime("%a")
             # debug alarm is 5 sec from start program
-            self.create_alarm(self.alarms_frame, f"{dt_string}\n{today}\n{self.d_f_s}/{config_sound}", i)
+            self.create_alarm(self.alarms_frame, f"{dt_string}\n{today}\n{self.d_f_s}\{config_sound}", i)
         # for loop for every alarm giving in config or default
 
         self.alarms_frame.grid(column=1, row=0, sticky="nsew")
@@ -239,8 +233,7 @@ class Alarms:
         for current_alarm in alarms:
             if today[0:3] in str(current_alarm[1]):
                 if dt_string in str(current_alarm[0]):
-                    print(current_alarm)
-                    self.alarm_popup(now_time, f"{Path(__file__).parent}/{current_alarm[2]}")
+                    self.alarm_popup(now_time, f"{current_alarm[2]}")
         self.window.after(1000, self.set_alarms)
         # plan taki:
         # wyskakuje nowe okno(ktore moze miga?) pokazuje ze czas przepylnal i jest tam wiadomosc(jesli byla napisana)
