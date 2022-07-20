@@ -31,7 +31,6 @@ class Alarms:
     def create_edit_alarm_frame(self, append):
         self.edit_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
         self.edit_frame.grid(column=0, row=0, sticky="nsew")
-
         return self.edit_frame
 
     def edit_alarm(self, alarm):
@@ -79,7 +78,7 @@ class Alarms:
         hours.insert(0, f"{hour_text[0]}:{hour_text[1]}:{hour_text[2]}")
 
         selected_snd = tk.StringVar()
-        selected_snd.set(alarm_text[2].split("\\")[1])
+        selected_snd.set(alarm_text[2])
         choose_music = tk.OptionMenu(self.edit_frame, selected_snd, "",*self.music_list)
         choose_music.grid(column=2, row=0)
         choose_music.config()
@@ -103,7 +102,7 @@ class Alarms:
         # this loop is creating each day of the week and add it to checkbutton in array and add to grid
 
     def create_alarm(self, append, text, row_alarm):
-        def delete_alarm_box(alarm, owner):
+        def delete_alarm_box(alarm, checkbox, owner):
             def clear_edit_frame():
                 for widgets in self.edit_frame.winfo_children():
                     widgets.destroy()
@@ -111,6 +110,7 @@ class Alarms:
             print(f"[delete_alarm_box]: alarm: {alarm} - owner: {owner}")
             alarm.destroy()
             owner.destroy()
+            checkbox.destroy()
             clear_edit_frame()
         # that's function that is destroying described above
 
@@ -132,15 +132,18 @@ class Alarms:
         # how many alarms is used and create them at start of program
         # if there are none, it will load default fe. 5 alarms
 
-        delete_alarm = tk.Button(append, text=delete_txt, height=height // 2, width=width // 5)
-        delete_alarm.grid(column=4, row=row_alarm + 2, padx=5, pady=1, sticky='w')
-        delete_alarm.config(command=lambda btn=alarm_box, dlt=delete_alarm: delete_alarm_box(btn, dlt))
-        # delete buttons that are right near alarm that user want to delete
-        # the buttons are calling function delete_alarm_box which are deleting
-        # them and 'their' alarm to which they are bounded to
         turned_on_check = ttk.Checkbutton(append, text="Turned on")
         turned_on_check.grid(column=2, row=row_alarm + 2, padx=5, pady=1, sticky='w')
         turned_on_check.config(command=lambda btn=alarm_box, check=turned_on_check: toggle_alarm(btn, check))
+
+
+        delete_alarm = tk.Button(append, text=delete_txt, height=height // 2, width=width // 5)
+        delete_alarm.grid(column=4, row=row_alarm + 2, padx=5, pady=1, sticky='w')
+        delete_alarm.config(command=lambda btn=alarm_box, ch_bx=turned_on_check, dlt=delete_alarm: delete_alarm_box(btn, ch_bx, dlt))
+        # delete buttons that are right near alarm that user want to delete
+        # the buttons are calling function delete_alarm_box which are deleting
+        # them and 'their' alarm to which they are bounded to
+
 
     def add_alarm(self, frame):
         now = datetime.now()
@@ -165,10 +168,9 @@ class Alarms:
         add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
         # add buttons for adding new alarms
         
-        for file in glob.glob(f"{self.path}\sounds\*.mp3"):
+        for file in glob.glob("sounds/*.mp3"):
             self.music_list.append(file)
         # this gets all sounds from sounds dir
-
         for i in range(count):
             seconds = 12 + (i * 25)
             soon = datetime.now() + timedelta(seconds=seconds)
@@ -215,8 +217,9 @@ class Alarms:
         top.geometry("750x250")
         top.title(text)
         top.overrideredirect(True)
-        p = multiprocessing.Process(target=playsound, args=(sound,))
-        p.start()
+        if(sound != None):
+            p = multiprocessing.Process(target=playsound, args=(sound,))
+            p.start()
         ttk.Label(top, text=text, font='Mistral 18 bold').pack(side='left')
         ttk.Button(top, text="Stop alarm", command=lambda: stop_alarm()).pack(side='right')
         ttk.Button(top, text="Mute sound", command=lambda: p.kill()).pack(side='right')
@@ -225,7 +228,6 @@ class Alarms:
 
     def set_alarms(self):
         alarms = self.check_alarms()
-
         now = datetime.now()
         dt_string = now.strftime("%H:%M:%S")
         today = now.strftime("%A")
@@ -240,3 +242,5 @@ class Alarms:
         # muzyka dzwiek gra przez caly czas az do momentu max. dzwieku
         # po tym czasie zostaje sam alarm bez dzwieku
         # tutaj skonczylem sprawdzic jak to z klasami i co pozmieniac ale moze pozniej
+        # klasa1: tworzy framy i ustawia
+        # klasa2: tworzy alarm i edity itd?
