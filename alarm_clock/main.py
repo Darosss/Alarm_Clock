@@ -21,30 +21,26 @@ class AlarmApp(tk.Tk):
         self.styleName = "new.TFrame"
         self.style.configure(self.styleName, background=self.read_config("alarms_app_style", "style_background")) #from user
         self.geometry(self.read_config("alarms_config_preferences", "resolution"))
-        self.update_idletasks()
+        # self.update_idletasks()
         self.snoozed_time = int(self.read_config("alarms_config_preferences", "snooze_time")) #from user
         self.menu_frame = None
         self.alarm_app_frame = None
         self.stopwatch_app_frame = None
         self.timer_app_frame = None
         self.footer_frame = None
-        print(self.read_config("list_alarms", "", True))
+        # print(self.read_config("list_alarms", "", True))
 
-    def read_config(self, config_name, option_name, alarms=False):
+    #function for read config.ini(self, config_select?, key, if true check alarms)
+    def read_config(self, config_name, option_name):
         config_obj = configparser.ConfigParser()
-        config_obj.read("config.ini")
-        alarms_list = []
-        if alarms:
-            for key in config_obj[config_name]:
-                alarms_list.append(config_obj[config_name][key].replace("#","\n"))
-            return alarms_list     
-        
+        config_obj.read("config.ini") 
         return config_obj[config_name][option_name]
 
+    # create scrollbar for more than x alarms
     def create_scrollbar(self):
         pass
-    # create scrollbar for more than x alarms
-
+    
+    # menu: stopwatch, egg timer, alarms
     def create_menu_app(self):
         self.menu_frame = ttk.Frame(self, style=self.styleName, name="menu")
         self.menu_frame['borderwidth'] = 15
@@ -62,7 +58,7 @@ class AlarmApp(tk.Tk):
 
         self.menu_frame.grid(column=0, row=0, columnspan=2, sticky="nsew")
         return self.menu_frame
-    # menu: stopwatch, egg timer, alarms
+
 
     def clear_and_show_clicked(self, what):
         for slave in self.grid_slaves(row=1, column=0):
@@ -71,7 +67,6 @@ class AlarmApp(tk.Tk):
             slave.grid_remove()
         print(what.grid_slaves())
         what.grid(column=0, row=1, columnspan=2, sticky="nsew")
-        # self.show_app(what)
 
     def create_footer_app(self):
         self.footer_frame = ttk.Frame(self, style=self.styleName, name='footer')
@@ -94,7 +89,6 @@ class AlarmApp(tk.Tk):
         return self.footer_frame
 
     def create_alarm_app(self):
-        alarm_config = self.read_config("list_alarms", "", True)
         day_names = []
         for day in self.read_config("alarms_config_preferences", "day_name").split(","):
             day_names.append(day)
@@ -104,7 +98,7 @@ class AlarmApp(tk.Tk):
         self.alarm_app_frame.columnconfigure(0, weight=1)
         self.alarm_app_frame.columnconfigure(1, weight=1)
         self.alarm_app_frame.rowconfigure(0, weight=1)
-        alarms = Alarms(self, alarm_config, self.styleName , day_names, self.snoozed_time)
+        alarms = Alarms(self, "config.ini", self.styleName , day_names, self.snoozed_time)
         alarms_list = alarms.create_frames_for_alarm(self.alarm_app_frame, 'sounds\\3.mp3', 5)
         alarms.set_alarms()
         return self.alarm_app_frame

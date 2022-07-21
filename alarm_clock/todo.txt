@@ -14,6 +14,7 @@ alarm:
             alarmy add do konfiga
             alarm edit do konfiga
 
+            lewy edit / prawy wlacz alarm / delete turned on
             
                 opcja uploadu soundsow(no needed)
 

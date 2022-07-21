@@ -1,3 +1,5 @@
+import configparser
+from distutils.command.config import config
 import pkg_resources
 pkg_resources.require("playsound==1.2.2")
 from playsound import playsound
@@ -11,9 +13,11 @@ import glob2 as glob
 
 
 class Alarms:
-    def __init__(self, app_window, alarms, style, day_names, snoozed_time):
+    def __init__(self, app_window, config_name, style, day_names, snoozed_time):
         # init(self, aplication tk, alarms from config, style from user, day_names from user, snooze time from user)
-        self.alarms = alarms
+        self.config_name = config_name
+        self.sect_alarm_n = "list_alarms"
+        self.alarms = self.read_config(self.config_name, self.sect_alarm_n)
         self.styleName = style
         self.app_window = app_window
         self.day_names = day_names
@@ -25,6 +29,27 @@ class Alarms:
         self.snoozed_time = snoozed_time
         self.music_list = []
         self.check_day = tk.IntVar(value=1)
+
+
+    def read_config(self, config_name, key_name):
+        config_obj = configparser.ConfigParser()
+        config_obj.read(config_name)
+        alarms_list = []
+        for key in config_obj[key_name]:
+            alarms_list.append(config_obj[key_name][key].replace("#","\n"))
+        return alarms_list     
+
+    def save_config(self, config_name, section, name, value="", new=False, remove=False):
+        config_obj = configparser.ConfigParser()
+        config_obj.read(config_name)
+        if new:
+            config_obj.set(section, name, value)
+        elif not new and not remove:
+            config_obj.set(section, name, value)
+        if remove:
+            config_obj.remove_option(section, name)
+        with open(config_name, 'w') as configfile:
+            config_obj.write(configfile)
 
     def __create_edit_alarm_frame(self, append):
         self.edit_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
@@ -91,6 +116,7 @@ class Alarms:
                 return
             # check every check box with day if it's selected
             what_save['text'] = new_alarm
+            self.save_config(self.config_name, self.sect_alarm_n, what_save.winfo_name(), new_alarm.replace("\n", '#'))
             # add hours and days to editing alarm
 
         def clear_edit_frame():
@@ -137,15 +163,15 @@ class Alarms:
             self.check_days[inx].grid(row=5 + inx, column=1, sticky='w')
     # this loop is creating each day of the week and add it to checkbutton in array and add to grid
    
-    def delete_alarm_box(self, alarm, checkbox, owner):
+    def delete_alarm_box(self, alarm, owner):
             def clear_edit_frame():
                 for widgets in self.edit_frame.winfo_children():
                     widgets.destroy()
 
             print(f"[delete_alarm_box]: alarm: {alarm} - owner: {owner}")
+            self.save_config(self.config_name, self.sect_alarm_n, alarm.winfo_name(),'', False, True)
             alarm.destroy()
             owner.destroy()
-            checkbox.destroy()
             clear_edit_frame()
     # that's function that is destroying described above
 
@@ -156,39 +182,41 @@ class Alarms:
         # plan is that program will read config file at the start and check
         # how many alarms is used and create them at start of program
         # if there are none, it will load default fe. 5 alarms
-        def toggle_alarm(alarm, checkbox):
-            if "selected" in checkbox.state():
+        def toggle_alarm(e, alarm):
+            if alarm['state'] == 'disabled':
                 alarm.config(state="normal")
                 return
             alarm.config(state="disabled")
-
         height = 3
         width = 30
         delete_txt = "x"
         alarm_box = tk.Button(append, text=text, width=width, height=height, name=f"alarm_box{row_alarm}")
         delete_alarm = tk.Button(append, text=delete_txt, height=height // 2, width=width // 5)
-        turned_on_check = ttk.Checkbutton(append, text="Turned on")
-
+ 
         alarm_box.grid(column=0, row=row_alarm + 2)
         alarm_box.config(state="disabled", command=lambda btn=alarm_box: self.edit_alarm(btn))
-   
-        turned_on_check.grid(column=2, row=row_alarm + 2, padx=5, pady=1, sticky='w')
-        turned_on_check.config(command=lambda btn=alarm_box, check=turned_on_check: toggle_alarm(btn, check))
+
+        alarm_box.bind("<Button-3>",lambda event, alarm=alarm_box: toggle_alarm(event, alarm))
 
         delete_alarm.grid(column=4, row=row_alarm + 2, padx=5, pady=1, sticky='w')
-        delete_alarm.config(command=lambda btn=alarm_box, ch_bx=turned_on_check, dlt=delete_alarm: self.delete_alarm_box(btn, ch_bx, dlt))
+        delete_alarm.config(command=lambda btn=alarm_box, dlt=delete_alarm: self.delete_alarm_box(btn, dlt))
+
+        return alarm_box.winfo_name()
+    
     # delete buttons that are right near alarm that user want to delete
     # the buttons are calling function delete_alarm_box which are deleting
     # them and 'their' alarm to which they are bounded to
+
 
     def add_alarm(self, frame):
      # this function is for adding new alarm, which maybe should be here, idk
         now = datetime.now()
         dt_string = now.strftime("%H:%M:%S")
         today_name = now.strftime("%a")
-        alarm_text = dt_string + "\n" + today_name + "\n None"
+        alarm_text = dt_string + "\n" + today_name + "\nNone"
         row_alarm_box = frame.grid_size()[1]
-        self.create_alarm(frame, alarm_text, row_alarm_box)
+        name_alarm = self.create_alarm(frame, alarm_text, row_alarm_box)
+        self.save_config(self.config_name, self.sect_alarm_n, name_alarm, alarm_text.replace("\n", '#'), True)
     # function which for add new alarm box
 
     def check_alarms(self):
