@@ -160,13 +160,13 @@ class Alarms:
             self.check_days[inx].grid(row=5 + inx, column=1, sticky='w')
     # this loop is creating each day of the week and add it to checkbutton in array and add to grid
    
-    def delete_alarm_box(self, alarm, owner):
+    def delete_alarm_box(self, alarm, owner, alarm_text):
             def clear_edit_frame():
                 for widgets in self.edit_frame.winfo_children():
                     widgets.destroy()
 
             print(f"[delete_alarm_box]: alarm: {alarm} - owner: {owner}")
-            self.save_config(self.config_name, self.sect_alarm_n, alarm.winfo_name(),'', False, True)
+            self.save_config(self.config_name, self.sect_alarm_n, alarm_text[0],'', False, True)
             alarm.destroy()
             owner.destroy()
             clear_edit_frame()
@@ -200,7 +200,7 @@ class Alarms:
         alarm_box.bind("<Button-3>",lambda event, alarm=alarm_box: toggle_alarm(event, alarm))
 
         delete_alarm.grid(column=2, row=row_alarm + 2, padx=5, pady=1, sticky='w')
-        delete_alarm.config(command=lambda btn=alarm_box, dlt=delete_alarm: self.delete_alarm_box(btn, dlt))
+        delete_alarm.config(command=lambda btn=alarm_box, dlt=delete_alarm, alarm_text=config_alarm_text: self.delete_alarm_box(btn, dlt, alarm_text))
 
         return alarm_box
     
