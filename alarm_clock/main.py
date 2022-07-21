@@ -21,15 +21,13 @@ class AlarmApp(tk.Tk):
         self.styleName = "new.TFrame"
         self.style.configure(self.styleName, background=self.read_config("alarms_config_preferences", "style_background")) #from user
         self.geometry(self.read_config("alarms_config_preferences", "resolution"))
-        # self.update_idletasks()
         self.snoozed_time = int(self.read_config("alarms_config_preferences", "snooze_time")) #from user
         self.menu_frame = None
         self.alarm_app_frame = None
         self.stopwatch_app_frame = None
         self.timer_app_frame = None
         self.footer_frame = None
-        # print(self.read_config("list_alarms", "", True))
-
+        
     #function for read config.ini(self, config_select?, key, if true check alarms)
     def read_config(self, section_name, option_name):
         config_obj = configparser.ConfigParser()
@@ -129,9 +127,21 @@ class AlarmApp(tk.Tk):
         add_setting(top, "Snooze time(min)", 'snooze_time', 2)
         add_setting(top, "Background color", 'style_background', 3)
 
+        add_setting(top, "Select sound font size", 's_snd_font_size', 4)
+        add_setting(top, "Select sound background color", 's_snd_bg', 5)
+
+        add_setting(top, "Save button font size", 'save_btn_font_size', 6)
+        add_setting(top, "Save button background color", 'save_btn_bg', 7)
+
+        add_setting(top, "Entry hours background color", 'hours_entry_font_size', 8)
+        add_setting(top, "Entry hours background color", 'hours_entry_bg', 9)
         
+        add_setting(top, "Head label font size", 'alarm_label_font_size', 10)
+        add_setting(top, "Head label background color", 'alarm_label_bg', 11)
 
-
+        add_setting(top, "Day check boxes background color", 'check_box_bg', 12)
+    
+        # that's mess but i'll autoamte this later rather
     def create_alarm_app(self):
         day_names = []
         for day in self.read_config("alarms_config_preferences", "day_name").split(","):

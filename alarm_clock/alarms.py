@@ -27,7 +27,6 @@ class Alarms:
         # check if i can do it without assigning None
         self.snoozed_alarms = []
         self.snoozed_time = snoozed_time
-        self.music_list = []
         self.checked_days = []
         self.sounds_dir = snd_dir
 
@@ -35,6 +34,9 @@ class Alarms:
         config_obj = configparser.ConfigParser()
         config_obj.read(config_name) 
         return config_obj[key_name][option_name]
+    
+    def config_alarms_pref(self, key_name):
+        return self.read_config("config.ini", "alarms_config_preferences", key_name)
 
     def read_config_alarms(self, config_name, key_name):
         config_obj = configparser.ConfigParser()
@@ -44,15 +46,18 @@ class Alarms:
             alarms_list.append(key +"/"+config_obj[key_name][key].replace("#","\n"))
         return alarms_list     
 
-    def save_config(self, config_name, section, key_name, value="", new=False, remove=False):
+    def save_config(self, config_name, section, key_name, value):
         config_obj = configparser.ConfigParser()
         config_obj.read(config_name)
-        if new: 
-            config_obj.set(section, key_name, value)
-        elif not new and not remove:
-            config_obj.set(section, key_name, value)
-        if remove:
-            config_obj.remove_option(section, key_name)
+        # if new: 
+        config_obj.set(section, key_name, value)
+        with open(config_name, 'w') as configfile:
+            config_obj.write(configfile)
+    # splited it to remove and save because it looked like shit :O dunno
+    def remove_from_config(self, config_name, section, key_name):
+        config_obj = configparser.ConfigParser()
+        config_obj.read(config_name)
+        config_obj.remove_option(section, key_name)
         with open(config_name, 'w') as configfile:
             config_obj.write(configfile)
 
@@ -63,12 +68,15 @@ class Alarms:
 
     def __create_alarm_boxes_frame(self, append, width=30):
         self.alarms_frame = ttk.Frame(append, style=self.styleName)
-        
-        ttk.Label(self.alarms_frame, text='Alarms' , justify='center', font=('calibri', 25, 'bold'),
+        lbl_alarm_f_s = self.config_alarms_pref('lbl_alarms_font_s')
+        lbl_alarm_bg = self.config_alarms_pref('lbl_alarms_bg')
+        ttk.Label(self.alarms_frame, text='Alarms' , background=lbl_alarm_bg,justify='center', font=('calibri', lbl_alarm_f_s, 'bold'),
                   borderwidth=1, relief="solid").grid(column=0, row=0, sticky='new')
         
         # add buttons for adding new alarms
-        add_button = tk.Button(self.alarms_frame, text="Add", height=1, width=width)
+        add_bg_color = self.config_alarms_pref('add_btn_bg_color')
+        add_bg_active = self.config_alarms_pref('add_btn_bg_color_active')
+        add_button = tk.Button(self.alarms_frame, text="Add", height=1, width=width, background=add_bg_color, activebackground=add_bg_active)
 
         for index, alarm_text in enumerate(self.alarms):
             self.create_alarm(self.alarms_frame, alarm_text, index)
@@ -117,62 +125,105 @@ class Alarms:
         def clear_edit_frame():
             for widgets in self.edit_frame.winfo_children():
                 widgets.destroy()
-        # create empty array for checkboxes
-        clear_edit_frame()
-        self.music_list.clear()
-        for file in glob.glob(f"{self.sounds_dir}/*.mp3"):
-            self.music_list.append(file)
         # clear everything inside edit box
-        ttk.Label(self.edit_frame, anchor='center', width=20,
-                  font=("default", 20), text=f' {alarm["text"]}'
-                  ).grid(column=1, row=0, sticky='ns')
-        alarm_text = alarm['text'].split("\n")
+
+ 
+        def create_alarm_name_lbl():
+            bg_color = self.config_alarms_pref('alarm_label_bg')
+            font_size = self.config_alarms_pref('alarm_label_font_size')
+           
+            alarm_label = ttk.Label(self.edit_frame, anchor='center', width=20, background=bg_color,
+                font=("default", font_size), text=f' {alarm["text"]}'
+                )
+            alarm_label.grid(column=1, row=0, sticky='ns')   
+            return alarm_label
         # ttk.Label(self.edit_frame, padding=20, text=f' {b["text"]}').pack(side='top', expand=False)
         # text about what alarm is edited (i'll create these names later)
-        hours = tk.Entry(self.edit_frame, bd=1, width=10, font=("default", 40))
-        hours.grid(column=1, row=2, sticky='ns')
-        hour_text = alarm_text[0].split(":")
-        hours.insert(0, f"{hour_text[0]}:{hour_text[1]}:{hour_text[2]}")
-
-        selected_snd = tk.StringVar()
-        selected_snd.set(alarm_text[2])
-        choose_music = tk.OptionMenu(self.edit_frame, selected_snd, "",*self.music_list)
-        choose_music.grid(column=2, row=0)
-        choose_music.config()
-
+       
+        def create_hours_entry(txt):
+            bg_color = self.config_alarms_pref('hours_entry_bg')
+            font_size = self.config_alarms_pref('hours_entry_font_size')
+            hours = tk.Entry(self.edit_frame, bd=1, width=10, font=("default", font_size), background=bg_color)
+            hours.grid(column=1, row=2, sticky='nsew')
+            hour_text = txt[0].split(":")
+            hours.insert(0, f"{hour_text[0]}:{hour_text[1]}:{hour_text[2]}")
+            return hours
         # create hour Entry
         # add it to grid
         # add hour from alarm (take text from alarm_button and split it with space and :) that is editing
-        s = ttk.Style()
-        s.configure('my.TButton', font=('Helvetica', 15))
-        # only style, maybe i can change it later
-        save_btn = ttk.Button(self.edit_frame, text="Save", padding=25, style='my.TButton')
-        save_btn.config(command=lambda timer=alarm, h=hours: save_alarm(timer, h, selected_snd.get()))
-        save_btn.grid(column=2, row=2, sticky="w")
-        # save editing alarm button and add to grid
-        self.check_days.clear()
-        self.checked_days.clear()
-        for inx, day in enumerate(self.day_names):
-            check_button_day = ttk.Checkbutton(self.edit_frame, text=day)
-            if day in alarm['text']:
-                self.checked_days.append(tk.IntVar(value = 1))
-                check_button_day.config(variable=self.checked_days[inx])
-            else:
-                self.checked_days.append(tk.IntVar(value = 0))
-            check_button_day.grid(row=5 + inx, column=1, sticky='w')
-            self.check_days.append(check_button_day)
+        def create_sound_list_from_dir():
+            music_list = []
+            for file in glob.glob(f"{self.sounds_dir}/*.mp3"):
+                music_list.append(file)
+            return music_list
+
+        def create_sound_selection(txt):
+            s = ttk.Style()
+            font_size = self.config_alarms_pref('s_snd_font_size')
+            bg_color = self.config_alarms_pref('s_snd_bg')
+
+            s.configure('my.TMenubutton', font=('Helvetica', font_size), background=bg_color)
+            selected_snd = tk.StringVar()
+            selected_snd.set(txt[2])
+            choose_music = ttk.OptionMenu(self.edit_frame, selected_snd, "",*create_sound_list_from_dir(), style='my.TMenubutton')
+            choose_music.grid(column=2, row=0, sticky="nsew")
+            choose_music.config()
+            return selected_snd
+
+        def create_save_button(hours, selected_snd):
+            font_size = self.config_alarms_pref('save_btn_font_size')
+            bg_color = self.config_alarms_pref('save_btn_bg')
+            bg_active = self.config_alarms_pref('save_btn_bg_active')
+            save_btn = tk.Button(self.edit_frame, text="Save", background=bg_color, activebackground=bg_active, font=('Helvetica', font_size))
+            save_btn.config(command=lambda timer=alarm, h=hours: save_alarm(timer, h, selected_snd.get()))
+            save_btn.grid(column=2, row=2, sticky="nsew")
+
+        def create_checkbox_days():
+            s_frame = ttk.Style()
+            bg_color = self.config_alarms_pref('style_background')
+            s_frame.configure('my.TFrame', background=bg_color)
+
+            checkbox_days_frame = ttk.Frame(self.edit_frame, style="my.TFrame")
+            checkbox_days_frame.grid(row=5, column=0, columnspan=len(self.day_names), sticky="nsew")
+
+            s_check_bx = ttk.Style()
+            bg_color_check_btn = self.config_alarms_pref('check_box_bg')
+            s_check_bx.configure('my.TCheckbutton', background=bg_color_check_btn)
+  
+            # save editing alarm button and add to grid
+            self.check_days.clear()
+            self.checked_days.clear()
+            for indx, day in enumerate(self.day_names):
+                check_button_day = ttk.Checkbutton(checkbox_days_frame, text=day, style='my.TCheckbutton')
+                if day in alarm['text']:
+                    self.checked_days.append(tk.IntVar(value = 1))
+                    check_button_day.config(variable=self.checked_days[indx])
+                else:
+                    self.checked_days.append(tk.IntVar(value = 0))
+                check_button_day.grid(row=0, column=indx, sticky='w')
+                self.check_days.append(check_button_day)
+            # this loop is creating each day of the week and add it to checkbutton in array and add to grid
+ 
         
-            
+        def create_edit_appearance():
+            alarm_text = alarm['text'].split("\n")
+            clear_edit_frame()
+            alarm_label = create_alarm_name_lbl()
+            hours_entry = create_hours_entry(alarm_text)
+            selected_snd = create_sound_selection(alarm_text)
+            save_btn = create_save_button(hours_entry, selected_snd)
+            create_checkbox_days()
         
-    # this loop is creating each day of the week and add it to checkbutton in array and add to grid
-   
-    def delete_alarm_box(self, alarm, owner, alarm_text):
+        create_edit_appearance()
+
+
+  
+    def remove_alarm_box(self, alarm, owner, alarm_text):
             def clear_edit_frame():
                 for widgets in self.edit_frame.winfo_children():
                     widgets.destroy()
 
-            print(f"[delete_alarm_box]: alarm: {alarm} - owner: {owner}")
-            self.save_config(self.config_name, self.sect_alarm_n, alarm_text[0],'', False, True)
+            self.remove_from_config(self.config_name, self.sect_alarm_n, alarm_text[0])
             alarm.destroy()
             owner.destroy()
             clear_edit_frame()
@@ -195,8 +246,13 @@ class Alarms:
         height = 3
         width = 30
         
-        alarm_box = tk.Button(append, text=config_alarm_text[1], width=width, height=height, name=f"alarm_box{row_alarm}")
-        delete_alarm = tk.Button(append, text='x', height=height // 2, width=width // 5)
+        alarm_bg_color = self.config_alarms_pref('alarm_box_bg')
+        alarm_bg_color_active = self.config_alarms_pref('alarm_box_bg_active')
+        alarm_box = tk.Button(append, text=config_alarm_text[1], background=alarm_bg_color, activebackground=alarm_bg_color_active,width=width, height=height, name=f"alarm_box{row_alarm}")
+
+        delete_bg_color = self.config_alarms_pref('delete_bg_color')
+        delete_bg_color_active = self.config_alarms_pref('delete_bg_color_active')
+        delete_alarm = tk.Button(append, text='x', background=delete_bg_color, activebackground=delete_bg_color_active, height=height // 2, width=width // 5)
  
         alarm_box.grid(column=0, row=row_alarm + 2)
         alarm_box.config(state=config_alarm_text[2], command=lambda btn=alarm_box, alarm_text=config_alarm_text: self.edit_alarm(btn, alarm_text))
@@ -205,12 +261,12 @@ class Alarms:
         alarm_box.bind("<Button-3>",lambda event, alarm=alarm_box: toggle_alarm(event, alarm))
 
         delete_alarm.grid(column=2, row=row_alarm + 2, padx=5, pady=1, sticky='w')
-        delete_alarm.config(command=lambda btn=alarm_box, dlt=delete_alarm, alarm_text=config_alarm_text: self.delete_alarm_box(btn, dlt, alarm_text))
+        delete_alarm.config(command=lambda btn=alarm_box, dlt=delete_alarm, alarm_text=config_alarm_text: self.remove_alarm_box(btn, dlt, alarm_text))
 
         return alarm_box
     
     # delete buttons that are right near alarm that user want to delete
-    # the buttons are calling function delete_alarm_box which are deleting
+    # the buttons are calling function remove_alarm_box which are deleting
     # them and 'their' alarm to which they are bounded to
 
 
@@ -224,7 +280,7 @@ class Alarms:
         alarm_text = f"alarm_box{row_alarm_box}/"+dt_string + "\n" + today_name + "\nNone/disabled"
         name_alarm = self.create_alarm(frame, alarm_text, row_alarm_box)
         config_alarm_txt = alarm_text.split("/")[1].replace("\n", '#') +"/"+ alarm_text.split("/")[2].replace("\n", '#')
-        self.save_config(self.config_name, self.sect_alarm_n, f"alarm_box{row_alarm_box}", config_alarm_txt, True)
+        self.save_config(self.config_name, self.sect_alarm_n, f"alarm_box{row_alarm_box}", config_alarm_txt)
     # function which for add new alarm box
 
     def check_alarms(self):

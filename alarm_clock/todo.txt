@@ -51,4 +51,5 @@ all app:
         change resolution
         change snooze time
         change color
+        all settings should be 'separate' by section fe: [alarms_box_pref][save_btn_pref]
             thats all save to config by 'save'
