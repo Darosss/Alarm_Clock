@@ -9,6 +9,7 @@ from datetime import timedelta
 import glob2 as glob
 
 
+
 class Alarms:
     def __init__(self, app_window, alarms, style, day_names, snoozed_time):
         # init(self, aplication tk, alarms from config, style from user, day_names from user, snooze time from user)
@@ -42,12 +43,14 @@ class Alarms:
         # debug alarm is 5 sec from start program
         # for loop for every alarm giving in config or default
         # should now change it to config 
-        for i in range(count):
-            seconds = 12 + (i * 25)
-            soon = datetime.now() + timedelta(seconds=seconds)
-            dt_string = soon.strftime("%H:%M:%S")
-            today = soon.strftime("%a")
-            self.create_alarm(self.alarms_frame, f"{dt_string}\n{today}\n{config_sound}", i)
+        # for i in range(count):
+        #     seconds = 12 + (i * 25)
+        #     soon = datetime.now() + timedelta(seconds=seconds)
+        #     dt_string = soon.strftime("%H:%M:%S")
+        #     today = soon.strftime("%a")
+        #     self.create_alarm(self.alarms_frame, f"{dt_string}\n{today}\n{config_sound}", i)
+        for index, alarm_text in enumerate(self.alarms):
+            self.create_alarm(self.alarms_frame, alarm_text, index)
 
         self.alarms_frame.config(borderwidth=15, relief='sunken')
         self.alarms_frame.grid(column=1, row=0, sticky="nsew")

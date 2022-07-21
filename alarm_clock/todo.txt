@@ -10,7 +10,13 @@ all:
 alarm:
     do alarms:
         alarms from config
+            alarmy z configow pobiernaie - done
+            alarmy add do konfiga
+            alarm edit do konfiga
+
+            
                 opcja uploadu soundsow(no needed)
+
 
 
 stopwatch:
@@ -32,3 +38,10 @@ all look:
     when all finished:
         repair classes / functions
         better appeareacne
+
+all app:
+    popup menu:
+        change resolution
+        change snooze time
+        change color
+            thats all save to config by 'save'

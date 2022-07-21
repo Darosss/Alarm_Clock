@@ -3,10 +3,12 @@ import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
 from datetime import timedelta
+from turtle import bgcolor
 from playsound import playsound
 from alarms import Alarms
 from stopwatch import Stopwatch
 from timer import Timer
+import configparser
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
 
@@ -15,22 +17,29 @@ class AlarmApp(tk.Tk):
     def __init__(self, height, width, title):
         super().__init__()
         self.title(title)
-        self.height = height #from user
-        self.width = width #from user
-        self.geometry(f'{self.height}x{self.width}')
-        self.config(bg='gray') #from user
-        self.update_idletasks()
-        self.snoozed_time = 1 #from user
         self.style = ttk.Style()
         self.styleName = "new.TFrame"
-        self.style.configure(self.styleName, foreground="gray", background="#0f284f") #from user
-        self.day_names = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] #from user
+        self.style.configure(self.styleName, background=self.read_config("alarms_app_style", "style_background")) #from user
+        self.geometry(self.read_config("alarms_config_preferences", "resolution"))
+        self.update_idletasks()
+        self.snoozed_time = int(self.read_config("alarms_config_preferences", "snooze_time")) #from user
         self.menu_frame = None
         self.alarm_app_frame = None
         self.stopwatch_app_frame = None
         self.timer_app_frame = None
         self.footer_frame = None
-        # describe all days of the week(maybe just for now)
+        print(self.read_config("list_alarms", "", True))
+
+    def read_config(self, config_name, option_name, alarms=False):
+        config_obj = configparser.ConfigParser()
+        config_obj.read("config.ini")
+        alarms_list = []
+        if alarms:
+            for key in config_obj[config_name]:
+                alarms_list.append(config_obj[config_name][key].replace("#","\n"))
+            return alarms_list     
+        
+        return config_obj[config_name][option_name]
 
     def create_scrollbar(self):
         pass
@@ -84,13 +93,18 @@ class AlarmApp(tk.Tk):
 
         return self.footer_frame
 
-    def create_alarm_app(self, config):
+    def create_alarm_app(self):
+        alarm_config = self.read_config("list_alarms", "", True)
+        day_names = []
+        for day in self.read_config("alarms_config_preferences", "day_name").split(","):
+            day_names.append(day)
+        
         self.alarm_app_frame = ttk.Frame(self, style=self.styleName, name='alarm_app')
         # self.alarm_app_frame.grid(column=0, row=1, columnspan=2, sticky="nsew")
         self.alarm_app_frame.columnconfigure(0, weight=1)
         self.alarm_app_frame.columnconfigure(1, weight=1)
         self.alarm_app_frame.rowconfigure(0, weight=1)
-        alarms = Alarms(self, config, self.styleName, self.day_names, self.snoozed_time)
+        alarms = Alarms(self, alarm_config, self.styleName , day_names, self.snoozed_time)
         alarms_list = alarms.create_frames_for_alarm(self.alarm_app_frame, 'sounds\\3.mp3', 5)
         alarms.set_alarms()
         return self.alarm_app_frame
@@ -136,7 +150,7 @@ def run_program():
     footer = app.create_footer_app()
 
     # menu grid append
-    alarms = app.create_alarm_app(None)
+    alarms = app.create_alarm_app()
     stopwatch = app.create_stopwatch_app(None)
     timer = app.create_timer_app(None)
     app.show_app(alarms)
