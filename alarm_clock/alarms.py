@@ -23,7 +23,7 @@ class Alarms:
         self.day_names = day_names
         self.edit_frame = None
         self.alarms_frame = None
-        self.check_days = [None] * len(self.day_names)
+        self.check_days = []
         # check if i can do it without assigning None
         self.snoozed_alarms = []
         self.snoozed_time = snoozed_time
@@ -47,7 +47,7 @@ class Alarms:
     def save_config(self, config_name, section, key_name, value="", new=False, remove=False):
         config_obj = configparser.ConfigParser()
         config_obj.read(config_name)
-        if new:
+        if new: 
             config_obj.set(section, key_name, value)
         elif not new and not remove:
             config_obj.set(section, key_name, value)
@@ -96,9 +96,7 @@ class Alarms:
                     info_btn_save.grid(column=2, row=4, sticky="w")
                     return
                 info_btn_save.grid_remove()
-
             # info_save is giving info about what should be added for alarm to work
-
             new_alarm = f"{hour.get()}\n"
             found = False
             for d in self.check_days:
@@ -152,12 +150,13 @@ class Alarms:
         save_btn.config(command=lambda timer=alarm, h=hours: save_alarm(timer, h, selected_snd.get()))
         save_btn.grid(column=2, row=2, sticky="w")
         # save editing alarm button and add to grid
-
+        self.check_days.clear()
         for inx, day in enumerate(self.day_names):
-            self.check_days[inx] = ttk.Checkbutton(self.edit_frame, text=day)
+            check_button_day = ttk.Checkbutton(self.edit_frame, text=day)
             if day in alarm['text']:
-                self.check_days[inx].config(variable=self.check_day)
-            self.check_days[inx].grid(row=5 + inx, column=1, sticky='w')
+                check_button_day.config(variable=self.check_day)
+            check_button_day.grid(row=5 + inx, column=1, sticky='w')
+            self.check_days.append(check_button_day)
     # this loop is creating each day of the week and add it to checkbutton in array and add to grid
    
     def delete_alarm_box(self, alarm, owner, alarm_text):
