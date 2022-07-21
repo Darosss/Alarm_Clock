@@ -13,11 +13,11 @@ import glob2 as glob
 
 
 class Alarms:
-    def __init__(self, app_window, config_name, style, day_names, snoozed_time):
+    def __init__(self, app_window, config_name, snd_dir,style, day_names, snoozed_time):
         # init(self, aplication tk, alarms from config, style from user, day_names from user, snooze time from user)
         self.config_name = config_name
         self.sect_alarm_n = "list_alarms"
-        self.alarms = self.read_config(self.config_name, self.sect_alarm_n)
+        self.alarms = self.read_config_alarms(self.config_name, self.sect_alarm_n)
         self.styleName = style
         self.app_window = app_window
         self.day_names = day_names
@@ -29,14 +29,19 @@ class Alarms:
         self.snoozed_time = snoozed_time
         self.music_list = []
         self.check_day = tk.IntVar(value=1)
+        self.sounds_dir = snd_dir
 
+    def read_config(self, config_name, key_name, option_name):
+        config_obj = configparser.ConfigParser()
+        config_obj.read(config_name) 
+        return config_obj[key_name][option_name]
 
-    def read_config(self, config_name, key_name):
+    def read_config_alarms(self, config_name, key_name):
         config_obj = configparser.ConfigParser()
         config_obj.read(config_name)
         alarms_list = []
         for key in config_obj[key_name]:
-            alarms_list.append(config_obj[key_name][key].replace("#","\n"))
+            alarms_list.append(key +"/"+config_obj[key_name][key].replace("#","\n"))
         return alarms_list     
 
     def save_config(self, config_name, section, name, value="", new=False, remove=False):
@@ -91,7 +96,7 @@ class Alarms:
         self.__create_edit_alarm_frame(append)
     #create inside frames for editing and normal alarms
 
-    def edit_alarm(self, alarm):
+    def edit_alarm(self, alarm, alarm_config_txt):
         def save_alarm(what_save, hour, snd_save):
             def info_save(remove=False):
                 info_btn_save = ttk.Label(self.edit_frame)
@@ -116,7 +121,8 @@ class Alarms:
                 return
             # check every check box with day if it's selected
             what_save['text'] = new_alarm
-            self.save_config(self.config_name, self.sect_alarm_n, what_save.winfo_name(), new_alarm.replace("\n", '#'))
+            new_alarm += "/normal"
+            self.save_config(self.config_name, self.sect_alarm_n, alarm_config_txt[0], new_alarm.replace("\n", '#'))
             # add hours and days to editing alarm
 
         def clear_edit_frame():
@@ -125,7 +131,7 @@ class Alarms:
         # create empty array for checkboxes
         clear_edit_frame()
         self.music_list.clear()
-        for file in glob.glob("sounds/*.mp3"):
+        for file in glob.glob(f"{self.sounds_dir}/*.mp3"):
             self.music_list.append(file)
         # clear everything inside edit box
         ttk.Label(self.edit_frame, anchor='center', width=20,
@@ -175,33 +181,37 @@ class Alarms:
             clear_edit_frame()
     # that's function that is destroying described above
 
-    def create_alarm(self, append, text, row_alarm): 
-        # state = 'disabled' should be from config: 
-        # is alarm on or off by user
+    def create_alarm(self, append, text, row_alarm):
+        config_alarm_text = text.split("/") 
 
         # plan is that program will read config file at the start and check
         # how many alarms is used and create them at start of program
         # if there are none, it will load default fe. 5 alarms
         def toggle_alarm(e, alarm):
+            text_alarm = self.read_config(self.config_name, self.sect_alarm_n, config_alarm_text[0])
             if alarm['state'] == 'disabled':
-                alarm.config(state="normal")
+                alarm.config(state="normal") 
+                
+                self.save_config(self.config_name, self.sect_alarm_n, config_alarm_text[0], text_alarm.replace("disabled","normal"))
                 return
+            self.save_config(self.config_name, self.sect_alarm_n, config_alarm_text[0], text_alarm.replace("normal","disabled"))
             alarm.config(state="disabled")
         height = 3
         width = 30
-        delete_txt = "x"
-        alarm_box = tk.Button(append, text=text, width=width, height=height, name=f"alarm_box{row_alarm}")
-        delete_alarm = tk.Button(append, text=delete_txt, height=height // 2, width=width // 5)
+        
+        alarm_box = tk.Button(append, text=config_alarm_text[1], width=width, height=height, name=f"alarm_box{row_alarm}")
+        delete_alarm = tk.Button(append, text='x', height=height // 2, width=width // 5)
  
         alarm_box.grid(column=0, row=row_alarm + 2)
-        alarm_box.config(state="disabled", command=lambda btn=alarm_box: self.edit_alarm(btn))
+        alarm_box.config(state=config_alarm_text[2], command=lambda btn=alarm_box, alarm_text=config_alarm_text: self.edit_alarm(btn, alarm_text))
+
 
         alarm_box.bind("<Button-3>",lambda event, alarm=alarm_box: toggle_alarm(event, alarm))
 
         delete_alarm.grid(column=4, row=row_alarm + 2, padx=5, pady=1, sticky='w')
         delete_alarm.config(command=lambda btn=alarm_box, dlt=delete_alarm: self.delete_alarm_box(btn, dlt))
 
-        return alarm_box.winfo_name()
+        return alarm_box
     
     # delete buttons that are right near alarm that user want to delete
     # the buttons are calling function delete_alarm_box which are deleting
@@ -216,7 +226,7 @@ class Alarms:
         alarm_text = dt_string + "\n" + today_name + "\nNone"
         row_alarm_box = frame.grid_size()[1]
         name_alarm = self.create_alarm(frame, alarm_text, row_alarm_box)
-        self.save_config(self.config_name, self.sect_alarm_n, name_alarm, alarm_text.replace("\n", '#'), True)
+        self.save_config(self.config_name, self.sect_alarm_n, name_alarm.winfo_name(), alarm_text.replace("\n", '#'), True)
     # function which for add new alarm box
 
     def check_alarms(self):
