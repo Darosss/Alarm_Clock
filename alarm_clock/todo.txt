@@ -9,12 +9,13 @@ all:
 
 alarm:
     do alarms:
-        alarms from config
-            alarmy z configow pobiernaie - done
-            alarmy add do konfiga
-            alarm edit do konfiga
+                                #alarms from config
+            alarm description
+                                #alarmy z configow pobiernaie
+                                #alarmy add do konfiga
+                                #alarm edit do konfiga 
 
-            lewy edit / prawy wlacz alarm / delete turned on
+                                #lewy edit / prawy wlacz alarm / delete turned on - done
             
                 opcja uploadu soundsow(no needed)
 
@@ -22,11 +23,11 @@ alarm:
 
 stopwatch:
     do stopwatch:
-        set time
-        count time
-        pause time
-        save time
-        list all stopwatch
+                                set time
+                                count time
+                                pause time
+                                save time
+                                list all stopwatch
         description fo stopwatch
 timer:
     do timer:
@@ -42,6 +43,11 @@ all look:
 
 all app:
     popup menu:
+        setting:
+            take data from config and put it in Entry
+            if changed and clickes Save = save config values
+            Make default settings with button
+            
         change resolution
         change snooze time
         change color

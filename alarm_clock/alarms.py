@@ -44,15 +44,15 @@ class Alarms:
             alarms_list.append(key +"/"+config_obj[key_name][key].replace("#","\n"))
         return alarms_list     
 
-    def save_config(self, config_name, section, name, value="", new=False, remove=False):
+    def save_config(self, config_name, section, key_name, value="", new=False, remove=False):
         config_obj = configparser.ConfigParser()
         config_obj.read(config_name)
         if new:
-            config_obj.set(section, name, value)
+            config_obj.set(section, key_name, value)
         elif not new and not remove:
-            config_obj.set(section, name, value)
+            config_obj.set(section, key_name, value)
         if remove:
-            config_obj.remove_option(section, name)
+            config_obj.remove_option(section, key_name)
         with open(config_name, 'w') as configfile:
             config_obj.write(configfile)
 
@@ -174,7 +174,6 @@ class Alarms:
 
     def create_alarm(self, append, text, row_alarm):
         config_alarm_text = text.split("/") 
-        print(config_alarm_text)
         # plan is that program will read config file at the start and check
         # how many alarms is used and create them at start of program
         # if there are none, it will load default fe. 5 alarms
@@ -217,7 +216,6 @@ class Alarms:
 
         row_alarm_box = frame.grid_size()[1]
         alarm_text = f"alarm_box{row_alarm_box}/"+dt_string + "\n" + today_name + "\nNone/disabled"
-        print(alarm_text)
         name_alarm = self.create_alarm(frame, alarm_text, row_alarm_box)
         config_alarm_txt = alarm_text.split("/")[1].replace("\n", '#') +"/"+ alarm_text.split("/")[2].replace("\n", '#')
         self.save_config(self.config_name, self.sect_alarm_n, f"alarm_box{row_alarm_box}", config_alarm_txt, True)
