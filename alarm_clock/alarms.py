@@ -28,7 +28,7 @@ class Alarms:
         self.snoozed_alarms = []
         self.snoozed_time = snoozed_time
         self.music_list = []
-        self.check_day = tk.IntVar(value=1)
+        self.checked_days = []
         self.sounds_dir = snd_dir
 
     def read_config(self, config_name, key_name, option_name):
@@ -151,12 +151,19 @@ class Alarms:
         save_btn.grid(column=2, row=2, sticky="w")
         # save editing alarm button and add to grid
         self.check_days.clear()
+        self.checked_days.clear()
         for inx, day in enumerate(self.day_names):
             check_button_day = ttk.Checkbutton(self.edit_frame, text=day)
             if day in alarm['text']:
-                check_button_day.config(variable=self.check_day)
+                self.checked_days.append(tk.IntVar(value = 1))
+                check_button_day.config(variable=self.checked_days[inx])
+            else:
+                self.checked_days.append(tk.IntVar(value = 0))
             check_button_day.grid(row=5 + inx, column=1, sticky='w')
             self.check_days.append(check_button_day)
+        
+            
+        
     # this loop is creating each day of the week and add it to checkbutton in array and add to grid
    
     def delete_alarm_box(self, alarm, owner, alarm_text):
