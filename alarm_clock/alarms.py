@@ -61,7 +61,7 @@ class Alarms:
         self.edit_frame.grid(column=0, row=0, sticky="nsew")
     # function for creating editing for alarm frame
 
-    def __create_alarm_boxes_frame(self, append, config_sound, count, width=30):
+    def __create_alarm_boxes_frame(self, append, width=30):
         self.alarms_frame = ttk.Frame(append, style=self.styleName)
         
         ttk.Label(self.alarms_frame, text='Alarms' , justify='center', font=('calibri', 25, 'bold'),
@@ -69,16 +69,7 @@ class Alarms:
         
         # add buttons for adding new alarms
         add_button = tk.Button(self.alarms_frame, text="Add", height=1, width=width)
-        
-        # debug alarm is 5 sec from start program
-        # for loop for every alarm giving in config or default
-        # should now change it to config 
-        # for i in range(count):
-        #     seconds = 12 + (i * 25)
-        #     soon = datetime.now() + timedelta(seconds=seconds)
-        #     dt_string = soon.strftime("%H:%M:%S")
-        #     today = soon.strftime("%a")
-        #     self.create_alarm(self.alarms_frame, f"{dt_string}\n{today}\n{config_sound}", i)
+
         for index, alarm_text in enumerate(self.alarms):
             self.create_alarm(self.alarms_frame, alarm_text, index)
 
@@ -91,8 +82,8 @@ class Alarms:
         return self.alarms_frame
     #create all alarms etc. it should be from config
 
-    def create_frames_for_alarm(self, append, config_sound, config_count):
-        self.__create_alarm_boxes_frame(append, config_sound, config_count)
+    def create_frames_for_alarm(self, append):
+        self.__create_alarm_boxes_frame(append)
         self.__create_edit_alarm_frame(append)
     #create inside frames for editing and normal alarms
 
@@ -183,7 +174,7 @@ class Alarms:
 
     def create_alarm(self, append, text, row_alarm):
         config_alarm_text = text.split("/") 
-
+        print(config_alarm_text)
         # plan is that program will read config file at the start and check
         # how many alarms is used and create them at start of program
         # if there are none, it will load default fe. 5 alarms
@@ -208,7 +199,7 @@ class Alarms:
 
         alarm_box.bind("<Button-3>",lambda event, alarm=alarm_box: toggle_alarm(event, alarm))
 
-        delete_alarm.grid(column=4, row=row_alarm + 2, padx=5, pady=1, sticky='w')
+        delete_alarm.grid(column=2, row=row_alarm + 2, padx=5, pady=1, sticky='w')
         delete_alarm.config(command=lambda btn=alarm_box, dlt=delete_alarm: self.delete_alarm_box(btn, dlt))
 
         return alarm_box
@@ -223,10 +214,13 @@ class Alarms:
         now = datetime.now()
         dt_string = now.strftime("%H:%M:%S")
         today_name = now.strftime("%a")
-        alarm_text = dt_string + "\n" + today_name + "\nNone"
+
         row_alarm_box = frame.grid_size()[1]
+        alarm_text = f"alarm_box{row_alarm_box}/"+dt_string + "\n" + today_name + "\nNone/disabled"
+        print(alarm_text)
         name_alarm = self.create_alarm(frame, alarm_text, row_alarm_box)
-        self.save_config(self.config_name, self.sect_alarm_n, name_alarm.winfo_name(), alarm_text.replace("\n", '#'), True)
+        config_alarm_txt = alarm_text.split("/")[1].replace("\n", '#') +"/"+ alarm_text.split("/")[2].replace("\n", '#')
+        self.save_config(self.config_name, self.sect_alarm_n, f"alarm_box{row_alarm_box}", config_alarm_txt, True)
     # function which for add new alarm box
 
     def check_alarms(self):

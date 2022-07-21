@@ -99,7 +99,7 @@ class AlarmApp(tk.Tk):
         self.alarm_app_frame.columnconfigure(1, weight=1)
         self.alarm_app_frame.rowconfigure(0, weight=1)
         alarms = Alarms(self, "config.ini", 'sounds', self.styleName , day_names, self.snoozed_time)
-        alarms_list = alarms.create_frames_for_alarm(self.alarm_app_frame, 'sounds\\3.mp3', 5)
+        alarms_list = alarms.create_frames_for_alarm(self.alarm_app_frame)
         alarms.set_alarms()
         return self.alarm_app_frame
 
