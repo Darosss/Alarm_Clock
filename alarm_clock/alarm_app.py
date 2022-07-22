@@ -46,25 +46,29 @@ class AlarmApp(tk.Tk):
     
     # menu: stopwatch, egg timer, alarms
     def create_menu_app(self):
-        self.menu_frame = ttk.Frame(self, style=self.styleName, name="menu")
-        self.menu_frame['borderwidth'] = 15
-        self.menu_frame['relief'] = 'groove'
-        menu_btn_alarms = tk.Button(self.menu_frame, text='Alarms', width=40,
-                                    command=lambda: self.clear_and_show_clicked(self.alarm_app_frame)
-                                    ).pack(side='left', expand=True)
+        def create_menu_button(text, bg, bgactive, frame):
+            btn = tk.Button(self.menu_frame, text=text, 
+                            background=bg, activebackground=bgactive, 
+                            width=40,
+                            command=lambda f=frame: self.clear_and_show_clicked(f)
+                            )
+            return btn
+        menu_btn_bg = self.config.get_key("app_setting", "menu_btn_bg")
+        menu_btn_bg_active = self.config.get_key("app_setting", "menu_btn_bg_active")
+        self.menu_frame = ttk.Frame(self, style=self.styleName, name="menu", borderwidth=15, relief="sunken")
 
-        menu_btn_stopwatch = tk.Button(self.menu_frame, text='Stopwatch', width=40,
-                                       command=lambda: self.clear_and_show_clicked(self.stopwatch_app_frame)
-                                       ).pack(side='left', expand=True)
-        menu_btn_timer = tk.Button(self.menu_frame, text='Timer', width=40,
-                                   command=lambda: self.clear_and_show_clicked(self.timer_app_frame)
-                                                                               ).pack(side='left', expand=True)
+        menu_btn_alarms = create_menu_button("Alarms", menu_btn_bg, menu_btn_bg_active, self.alarm_app_frame)   
+        menu_btn_stopwatch = create_menu_button("Stopwatch", menu_btn_bg, menu_btn_bg_active, self.stopwatch_app_frame)
+        menu_btn_timer = create_menu_button("Timer", menu_btn_bg, menu_btn_bg_active, self.timer_app_frame)                                                  
+        menu_btn_alarms.pack(side='left', expand=True)
+        menu_btn_stopwatch.pack(side='left', expand=True)
+        menu_btn_timer.pack(side='left', expand=True)
 
         self.menu_frame.grid(column=0, row=0, columnspan=2, sticky="nsew")
         return self.menu_frame
 
-
     def clear_and_show_clicked(self, what):
+        print(what)
         for slave in self.grid_slaves(row=1, column=0):
             print(slave)
             slave.grid_forget()
@@ -73,6 +77,11 @@ class AlarmApp(tk.Tk):
         what.grid(column=0, row=1, columnspan=2, sticky="nsew")
 
     def create_footer_app(self):
+        def time():
+            time_now = datetime.now().strftime("%H:%M:%S")
+            time_label.config(text=time_now)
+            time_label.after(1000, time)
+
         self.footer_frame = ttk.Frame(self, style=self.styleName, name='footer', borderwidth=15, relief="groove")
         self.footer_frame .columnconfigure(0, weight=1)
         time_label = ttk.Label(self.footer_frame, justify='center',
@@ -80,12 +89,6 @@ class AlarmApp(tk.Tk):
         
         button_setting = ttk.Button(self.footer_frame, text="SETTINGS")
         button_setting.config(command=self.setting_window_popup)
-        
-
-        def time():
-            time_now = datetime.now().strftime("%H:%M:%S")
-            time_label.config(text=time_now)
-            time_label.after(1000, time)
         # watch this will be changed for down timer or upper i mean for every other application
         time()
 
@@ -101,6 +104,7 @@ class AlarmApp(tk.Tk):
                 if slave.widgetName == 'entry':
                     sect_and_key = slave.winfo_name().split("/")
                     self.config.save_config(sect_and_key[0], sect_and_key[1], slave.get())
+       
         def add_header_label(header_name):
             row_grid = top.grid_size()[1] + 1
             ttk.Label(top, text=header_name, justify='center', background="lightblue").grid(column=0, columnspan=2, row = row_grid, sticky="e")
@@ -122,6 +126,8 @@ class AlarmApp(tk.Tk):
                 add_setting(sett_descrip, section_name, sett_key_name, index)
                 
         top = tk.Toplevel(self)
+        top.geometry("750x250")
+        top.title('Settings')
         top.columnconfigure(0, weight=1)
         top.columnconfigure(1, weight=1)
         top.columnconfigure(2, weight=1)
@@ -130,8 +136,7 @@ class AlarmApp(tk.Tk):
         save_btn = ttk.Button(top, text="Save")
         save_btn.grid(column=2, row=0)
         save_btn.config(command = lambda : save_settings())
-        top.geometry("750x250")
-        top.title('Settings')
+        
         
         write_config_settings("app_setting")
         write_config_settings("alarms_settings")

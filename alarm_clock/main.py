@@ -10,13 +10,13 @@ def run_program():
     app.rowconfigure(2, weight=1)
     # alarm.rowconfigure(0, weight=1) jesli wieksze menu
 
-    menu = app.create_menu_app()
     footer = app.create_footer_app()
 
     # menu grid append
     alarms = app.create_alarm_app()
     stopwatch = app.create_stopwatch_app(None)
     timer = app.create_timer_app(None)
+    menu = app.create_menu_app()
     app.show_app(alarms)
     app.mainloop()
 
