@@ -11,16 +11,16 @@ import configparser
 
 
 class AlarmApp(tk.Tk):
-    def __init__(self, height, width, title):
+    def __init__(self, title):
         super().__init__()
         self.title(title)
         self.config_name = "config.ini"
-        self.config = Config(config_name)
+        self.config = Config(self.config_name)
         self.style = ttk.Style()
         self.styleName = "new.TFrame"
-        self.style.configure(self.styleName, background=self.read_config("app_setting", "style_background")) #from user
-        self.geometry(self.read_config("app_setting", "resolution"))
-        self.snoozed_time = int(self.read_config("alarms_settings", "snooze_time")) #from user
+        self.style.configure(self.styleName, background=self.config.get_key("app_setting", "style_background")) #from user
+        self.geometry(self.config.get_key("app_setting", "resolution"))
+        self.snoozed_time = int(self.config.get_key("alarms_settings", "snooze_time")) #from user
         self.menu_frame = None
         self.alarm_app_frame = None
         self.stopwatch_app_frame = None
@@ -73,17 +73,14 @@ class AlarmApp(tk.Tk):
         what.grid(column=0, row=1, columnspan=2, sticky="nsew")
 
     def create_footer_app(self):
-        self.footer_frame = ttk.Frame(self, style=self.styleName, name='footer')
-        self.footer_frame['borderwidth'] = 15
-        self.footer_frame['relief'] = 'groove'
+        self.footer_frame = ttk.Frame(self, style=self.styleName, name='footer', borderwidth=15, relief="groove")
         self.footer_frame .columnconfigure(0, weight=1)
         time_label = ttk.Label(self.footer_frame, justify='center',
                                font=('calibri', 25, 'bold'), borderwidth=1, relief="solid")
-        time_label.grid(column=2, row=0, sticky='nsew')
-
+        
         button_setting = ttk.Button(self.footer_frame, text="SETTINGS")
         button_setting.config(command=self.setting_window_popup)
-        button_setting.grid(column=0, row=0, sticky="nsw")
+        
 
         def time():
             time_now = datetime.now().strftime("%H:%M:%S")
@@ -92,59 +89,58 @@ class AlarmApp(tk.Tk):
         # watch this will be changed for down timer or upper i mean for every other application
         time()
 
+        button_setting.grid(column=0, row=0, sticky="nsw")
+        time_label.grid(column=2, row=0, sticky='nsew')
         self.footer_frame.grid(column=0, row=2, columnspan=2, sticky="nsew")
 
         return self.footer_frame
 
     def setting_window_popup(self):
-        pass
-    #     def save_settings():
-    #         print(top.grid_slaves())
-    #         for slave in top.grid_slaves():
-    #             if slave.widgetName == 'entry':
-    #                 self.save_config('alarms_config_preferences', slave.winfo_name(), slave.get())
+        def save_settings():
+            for slave in top.grid_slaves():
+                if slave.widgetName == 'entry':
+                    sect_and_key = slave.winfo_name().split("/")
+                    self.config.save_config(sect_and_key[0], sect_and_key[1], slave.get())
+        def add_header_label(header_name):
+            row_grid = top.grid_size()[1] + 1
+            ttk.Label(top, text=header_name, justify='center', background="lightblue").grid(column=0, columnspan=2, row = row_grid, sticky="e")
 
-    #     def add_setting(append, sett_name, option_conf, row, width=20):
-    #         ttk.Label(append, text=sett_name).grid(column=0, row = row)
-    #         res_entry = tk.Entry(append, width=width, name=option_conf)
-    #         res_entry.insert(0, self.read_config('alarms_config_preferences',option_conf))
-    #         res_entry.grid(column = 1, row = row)
+        def add_setting(sett_descr, section_name, option_name, row, width=20):
+            row_grid = top.grid_size()[1] + row
+            ttk.Label(top, text=sett_descr, background="lightblue").grid(column=0, row = row_grid, sticky="nse")
+            res_entry = tk.Entry(top, width=width, name=f"{section_name}/{option_name}")
+            res_entry.insert(0, self.config.get_key(section_name, option_name))
+            res_entry.grid(column = 1, row = row_grid, sticky="nsew")
 
-    #     top = tk.Toplevel(self)
-    #     top.columnconfigure(0, weight=1)
-    #     top.columnconfigure(1, weight=1)
-    #     top.columnconfigure(2, weight=1)
+        def write_config_settings(section_name):
+            alarms_appearance = self.config.get_sections_keys(section_name, False)
+            add_header_label(section_name)
+            for index, sett in enumerate(alarms_appearance):
+                sett_split = sett.split("/")
+                sett_key_name = sett_split[0]
+                sett_descrip = sett_split[1].split("#")[1]
+                add_setting(sett_descrip, section_name, sett_key_name, index)
+                
+        top = tk.Toplevel(self)
+        top.columnconfigure(0, weight=1)
+        top.columnconfigure(1, weight=1)
+        top.columnconfigure(2, weight=1)
 
 
-    #     save_btn = ttk.Button(top, text="Save")
-    #     save_btn.grid(column=2, row=0)
-    #     save_btn.config(command = lambda: save_settings())
-    #     top.geometry("750x250")
-    #     top.title('Settings')
-
-    #     add_setting(top, "Resolution", 'resolution', 0)
-    #     add_setting(top, "Names of day", 'day_name', 1, 40)
-    #     add_setting(top, "Snooze time(min)", 'snooze_time', 2)
-    #     add_setting(top, "Background color", 'style_background', 3)
-
-    #     add_setting(top, "Select sound font size", 's_snd_font_size', 4)
-    #     add_setting(top, "Select sound background color", 's_snd_bg', 5)
-
-    #     add_setting(top, "Save button font size", 'save_btn_font_size', 6)
-    #     add_setting(top, "Save button background color", 'save_btn_bg', 7)
-
-    #     add_setting(top, "Entry hours background color", 'hours_entry_font_size', 8)
-    #     add_setting(top, "Entry hours background color", 'hours_entry_bg', 9)
+        save_btn = ttk.Button(top, text="Save")
+        save_btn.grid(column=2, row=0)
+        save_btn.config(command = lambda : save_settings())
+        top.geometry("750x250")
+        top.title('Settings')
         
-    #     add_setting(top, "Head label font size", 'alarm_label_font_size', 10)
-    #     add_setting(top, "Head label background color", 'alarm_label_bg', 11)
+        write_config_settings("app_setting")
+        write_config_settings("alarms_settings")
+        write_config_settings("alarms_appearance")
 
-    #     add_setting(top, "Day check boxes background color", 'check_box_bg', 12)
-    
-    #     # that's mess but i'll autoamte this later rather
+        
     def create_alarm_app(self):
         day_names = []
-        for day in self.read_config("alarms_settings", "day_name").split(","):
+        for day in self.config.get_key("alarms_settings", "day_name").split(","):
             day_names.append(day)
         
         self.alarm_app_frame = ttk.Frame(self, style=self.styleName, name='alarm_app')
@@ -179,31 +175,5 @@ class AlarmApp(tk.Tk):
 
         return self.timer_app_frame
 
-
-
     def show_app(self, show_what):
         show_what.grid(column=0, row=1, columnspan=2, sticky="nsew")
-
-def run_program():
-    app = AlarmApp(1000, 800, 'Alarm Clock')
-    # create alarm app(width, height, title name) Soon i'll create resizable and dynamical boxes,
-    # for now its just static i guess
-    app.columnconfigure(0, weight=3)
-    app.columnconfigure(1, weight=1)
-    app.rowconfigure(1, weight=6)
-    app.rowconfigure(2, weight=1)
-    # alarm.rowconfigure(0, weight=1) jesli wieksze menu
-
-    menu = app.create_menu_app()
-    footer = app.create_footer_app()
-
-    # menu grid append
-    alarms = app.create_alarm_app()
-    stopwatch = app.create_stopwatch_app(None)
-    timer = app.create_timer_app(None)
-    app.show_app(alarms)
-    app.mainloop()
-
-
-if __name__ == "__main__":
-    run_program()
