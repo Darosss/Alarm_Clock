@@ -26,24 +26,9 @@ class AlarmApp(tk.Tk):
         self.stopwatch_app_frame = None
         self.timer_app_frame = None
         self.footer_frame = None
-        
-    #function for read config.ini(self, config_select?, key, if true check alarms)
-    def read_config(self, section_name, option_name):
-        config_obj = configparser.ConfigParser()
-        config_obj.read("config.ini") 
-        return config_obj[section_name][option_name]
 
-    def save_config(self, section_name, key_name, value):
-        config_obj = configparser.ConfigParser()
-        config_obj.read("config.ini")
-        config_obj.set(section_name, key_name, value)
-        with open('config.ini', 'w') as configfile:
-            config_obj.write(configfile)
-
-    # create scrollbar for more than x alarms
     def create_scrollbar(self):
         pass
-    
     # menu: stopwatch, egg timer, alarms
     def create_menu_app(self):
         def create_menu_button(text, bg, bgactive, frame):
@@ -53,18 +38,22 @@ class AlarmApp(tk.Tk):
                             command=lambda f=frame: self.clear_and_show_clicked(f)
                             )
             return btn
+        
         menu_btn_bg = self.config.get_key("app_setting", "menu_btn_bg")
         menu_btn_bg_active = self.config.get_key("app_setting", "menu_btn_bg_active")
+
         self.menu_frame = ttk.Frame(self, style=self.styleName, name="menu", borderwidth=15, relief="sunken")
 
         menu_btn_alarms = create_menu_button("Alarms", menu_btn_bg, menu_btn_bg_active, self.alarm_app_frame)   
         menu_btn_stopwatch = create_menu_button("Stopwatch", menu_btn_bg, menu_btn_bg_active, self.stopwatch_app_frame)
         menu_btn_timer = create_menu_button("Timer", menu_btn_bg, menu_btn_bg_active, self.timer_app_frame)                                                  
+        
         menu_btn_alarms.pack(side='left', expand=True)
         menu_btn_stopwatch.pack(side='left', expand=True)
         menu_btn_timer.pack(side='left', expand=True)
-
+        # pack to self.menu.frame
         self.menu_frame.grid(column=0, row=0, columnspan=2, sticky="nsew")
+        # grid app
         return self.menu_frame
 
     def clear_and_show_clicked(self, what):
@@ -103,8 +92,9 @@ class AlarmApp(tk.Tk):
             for slave in top.grid_slaves():
                 if slave.widgetName == 'entry':
                     sect_and_key = slave.winfo_name().split("/")
-                    self.config.save_config(sect_and_key[0], sect_and_key[1], slave.get())
-       
+                    new_key = self.config.get_key(sect_and_key[0], sect_and_key[1], True)
+                    new_key = new_key.replace(new_key.split("#")[0], slave.get())
+                    self.config.save_config(sect_and_key[0], sect_and_key[1], new_key) 
         def add_header_label(header_name):
             row_grid = top.grid_size()[1] + 1
             ttk.Label(top, text=header_name, justify='center', background="lightblue").grid(column=0, columnspan=2, row = row_grid, sticky="e")
@@ -141,8 +131,7 @@ class AlarmApp(tk.Tk):
         write_config_settings("app_setting")
         write_config_settings("alarms_settings")
         write_config_settings("alarms_appearance")
-
-        
+     
     def create_alarm_app(self):
         day_names = []
         for day in self.config.get_key("alarms_settings", "day_name").split(","):

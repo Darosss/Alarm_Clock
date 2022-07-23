@@ -206,7 +206,7 @@ class Alarms:
         # how many alarms is used and create them at start of program
         # if there are none, it will remove_key_nameload default fe. 5 alarms
         def toggle_alarm(e, alarm):
-            text_alarm = self.config.get_key(self.cnf_sect_alarms, config_alarm_text[0])
+            text_alarm = self.config.get_key(self.cnf_sect_alarms, config_alarm_text[0], True)
             if alarm['state'] == 'disabled':
                 alarm.config(state="normal") 
                 
@@ -284,7 +284,7 @@ class Alarms:
         top.geometry("750x250")
         top.title(text)
         top.overrideredirect(True)
-        if(sound != None):
+        if(sound != 'None'):
             p = multiprocessing.Process(target=playsound, args=(sound,))
             p.start()
         ttk.Label(top, text=text, font='Mistral 18 bold').pack(side='left')

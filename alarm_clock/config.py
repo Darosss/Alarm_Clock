@@ -10,8 +10,10 @@ class Config:
     def get_section(self, section_name):
         return self.config_obj[section_name]
 
-    def get_key(self, section_name, key_name, index=0):
-        return self.get_section(section_name)[key_name].split("#")[index]
+    def get_key(self, section_name, key_name, whole_text=False):
+        if not whole_text:
+            return self.get_section(section_name)[key_name].split("#")[0]
+        return self.get_section(section_name)[key_name]
 
     def get_sections_keys(self, section_name, replace=True, replace_this="#", replace_to_this="\n"):
         array_keys = []
@@ -23,8 +25,7 @@ class Config:
         return array_keys  
     
     def save_config(self, section_name, key_name, value):
-        description = self.get_key(section_name, key_name, 1)
-        self.config_obj.set(section_name, key_name, value +"#"+ description)
+        self.config_obj.set(section_name, key_name, value)
         with open(self.config_name, 'w') as configfile:
             self.config_obj.write(configfile)
 
