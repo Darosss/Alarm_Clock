@@ -34,3 +34,5 @@ class Config:
         with open(self.config_name, 'w') as configfile:
             self.config_obj.write(configfile)
 
+    def get_all_sections(self):
+        return self.config_obj.sections()

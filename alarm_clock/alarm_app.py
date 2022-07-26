@@ -127,10 +127,10 @@ class AlarmApp(tk.Tk):
         save_btn.grid(column=2, row=0)
         save_btn.config(command = lambda : save_settings())
         
-        
-        write_config_settings("app_setting")
-        write_config_settings("alarms_settings")
-        write_config_settings("alarms_appearance")
+        for section in self.config.get_all_sections():
+            if not section[0] == "_":
+                write_config_settings(section)
+
      
     def create_alarm_app(self):
         day_names = []

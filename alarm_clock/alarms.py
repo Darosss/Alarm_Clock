@@ -15,7 +15,7 @@ class Alarms:
         # init(self, aplication tk, alarms from config, style from user, day_names from user, snooze time from user)
         self.config_name = config_name
         self.config = Config(config_name)
-        self.cnf_sect_alarms = "list_alarms"
+        self.cnf_sect_alarms = "_list_alarms"
         self.cnf_sect_alarms_pref = "alarms_appearance"
         # self.alarms = self.read_config_alarms(self.config_name, self.cnf_sect_alarms_pref)
         self.alarms = self.config.get_sections_keys(self.cnf_sect_alarms)
