@@ -3,6 +3,8 @@ from tkinter import ttk
 import tkinter as tk
 from datetime import datetime
 from datetime import timedelta
+
+from pyparsing import string_start
 from config import Config
 
 
@@ -15,9 +17,10 @@ class Stopwatch:
         self.saved_frame = None
         self.styleName = style
         self.str_start = "Start"
+        self.str_resume = "Resume"
         self.str_pause = "Pause"
         self.stop = "Stop"
-        self.is_counting = None
+        self.counting_interval = None
         self.stopwatch_time = [0, 0, 0, 0, 0]
         self.count_saved_times = 1
 
@@ -43,28 +46,40 @@ class Stopwatch:
         start_pause.config(command=lambda lbl=time_label, btn=start_pause, stp=stop: self.toggle_start_pause(btn, lbl, stp))
         stop.config(command=lambda lbl=time_label, btn=stop, sp=start_pause, save=saved_times: self.stop_stopwatch(btn, sp, lbl, save))
 
-        self.stopwatch_frame.pack(side='right', expand=True)
-        self.saved_frame.pack(side='left', expand=True)
+        self.stopwatch_frame.pack(side='right', expand=True, fill='both')
+        self.saved_frame.pack(side='left', expand=True, fill='both')
         time_label.pack(expand=True)
-        start_pause.pack(side='left')
+        start_pause.pack(side='top', fill='both')
         saved_times_title.pack(expand=True)
         saved_times.pack(expand=True)
 
-    def toggle_start_pause(self, btn, watch_label, stop_btn):
+    def toggle_start_pause(self, btn, watch_label, stop_btn, stop=False):
+        if stop:
+            self.countdown_time(watch_label) 
+            btn.config(text=self.str_start)
+            return
         if btn['text'] == self.str_start:
             btn.config(text=self.str_pause)
             self.countdown_time(watch_label, True)
-            stop_btn.pack(side='right')
+            stop_btn.pack(side='top', fill='both')
             return
-        btn.config(text=self.str_start)
-        self.countdown_time(watch_label)
+        elif btn['text'] == self.str_pause:
+            btn.config(text=self.str_resume)
+            self.countdown_time(watch_label)
+        elif btn['text'] == self.str_resume:
+
+            btn.config(text=self.str_pause)
+            self.countdown_time(watch_label, True)
+
 
     def stop_stopwatch(self, stop, start_pause_button, watch_label, save):
+        
         save.config(text=f"{save['text']}\n{self.count_saved_times}: {self.format_time_array()}")
         self.count_saved_times += 1
-        self.toggle_start_pause(start_pause_button, watch_label, stop)
+        self.toggle_start_pause(start_pause_button, watch_label, stop, True)
         self.stopwatch_time = [0] * len(self.stopwatch_time)
         stop.pack_forget()
+        
 
     def format_time_array(self):
         # 0 - days, 1 - hours, 2 - minutes, 3 - seconds, 4 miliseconds
@@ -88,12 +103,12 @@ class Stopwatch:
 
     def countdown_time(self, time_lbl, start=False):
         if not start:
-            time_lbl.after_cancel(self.is_counting)
+            time_lbl.after_cancel(self.counting_interval)
             return
 
         def time():
             time_lbl.config(text=self.format_time_array())
-            self.is_counting = time_lbl.after(1, time)
+            self.counting_interval = time_lbl.after(1, time)
             self.stopwatch_time[4] = self.stopwatch_time[4] + 1
         time()
 

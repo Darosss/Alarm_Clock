@@ -9,6 +9,7 @@ all:
         fe. styles
         window resolution
         automat sections from cionfig
+        class popup (timer, alarm)
 
 alarm:
     do alarms:
