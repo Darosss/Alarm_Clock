@@ -8,7 +8,7 @@ all:
     take data from config:
         fe. styles
         window resolution
-
+        automat sections from cionfig
 
 alarm:
     do alarms:
@@ -17,7 +17,7 @@ alarm:
                                 #alarmy z configow pobiernaie
                                 #alarmy add do konfiga
                                 #alarm edit do konfiga 
-
+            class alarm>alarm
                                 #lewy edit / prawy wlacz alarm / delete turned on - done
             
                 opcja uploadu soundsow(no needed)
@@ -38,6 +38,7 @@ timer:
         countdown timer
         pause timer
         description of timer
+        class timer>timer
 
 all look:
     when all finished:

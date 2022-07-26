@@ -14,8 +14,8 @@ def run_program():
 
     # menu grid append
     alarms = app.create_alarm_app()
-    stopwatch = app.create_stopwatch_app(None)
-    timer = app.create_timer_app(None)
+    stopwatch = app.create_stopwatch_app()
+    timer = app.create_timer_app()
     menu = app.create_menu_app()
     app.show_app(alarms)
     app.mainloop()

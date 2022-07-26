@@ -57,12 +57,12 @@ class AlarmApp(tk.Tk):
         return self.menu_frame
 
     def clear_and_show_clicked(self, what):
-        print(what)
+        # print(what)
         for slave in self.grid_slaves(row=1, column=0):
-            print(slave)
+            # print(slave)
             slave.grid_forget()
             slave.grid_remove()
-        print(what.grid_slaves())
+        # print(what.grid_slaves())
         what.grid(column=0, row=1, columnspan=2, sticky="nsew")
 
     def create_footer_app(self):
@@ -142,29 +142,29 @@ class AlarmApp(tk.Tk):
         self.alarm_app_frame.columnconfigure(0, weight=1)
         self.alarm_app_frame.columnconfigure(1, weight=1)
         self.alarm_app_frame.rowconfigure(0, weight=1)
-        alarms = Alarms(self, "config.ini", 'sounds', self.styleName , day_names, self.snoozed_time)
+        alarms = Alarms(self, self.config_name, 'sounds', self.styleName , day_names, self.snoozed_time)
         alarms_list = alarms.create_frames_for_alarm(self.alarm_app_frame)
         alarms.set_alarms()
         return self.alarm_app_frame
 
-    def create_stopwatch_app(self, config):
+    def create_stopwatch_app(self):
         self.stopwatch_app_frame = ttk.Frame(self, style=self.styleName, name='stopwatch_app')
         self.stopwatch_app_frame.columnconfigure(0, weight=1)
         self.stopwatch_app_frame.columnconfigure(1, weight=1)
         self.stopwatch_app_frame.rowconfigure(0, weight=1)
 
-        stopwatch = Stopwatch(config, self.styleName)
+        stopwatch = Stopwatch(self.config_name, self.styleName)
         stopwatch.create_stopwatch_frame(self.stopwatch_app_frame)
 
         return self.stopwatch_app_frame
 
-    def create_timer_app(self, config):
+    def create_timer_app(self):
         self.timer_app_frame = ttk.Frame(self, style=self.styleName, name='timer_app')
         self.timer_app_frame.columnconfigure(0, weight=1)
         self.timer_app_frame.columnconfigure(1, weight=1)
         self.timer_app_frame.rowconfigure(0, weight=1)
 
-        timer = Timer(config, self.styleName)
+        timer = Timer(self.config_name, self.styleName)
         timer.create_timer_frame(self.timer_app_frame)
 
         return self.timer_app_frame

@@ -3,10 +3,14 @@ from tkinter import ttk
 import tkinter as tk
 from datetime import datetime
 from datetime import timedelta
+from config import Config
 
 
 class Stopwatch:
-    def __init__(self, config, style):
+    def __init__(self, config_name, style):
+        self.config_name = config_name
+        self.section_name = 'stopwatch_appearance'
+        self.config = Config(config_name)
         self.stopwatch_frame = None
         self.saved_frame = None
         self.styleName = style
@@ -21,17 +25,21 @@ class Stopwatch:
         self.stopwatch_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
         self.saved_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
 
-        saved_times_title = ttk.Label(self.saved_frame, text='Saved times', font=('default', 25),padding=20)
-        saved_times = ttk.Label(self.saved_frame, text='', font=('default', 25),padding=20)
+        s_t_title_bg = self.config.get_key(self.section_name, "s_t_title_bg")
+        s_t_bg = self.config.get_key(self.section_name, "s_t_bg")
+        saved_times_title = ttk.Label(self.saved_frame, text='Saved times', background=s_t_title_bg, font=('default', 25),padding=20)
+        saved_times = ttk.Label(self.saved_frame, text='', background=s_t_bg, font=('default', 25),padding=20)
 
-        ttk.Label(self.stopwatch_frame, text='Stopwatch', font=('default', 25),padding=20).pack()
-        time_label = ttk.Label(self.stopwatch_frame, padding=20, font=('default', 25), text='Stopwatch')
+        time_title_bg = self.config.get_key(self.section_name, "time_title_bg")
+        time_bg = self.config.get_key(self.section_name, "time_bg")
+        ttk.Label(self.stopwatch_frame, text='Stopwatch', background=time_title_bg,  font=('default', 25),padding=20).pack()
+        time_label = ttk.Label(self.stopwatch_frame, padding=20, background=time_bg,  font=('default', 25), text='Stopwatch')
 
-
-        stop = ttk.Button(self.stopwatch_frame, name=f"{self.stop.lower()}", text=self.stop)
-        start_pause = ttk.Button(self.stopwatch_frame, name=f"{self.str_start.lower()}/{self.str_pause.lower()}",
+        btns_bg = self.config.get_key(self.section_name, "btns_bg")
+        btns_bg_active = self.config.get_key(self.section_name, "btns_bg_active")
+        stop = tk.Button(self.stopwatch_frame, background=btns_bg, activebackground=btns_bg_active, name=f"{self.stop.lower()}", text=self.stop)
+        start_pause = tk.Button(self.stopwatch_frame, background=btns_bg, activebackground=btns_bg_active, name=f"{self.str_start.lower()}/{self.str_pause.lower()}",
                                  text=self.str_start)
-
         start_pause.config(command=lambda lbl=time_label, btn=start_pause, stp=stop: self.toggle_start_pause(btn, lbl, stp))
         stop.config(command=lambda lbl=time_label, btn=stop, sp=start_pause, save=saved_times: self.stop_stopwatch(btn, sp, lbl, save))
 
@@ -51,10 +59,10 @@ class Stopwatch:
         btn.config(text=self.str_start)
         self.countdown_time(watch_label)
 
-    def stop_stopwatch(self, stop, sp, watch_label, save):
+    def stop_stopwatch(self, stop, start_pause_button, watch_label, save):
         save.config(text=f"{save['text']}\n{self.count_saved_times}: {self.format_time_array()}")
         self.count_saved_times += 1
-        self.toggle_start_pause(sp, watch_label, stop)
+        self.toggle_start_pause(start_pause_button, watch_label, stop)
         self.stopwatch_time = [0] * len(self.stopwatch_time)
         stop.pack_forget()
 
