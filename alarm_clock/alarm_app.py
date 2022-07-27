@@ -29,7 +29,7 @@ class WindowMenu(tk.Menu):
         tk.Menu.__init__(self, parent, *args, **kwargs)
         
         self.add_command(label="Upload", command=parent.root.upload_file)
-        self.add_command(label="Settings", command=parent.root.settings)
+        self.add_command(label="Settings", command=parent.root.menu_settings)
         self.add_command(label="Exit", command=parent.root.quit_app)
 
 
@@ -49,51 +49,20 @@ class AlarmApp(tk.Tk):
         
         self._menu = MainMenu(self)
         self._menu_frame = MenuFrame(self, self._alarm_app_frame, self._stopwatch_app_frame, self._timer_app_frame)
-        self._footer_frame = None
+        self._footer_frame = FooterFrame(self)
 
         self.columnconfigure(0, weight=3)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(1, weight=6)
         self.rowconfigure(2, weight=1)
-        self.create_footer_app()
+        # self.create_footer_app()
         # self.create_menu_app()
         self.show_app(self._alarm_app_frame)
 
     def upload_file(self):
         print('upload')
         
-    def settings(self):
-        print('settings')
-        
-    def quit_app(self):
-        print('quit')
-
-    def create_scrollbar(self):
-        pass
-
-    def create_footer_app(self):
-        def time():
-            time_now = datetime.now().strftime("%H:%M:%S")
-            time_label.config(text=time_now)
-            time_label.after(1000, time)
-
-        self.footer_frame = ttk.Frame(self, style=self.styleName, name='footer', borderwidth=15, relief="groove")
-        self.footer_frame .columnconfigure(0, weight=1)
-        time_label = ttk.Label(self.footer_frame, justify='center',
-                               font=('calibri', 25, 'bold'), borderwidth=1, relief="solid")
-        
-        button_setting = ttk.Button(self.footer_frame, text="SETTINGS")
-        button_setting.config(command=self.setting_window_popup)
-        # watch this will be changed for down timer or upper i mean for every other application
-        time()
-
-        button_setting.grid(column=0, row=0, sticky="nsw")
-        time_label.grid(column=2, row=0, sticky='nsew')
-        self.footer_frame.grid(column=0, row=2, columnspan=2, sticky="nsew")
-
-        return self.footer_frame
-
-    def setting_window_popup(self):
+    def menu_settings(self):
         def save_settings():
             for slave in top.grid_slaves():
                 if slave.widgetName == 'entry':
@@ -136,6 +105,12 @@ class AlarmApp(tk.Tk):
         for section in self.config_ini.get_all_sections():
             if not section[0] == "_":
                 write_config_settings(section)
+        
+    def quit_app(self):
+        print('quit')
+
+    def create_scrollbar(self):
+        pass
 
     def create_timer_app(self):
         self._timer_app_frame = ttk.Frame(self, style=self.styleName, name='timer_app')
@@ -206,3 +181,24 @@ class MenuFrame(tk.Frame):
             slave.grid_forget()
             slave.grid_remove()
         what.grid(column=col_grid, row=row_grid, columnspan=colspan, sticky=stick)
+
+class FooterFrame(tk.Frame):
+    def __init__(self, root, *args, **kwargs):
+        self._root = root
+        tk.Frame.__init__(self, root, background='blue', *args, **kwargs)
+        self.time_label = ttk.Label(self, justify='center',
+                               font=('calibri', 25, 'bold'), borderwidth=1, relief="solid")
+        
+        # button_setting = ttk.Button(self.footer_frame, text="SETTINGS")
+        # button_setting.config(command=self.setting_window_popup)
+        # watch this will be changed for down timer or upper i mean for every other application
+        self.time()
+
+        # button_setting.grid(column=0, row=0, sticky="nsw")
+        self.time_label.grid(column=2, row=0, sticky='nsew')
+        self.grid(column=0, row=2, columnspan=2, sticky="nsew")
+
+    def time(self):
+        time_now = datetime.now().strftime("%H:%M:%S")
+        self.time_label['text'] = time_now
+        self.time_label.after(1000, self.time)
