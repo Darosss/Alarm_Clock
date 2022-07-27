@@ -24,15 +24,19 @@ class AlarmApp(tk.Tk):
         self._timer_app_frame = TimerFrame(self)
         
         self._menu = MainMenu(self)
-        self._menu_frame = MenuFrame(self, self._alarm_app_frame, self._stopwatch_app_frame, self._timer_app_frame)
         self._footer_frame = FooterFrame(self)
 
+
+        self._menu_frame = MenuFrame(self, self.config_ini, 
+                                     self._alarm_app_frame, 
+                                     self._stopwatch_app_frame, 
+                                     self._timer_app_frame
+                                    )
+        
         self.columnconfigure(0, weight=3)
         self.columnconfigure(1, weight=1)
         self.rowconfigure(1, weight=6)
         self.rowconfigure(2, weight=1)
-        # self.create_footer_app()
-        # self.create_menu_app()
         self.show_frame(self._alarm_app_frame)
 
     def show_frame(self, show_what):
@@ -42,10 +46,10 @@ class AlarmApp(tk.Tk):
         print('upload')
       
     def menu_settings(self):
-        window = SettingsWindow(self, self.config_ini)
+        SettingsWindow(self, self.config_ini)
 
     def quit_app(self):
-        print('quit')
+        self.quit()
 
 
 class SettingsWindow(tk.Tk):
@@ -92,6 +96,7 @@ class SettingsWindow(tk.Tk):
             sett_descrip = sett_split[1].split("#")[1]
             self.add_setting(sett_descrip, section_name, sett_key_name, index)
     
+
 class MainMenu(tk.Menu):
     @property
     def root(self):
@@ -103,8 +108,8 @@ class MainMenu(tk.Menu):
 
         window_menu = WindowMenu(self, tearoff=0)
         self.add_cascade(label="Options", menu=window_menu)
-        
         root.config(menu = self)
+
 
 class WindowMenu(tk.Menu):
     """Creates Window menu."""
@@ -142,29 +147,30 @@ class TimerFrame(tk.Frame):
 
 
 class MenuFrame(tk.Frame):
-    def __init__(self, root, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
+    def __init__(self, root, config_sett, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
         self._root = root
-        tk.Frame.__init__(self, root, *args, **kwargs)
-        # menu_btn_bg = self.config_ini.get_key("app_setting", "menu_btn_bg")
-        # menu_btn_bg_active = self.config_ini.get_key("app_setting", "menu_btn_bg_active")
+        self.config_sett = config_sett
+        tk.Frame.__init__(self, root, background=self.config_sett.get_key("menu_appearance","menu_background"), *args, **kwargs)
+        menu_btn_bg = self.config_sett.get_key("menu_appearance", "menu_btn_bg")
+        menu_btn_bg_active = self.config_sett.get_key("menu_appearance", "menu_btn_bg_active")
 
-        menu_btn_alarms = self.create_menu_button("Alarms", '', '', alarm_frame)   
-        menu_btn_stopwatch = self.create_menu_button("Stopwatch", '', '', stopwatch_frame)
-        menu_btn_timer = self.create_menu_button("Timer", '', '', timer_frame)                                                  
+        menu_btn_alarms = self.create_menu_button("Alarms", menu_btn_bg, menu_btn_bg_active, alarm_frame)   
+        menu_btn_stopwatch = self.create_menu_button("Stopwatch", menu_btn_bg, menu_btn_bg_active, stopwatch_frame)
+        menu_btn_timer = self.create_menu_button("Timer", menu_btn_bg, menu_btn_bg_active, timer_frame)                                                  
         
         menu_btn_alarms.pack(side='left', expand=True)
         menu_btn_stopwatch.pack(side='left', expand=True)
         menu_btn_timer.pack(side='left', expand=True)
-        # pack to self.menu.frame
         self.grid(column=0, row=0, columnspan=2, sticky="nsew")
 
     def create_menu_button(self, text, bg, bgactive, frame):
         btn = tk.Button(self, text=text, 
-                        # background=bg, activebackground=bgactive, 
+                        background=bg, activebackground=bgactive, 
                         width=40,
                         command=lambda f=frame: self.clear_and_show_clicked(f)
                         )
         return btn
+
     def clear_and_show_clicked(self, what, col_grid=0, row_grid=1, colspan=2, stick='nsew'):
         for slave in self._root.grid_slaves(row=1, column=0):
             slave.grid_forget()
