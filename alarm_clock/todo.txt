@@ -6,22 +6,22 @@ BOT do Twitcha(zabol, komedny, timersy)
 
 all:
     take data from config:
-        fe. styles
-        window resolution
-        automat sections from cionfig
+                                fe. styles
+                                window resolution
+                                automat sections from cionfig
         class popup (timer, alarm)
+        
 
 alarm:
     do alarms:
                                 #alarms from config
-            alarm description
                                 #alarmy z configow pobiernaie
                                 #alarmy add do konfiga
                                 #alarm edit do konfiga 
-            class alarm>alarm
                                 #lewy edit / prawy wlacz alarm / delete turned on - done
-            
-                opcja uploadu soundsow(no needed)
+            class alarm>alarm
+            alarm description
+            opcja uploadu soundsow(no needed)
 
 
 
@@ -35,9 +35,9 @@ stopwatch:
         description fo stopwatch
 timer:
     do timer:
-        set timer
-        countdown timer
-        pause timer
+                                set timer
+                                countdown timer
+                                pause timer
         description of timer
         class timer>timer
 
@@ -49,12 +49,11 @@ all look:
 all app:
     popup menu:
         setting:
-            take data from config and put it in Entry
-            if changed and clickes Save = save config values
-            Make default settings with button
-            
-        change resolution
-        change snooze time
-        change color
-        all settings should be 'separate' by section fe: [alarms_box_pref][save_btn_pref]
-            thats all save to config by 'save'
+                                take data from config and put it in Entry
+                                 if changed and clickes Save = save config values                  
+                                change snooze time
+                                change color
+                                all settings should be 'separate' by section fe: [alarms_box_pref][save_btn_pref]
+                                thats all save to config by 'save'
+                change resolution
+                (no need)Make default settings with button

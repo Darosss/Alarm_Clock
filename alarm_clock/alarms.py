@@ -11,7 +11,7 @@ from config import Config
 
 
 class Alarms:
-    def __init__(self, app_window, config_name, snd_dir,style, day_names, snoozed_time):
+    def __init__(self, app_window, config_name, style):
         # init(self, aplication tk, alarms from config, style from user, day_names from user, snooze time from user)
         self.config_name = config_name
         self.config = Config(config_name)
@@ -21,21 +21,24 @@ class Alarms:
         self.alarms = self.config.get_sections_keys(self.cnf_sect_alarms)
         self.styleName = style
         self.app_window = app_window
-        self.day_names = day_names
+        self.day_names = []
+        for day in self.config.get_key("alarms_settings", "day_name").split(","):
+            self.day_names.append(day)
         self.edit_frame = None
         self.alarms_frame = None
         self.check_days = []
         self.snoozed_alarms = []
-        self.snoozed_time = snoozed_time
+        self.snoozed_time = 1
         self.checked_days = []
-        self.sounds_dir = snd_dir
+        self.sounds_dir = 'sounds'
 
     def config_alarms_appearance(self, key_name):
         return self.config.get_key(self.cnf_sect_alarms_pref, key_name)
 
     def __create_edit_alarm_frame(self, append):
         self.edit_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
-        self.edit_frame.grid(column=0, row=0, sticky="nsew")
+        # self.edit_frame.grid(column=0, row=0, sticky="nsew")
+        self.edit_frame.pack(side='left', expand=True, fill='both')
     # function for creating editing for alarm frame
 
     def __create_alarm_boxes_frame(self, append, width=30):
@@ -54,7 +57,8 @@ class Alarms:
             self.create_alarm(self.alarms_frame, alarm_text, index)
 
         self.alarms_frame.config(borderwidth=15, relief='sunken')
-        self.alarms_frame.grid(column=1, row=0, sticky="nsew")
+        # self.alarms_frame.grid(column=1, row=0, sticky="nsew")
+        self.alarms_frame.pack(side='right', expand=True, fill='both')
    
         add_button.grid(column=2, row=0, padx=5, pady=1)
         add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
