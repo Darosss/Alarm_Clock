@@ -1,38 +1,28 @@
-import configparser
+import json
 
-
-class Config:
-    def __init__(self, config_name):
-        self.config_name = config_name
-        self.config_obj = configparser.ConfigParser()
-        self.config_obj.read(config_name)
-
-    def get_section(self, section_name):
-        return self.config_obj[section_name]
-
-    def get_key(self, section_name, key_name, whole_text=False):
-        if not whole_text:
-            return self.get_section(section_name)[key_name].split("#")[0]
-        return self.get_section(section_name)[key_name]
-
-    def get_sections_keys(self, section_name, replace=True, replace_this="#", replace_to_this="\n"):
-        array_keys = []
-        for key in self.get_section(section_name):
-            if replace:
-                array_keys.append(key +"/"+self.config_obj[section_name][key].replace(replace_this,replace_to_this))
-            else:
-                array_keys.append(key +"/"+self.config_obj[section_name][key])
-        return array_keys  
+class ConfigJSON:
+    def __init__(self, config):
+        self.config = config
+        with open(config, encoding='utf-8', errors='ignore') as config_json:
+            self.json_conf = json.loads(config_json.read())
+        
+    @property
+    def section(self):
+         return self.json_conf
     
-    def save_config(self, section_name, key_name, value):
-        self.config_obj.set(section_name, key_name, value)
-        with open(self.config_name, 'w') as configfile:
-            self.config_obj.write(configfile)
+    def modify_section(self, alarm, option, value):
+        with open(self.config, 'r+') as config_json:
+            self.json_conf[alarm][option] = value 
+            config_json.seek(0)
+            json.dump(self.json_conf, config_json, indent=4)
+            config_json.truncate()  
 
-    def remove_key_name(self, section_name, key_name):
-        self.config_obj.remove_option(section_name, key_name)
-        with open(self.config_name, 'w') as configfile:
-            self.config_obj.write(configfile)
+    def pop_section(self, section):
+        del self.json_conf[section]
 
-    def get_all_sections(self):
-        return self.config_obj.sections()
+        with open(self.config, 'r+') as config_json:
+            config_json.seek(0)
+            json.dump(self.json_conf, config_json, indent=4)
+            config_json.truncate()  
+
+    #FIXME REPAIR REAPEATING CODE

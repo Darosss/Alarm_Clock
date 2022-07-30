@@ -1,17 +1,15 @@
-import functools
 from tkinter import ttk
 import tkinter as tk
 from datetime import datetime
 from datetime import timedelta
 
 from pyparsing import string_start
-from config import Config
 
 
 class Stopwatch:
     def __init__(self, config_name, style):
         self.config_name = config_name
-        self.section_name = 'stopwatch_appearance'
+        self.section_name = 'stopwatch_options'
         self.config = Config(config_name)
         self.stopwatch_frame = None
         self.saved_frame = None

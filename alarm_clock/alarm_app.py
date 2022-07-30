@@ -1,33 +1,41 @@
 import tkinter as tk
 from tkinter import ttk
 from datetime import datetime
-from config import Config
+from config import *
 from alarms import Alarms
 from stopwatch import Stopwatch
 from timer import Timer
+
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
+
+class SectionNames:
+    CONFIG_NAME = 'config.ini'
+    SOUNDS_DIR = 'sounds'
+    APP_SETTINGS = 'app_settings'
+    MENU_OPTIONS = 'menu_options'
+    ALARMS_OPTIONS = 'alarms_options'
+    ALARMS_LIST = 'alarms_list'
+    STOPWATCH_OPTIONS = 'stopwatch_options'
+    TIMER_OPTIONS = 'timer_options'
 
 
 class AlarmApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        self.config_name = "config.ini"
-        self.config_ini = Config(self.config_name)
-
-        self.geometry(self.config_ini.get_key("app_setting", "resolution"))
-        self.styleName = "new.TFrame"
-        self.style = ttk.Style().configure(self.styleName, background=self.config_ini.get_key("app_setting", "style_background"))
-
-        self._alarm_app_frame = AlarmsFrame(self)
-        self._stopwatch_app_frame = StopwatchFrame(self)
-        self._timer_app_frame = TimerFrame(self)
+        self.json_conf = ConfigJSON('config.json')
+        self.json_alarms = ConfigJSON('alarms.json')
+        self.geometry(self.json_conf.section[SectionNames.APP_SETTINGS]["resolution"])
+        self._alarm_app_frame = Alarms(self, self.json_conf.section[SectionNames.ALARMS_OPTIONS], self.json_alarms)
+        # self._stopwatch_app_frame = StopwatchFrame(self)
+        # self._timer_app_frame = TimerFrame(self)
+        self._stopwatch_app_frame = None
+        self._timer_app_frame = None
         
         self._menu = MainMenu(self)
         self._footer_frame = FooterFrame(self)
 
-
-        self._menu_frame = MenuFrame(self, self.config_ini, 
+        self._menu_frame = MenuFrame(self, self.json_conf.section[SectionNames.MENU_OPTIONS], 
                                      self._alarm_app_frame, 
                                      self._stopwatch_app_frame, 
                                      self._timer_app_frame
@@ -46,16 +54,16 @@ class AlarmApp(tk.Tk):
         print('upload')
       
     def menu_settings(self):
-        SettingsWindow(self, self.config_ini)
-
+        # SettingsWindow(self, self.json_conf[])
+        pass
     def quit_app(self):
         self.quit()
 
 
 class SettingsWindow(tk.Tk):
-    def __init__(self, root, config_settings, *args, **kwargs):
+    def __init__(self, root, config_sett, *args, **kwargs):
         tk.Toplevel.__init__(self, *args, **kwargs)
-        self.config_sett = config_settings
+        self.config_sett = config_sett
         self.geometry("750x250")
         self.title('Settings')
         self.columnconfigure(0, weight=1)
@@ -95,7 +103,7 @@ class SettingsWindow(tk.Tk):
             sett_key_name = sett_split[0]
             sett_descrip = sett_split[1].split("#")[1]
             self.add_setting(sett_descrip, section_name, sett_key_name, index)
-    
+  #settigns soon  
 
 class MainMenu(tk.Menu):
     @property
@@ -105,14 +113,12 @@ class MainMenu(tk.Menu):
     def __init__(self, root, *args, **kwargs):
         tk.Menu.__init__(self, root, *args, **kwargs)
         self._root = root
-
         window_menu = WindowMenu(self, tearoff=0)
         self.add_cascade(label="Options", menu=window_menu)
         root.config(menu = self)
 
 
 class WindowMenu(tk.Menu):
-    """Creates Window menu."""
     def __init__(self, parent, *args, **kwargs):
         tk.Menu.__init__(self, parent, *args, **kwargs)
         
@@ -121,13 +127,11 @@ class WindowMenu(tk.Menu):
         self.add_command(label="Exit", command=parent.root.quit_app)
 
 
-class AlarmsFrame(tk.Frame):
-    def __init__(self, root, *args, **kwargs):
-        self._root = root
-        tk.Frame.__init__(self, root, *args, **kwargs)
-        alarms = Alarms(self, 'config.ini', 'new.TFrame')
-        alarms.create_frames_for_alarm(self)
-        alarms.set_alarms()
+# class AlarmsFrame(tk.Frame):
+#     def __init__(self, root, *args, **kwargs):
+#         self._root = root
+#         tk.Frame.__init__(self, root, *args, **kwargs)
+#         alarms = Alarms(self, 'config.ini', 'new.TFrame')
 
 
 class StopwatchFrame(tk.Frame):
@@ -150,22 +154,21 @@ class MenuFrame(tk.Frame):
     def __init__(self, root, config_sett, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
         self._root = root
         self.config_sett = config_sett
-        tk.Frame.__init__(self, root, background=self.config_sett.get_key("menu_appearance","menu_background"), *args, **kwargs)
-        menu_btn_bg = self.config_sett.get_key("menu_appearance", "menu_btn_bg")
-        menu_btn_bg_active = self.config_sett.get_key("menu_appearance", "menu_btn_bg_active")
+        tk.Frame.__init__(self, root, background=config_sett["menu_background"], *args, **kwargs)
 
-        menu_btn_alarms = self.create_menu_button("Alarms", menu_btn_bg, menu_btn_bg_active, alarm_frame)   
-        menu_btn_stopwatch = self.create_menu_button("Stopwatch", menu_btn_bg, menu_btn_bg_active, stopwatch_frame)
-        menu_btn_timer = self.create_menu_button("Timer", menu_btn_bg, menu_btn_bg_active, timer_frame)                                                  
+        menu_btn_alarms = self.create_menu_button("Alarms", alarm_frame)   
+        menu_btn_stopwatch = self.create_menu_button("Stopwatch" , stopwatch_frame)
+        menu_btn_timer = self.create_menu_button("Timer", timer_frame)                                                  
         
         menu_btn_alarms.pack(side='left', expand=True)
         menu_btn_stopwatch.pack(side='left', expand=True)
         menu_btn_timer.pack(side='left', expand=True)
         self.grid(column=0, row=0, columnspan=2, sticky="nsew")
 
-    def create_menu_button(self, text, bg, bgactive, frame):
+    def create_menu_button(self, text, frame):
         btn = tk.Button(self, text=text, 
-                        background=bg, activebackground=bgactive, 
+                        background=self.config_sett["menu_btn_bg"], 
+                        activebackground=self.config_sett["menu_btn_bg_active"], 
                         width=40,
                         command=lambda f=frame: self.clear_and_show_clicked(f)
                         )

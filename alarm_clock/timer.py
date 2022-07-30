@@ -4,14 +4,10 @@ import tkinter as tk
 from datetime import datetime
 from datetime import timedelta
 
-from config import Config
-
-
 class Timer:
     def __init__(self, config_name, style):
         self.config_name = config_name
-        self.section_name = 'timer_appearance'
-        self.config = Config(config_name)
+        self.section_name = 'timer_options'
         self.stopwatch_frame = None
         self.timer_frame = None      
         self.str_start = "Start"
