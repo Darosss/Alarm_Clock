@@ -32,6 +32,11 @@ class Alarms(tk.Frame):
         self.__create_alarm_boxes_frame(root)
         self.__create_edit_alarm_frame(root)  
         # self.set_alarms()
+    def refresh_alarms(self):
+        self.alarms_frame.grid_slaves().clear()
+        for row, alarm in enumerate(self.json_alarms.section): 
+            print(alarm)
+            self.create_alarm(self.alarms_frame, alarm, row)
 
     def config_alarms_appearance(self, key_name, section='alarms_options'):
         return self.config.get_key(section, key_name)
@@ -55,8 +60,7 @@ class Alarms(tk.Frame):
                                 activebackground=self.json_conf['add_btn_bg_color_active']
                                 )
 
-        for row, alarm in enumerate(self.json_alarms.section): 
-            self.create_alarm(self.alarms_frame, alarm, row)
+        self.refresh_alarms()
     
         self.alarms_frame.config(borderwidth=15, relief='sunken')
         self.alarms_frame.grid(column=1, row=1, sticky="nsew")
@@ -222,12 +226,14 @@ class Alarms(tk.Frame):
         now = datetime.now()
         dt_string = now.strftime("%H:%M:%S")
         today_name = now.strftime("%a")
+        #FIXME for now its only day in engluish to need to change that
         row_alarm_box = frame.grid_size()[1]
-        alarm_text = f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}/"+dt_string + "\n" + today_name + "\nNone/disabled"
-        print(alarm_text)
-        # name_alarm = self.create_alarm(frame, alarm_text, row_alarm_box)
-        # self.refresh_alarms
-        #TODO save to config new alarm
+        print(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}")
+        self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.TIME, dt_string)
+        self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.DAYS, [today_name])
+        self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.SOUND, 'none')
+        self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.STATE, 'disabled')
+        self.refresh_alarms()
     # function which for add new alarm box
 
     def check_alarms(self):

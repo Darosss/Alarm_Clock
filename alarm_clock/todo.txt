@@ -3,7 +3,7 @@ Mini gierka na zasadzie klik i klik next (aim)
 Parser do 7 daysa?
 BOT do Twitcha(zabol, komedny, timersy)
 statki
-
+todo
 
 all:
     take data from config:

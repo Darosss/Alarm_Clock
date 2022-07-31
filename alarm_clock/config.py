@@ -1,3 +1,4 @@
+from asyncio.windows_events import NULL
 import json
 
 class ConfigJSON:
@@ -5,18 +6,26 @@ class ConfigJSON:
         self.config = config
         with open(config, encoding='utf-8', errors='ignore') as config_json:
             self.json_conf = json.loads(config_json.read())
-        
     @property
     def section(self):
          return self.json_conf
     
     def modify_section(self, alarm, option, value):
         with open(self.config, 'r+') as config_json:
+            if alarm not in self.json_conf:
+                self.json_conf.update( {alarm:{}})
             self.json_conf[alarm][option] = value 
+
             config_json.seek(0)
             json.dump(self.json_conf, config_json, indent=4)
             config_json.truncate()  
 
+    def add_section(self, alarm):
+        with open(self.config, 'r+') as config_json:
+            
+            json.dump(self.json_conf, config_json, indent=4)
+            # config_json.truncate()  
+  
     def pop_section(self, section):
         del self.json_conf[section]
 
