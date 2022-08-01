@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import PhotoImage, ttk
 from datetime import datetime
 from config import *
 from alarms import Alarms
@@ -9,8 +9,8 @@ from timer import Timer
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
 
-class SectionNames:
-    CONFIG_NAME = 'config.ini'
+class ConfigProperties:
+    CONFIG_NAME = 'config.json'
     SOUNDS_DIR = 'sounds'
     APP_SETTINGS = 'app_settings'
     MENU_OPTIONS = 'menu_options'
@@ -18,22 +18,37 @@ class SectionNames:
     ALARMS_LIST = 'alarms_list'
     STOPWATCH_OPTIONS = 'stopwatch_options'
     TIMER_OPTIONS = 'timer_options'
+    FOOTER_OPTIONS = 'footer_options'
 
+
+class AppProperties:
+    IMAGES_DIR = 'imgs'
+    SOUND_DIR = 'sounds'
+    SOUNDS_EXT = ".mp3"
+
+class MainFramesProp:
+    MENU_IMG = 'menu.png'
+    TIMER_IMG = 'timer.png'
+    
 
 class AlarmApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        self.json_conf = ConfigJSON('config.json').section
-        self.json_alarms = ConfigJSON('alarms.json')
-        self.geometry(self.json_conf[SectionNames.APP_SETTINGS]["resolution"])
-        self._alarm_app_frame = Alarms(self, self.json_conf[SectionNames.ALARMS_OPTIONS], self.json_alarms)
-        self._stopwatch_app_frame = Stopwatch(self, self.json_conf[SectionNames.STOPWATCH_OPTIONS], self.json_alarms)
-        self._timer_app_frame = Timer(self, self.json_conf[SectionNames.TIMER_OPTIONS], self.json_alarms)
-        
-        self._menu = MainMenu(self)
-        self._footer_frame = FooterFrame(self)
 
-        self._menu_frame = MenuFrame(self, self.json_conf[SectionNames.MENU_OPTIONS], 
+        self.json_conf = ConfigJSON(ConfigProperties.CONFIG_NAME).section
+        self.json_alarms = ConfigJSON('alarms.json')
+        self.geometry(self.json_conf[ConfigProperties.APP_SETTINGS]["resolution"])
+        self._alarm_app_frame = Alarms(self, AppProperties, self.json_conf[ConfigProperties.ALARMS_OPTIONS], self.json_alarms)
+        self._stopwatch_app_frame = Stopwatch(self, self.json_conf[ConfigProperties.STOPWATCH_OPTIONS], self.json_alarms)
+        self._timer_app_frame = Timer(self, self.json_conf[ConfigProperties.TIMER_OPTIONS], self.json_alarms)
+        
+        # self.img_menu = PhotoImage(file=f'/{IMAGE_NAME}')
+        
+
+        self._menu = MainMenu(self)
+        self._footer_frame = FooterFrame(self, self.json_conf[ConfigProperties.FOOTER_OPTIONS])
+
+        self._menu_frame = MenuFrame(self, self.json_conf[ConfigProperties.MENU_OPTIONS], 
                                      self._alarm_app_frame, 
                                      self._stopwatch_app_frame, 
                                      self._timer_app_frame
@@ -127,8 +142,10 @@ class WindowMenu(tk.Menu):
 class MenuFrame(tk.Frame):
     def __init__(self, root, config_sett, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
         self._root = root
+        self.img_menu = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{MainFramesProp.MENU_IMG}")
+
         self.config_sett = config_sett
-        tk.Frame.__init__(self, root, background=config_sett["menu_background"], borderwidth=15, relief='sunken', *args, **kwargs)
+        tk.Frame.__init__(self, root, background=config_sett["menu_background"], borderwidth=5, relief='raised', *args, **kwargs)
 
         menu_btn_alarms = self.create_menu_button("Alarms", alarm_frame)   
         menu_btn_stopwatch = self.create_menu_button("Stopwatch" , stopwatch_frame)
@@ -141,9 +158,12 @@ class MenuFrame(tk.Frame):
 
     def create_menu_button(self, text, frame):
         btn = tk.Button(self, text=text, 
-                        background=self.config_sett["menu_btn_bg"], 
-                        activebackground=self.config_sett["menu_btn_bg_active"], 
-                        width=40,
+                        image = self.img_menu,
+                        highlightthickness = 0, bd = 0,
+                        compound='center',
+                        background=self.config_sett["menu_background"], 
+                        fg=self.config_sett["menu_fg"],
+                        activebackground=self.config_sett["menu_background"], 
                         command=lambda f=frame: self.clear_and_show_clicked(f)
                         )
         return btn
@@ -156,14 +176,25 @@ class MenuFrame(tk.Frame):
         what.grid(column=col_grid, row=row_grid, columnspan=colspan, sticky=stick)
 
 class FooterFrame(tk.Frame):
-    def __init__(self, root, *args, **kwargs):
+    def __init__(self, root, config_sett, *args, **kwargs):
         self._root = root
-        tk.Frame.__init__(self, root, background='blue', *args, **kwargs)
-        self.time_label = ttk.Label(self, justify='center',
-                               font=('calibri', 25, 'bold'), borderwidth=1, relief="solid")
+        self.config_sett = config_sett
+        self.img_timer = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{MainFramesProp.TIMER_IMG}")
+        
+        tk.Frame.__init__(self, root, background=self.config_sett['footer_bg'], *args, **kwargs)
+        self.time_label = tk.Label(self,
+                                justify='center',
+                                font=('calibri', 25, 'bold'),
+                                image = self.img_timer,
+                                compound='center',
+                                background=self.config_sett["footer_bg"], 
+                                foreground=self.config_sett["footer_fg"],
+                                activebackground=self.config_sett["footer_bg"], 
+                                )
         self.time()
 
-        self.time_label.grid(column=2, row=0, sticky='nsew')
+        self.time_label.grid(column=0, row=0, sticky='nsew')
+        self.columnconfigure(0, weight =1)
         self.grid(column=0, row=2, columnspan=2, sticky="nsew")
 
     def time(self):

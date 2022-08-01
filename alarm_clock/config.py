@@ -1,4 +1,3 @@
-from asyncio.windows_events import NULL
 import json
 
 class ConfigJSON:
@@ -20,11 +19,6 @@ class ConfigJSON:
             json.dump(self.json_conf, config_json, indent=4)
             config_json.truncate()  
 
-    def add_section(self, alarm):
-        with open(self.config, 'r+') as config_json:
-            
-            json.dump(self.json_conf, config_json, indent=4)
-            # config_json.truncate()  
   
     def pop_section(self, section):
         del self.json_conf[section]

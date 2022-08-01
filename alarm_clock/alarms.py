@@ -5,58 +5,87 @@ pkg_resources.require("playsound==1.2.2")
 from playsound import playsound
 import multiprocessing
 import tkinter as tk
-from tkinter import ttk
+from tkinter import PhotoImage, ttk
 from datetime import datetime
 from datetime import timedelta
 import glob2 as glob
 
+
 class AlarmsProperties:
-    SOUNDS_EXT = ".mp3"
     ALARM_PREFIX = 'alarm_box'
-    SOUND_DIR = 'sounds'
+    DELETE_STRING = 'X'
+    IMAGE_NAME = 'alarms.png'
     TIME = 'time'
     DAYS = 'days'
     SOUND = 'sound'
     STATE = 'state'
-    
 
 class Alarms(tk.Frame):
-    def __init__(self, root, json_conf, json_alarms, *args, **kwargs):
+    def __init__(self, root, app_properties, json_conf, json_alarms, *args, **kwargs):
         self._root = root
+        self.app_prop = app_properties
         self.json_conf = json_conf
         self.json_alarms = json_alarms
         tk.Frame.__init__(self, root, *args, **kwargs)
         self.edit_frame = self.EditAlarm(self)
         self.alarms_frame = tk.Frame(self, background = self.json_conf["bg_alarms"])
         
+        #this should be in class Alarms -> alarmslist
+        self.btn_big = PhotoImage(file=f'{self.app_prop.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}')
+        self.btn_med = self.btn_big.subsample(5,2)
+        self.btn_width_no_height = self.btn_big.subsample(1,2)
+        
+        
         self.check_days = []
         self.snoozed_alarms = []
         self.snoozed_time = 1
         self.checked_days = []
-        self.__create_alarm_boxes_frame(self)
+        self.__create_alarm_boxes_frame()
         self.refresh_alarms()
         self.set_alarms()
+        #this should be in class Alarms -> alarmslist
+
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.alarms_frame.grid(row=0, column=1, sticky='nsew')
         self.edit_frame.grid(row=0, column =0, sticky='nsew')
-        self.config(background='blue')
-
-    def __create_alarm_boxes_frame(self, append, width=30):
+        self.config(background=self.json_conf['bg_alarms'])
         
-        tk.Label(self.alarms_frame, text='Alarms' , background=self.json_conf['lbl_alarms_bg'], justify='center',
-                  borderwidth=1, relief="solid"
-                  ).grid(column=0, row=0, sticky='new')
+    def create_image_button(self, append, text, image, name=''):
+        return tk.Button(append, text=text, 
+                                image = image,
+                                highlightthickness = 0, bd = 0,
+                                activebackground=self.json_conf["bg_alarms"],
+                                activeforeground=self.json_conf["fg_buttons"],
+                                compound='center',
+                                bg=self.json_conf["bg_alarms"],
+                                border=0,
+                                fg=self.json_conf["fg_buttons"],
+                                name=name
+                                
+                                )
+        
+
+    def __create_alarm_boxes_frame(self, width=30):
+        tk.Label(self.alarms_frame, text='Alarms', 
+                background=self.json_conf['lbl_alarms_bg'], 
+                justify='center',
+                borderwidth=1, relief="solid",
+                image=self.btn_width_no_height,
+                compound='center',
+                bg=self.json_conf["bg_alarms"],
+                border=0,
+                fg=self.json_conf["fg_buttons"]
+                ).grid(column=0, row=0, sticky='new')
         
         # add buttons for adding new alarms
-        add_button = tk.Button(self.alarms_frame, text="Add", 
-                                height=1, width=width, 
-                                background=self.json_conf['add_btn_bg_color'], 
-                                activebackground=self.json_conf['add_btn_bg_color_active']
-                                )
-        self.alarms_frame.config(borderwidth=15, relief='sunken')
+        add_button = self.create_image_button(self.alarms_frame, 'Add', self.btn_width_no_height, 'add_btn')
+        
+        self.alarms_frame.config(borderwidth=5, relief='sunken')
         self.alarms_frame.grid(column=1, row=1, sticky="nsew")
+        self.alarms_frame.columnconfigure(0, weight=1)
+        self.alarms_frame.columnconfigure(1, weight=1)
         add_button.grid(column=2, row=0, padx=5, pady=1)
         add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
         
@@ -77,24 +106,19 @@ class Alarms(tk.Frame):
             alarm_text[AlarmsProperties.STATE] = state_now
             self.json_alarms.modify_section(alarm_json, AlarmsProperties.STATE, state_now)
             #save to config json(toggle state = disabled / normal)
-
+        #TODO HERE
+        
         alarm_format = f"{alarm_text[AlarmsProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_text[AlarmsProperties.DAYS]])} \n {alarm_text[AlarmsProperties.SOUND]}"
-        alarm_box = tk.Button(append, text= alarm_format, 
-                            background=self.json_conf["alarm_box_bg"], 
-                            activebackground=self.json_conf["alarm_box_bg_active"], 
-                            width=30, height=3, name=f"alarm_box{row_alarm}"
-                            )
-        delete_alarm = tk.Button(append, text='x', 
-                                background=self.json_conf["delete_bg_color"], 
-                                activebackground=self.json_conf["delete_bg_color_active"], 
-                                height=2, width=6)
+        alarm_box = self.create_image_button(append, alarm_format, self.btn_big, f"{AlarmsProperties.ALARM_PREFIX}_{row_alarm}")
+
+        delete_alarm = self.create_image_button(append, AlarmsProperties.DELETE_STRING, self.btn_med, f"delete_{AlarmsProperties.ALARM_PREFIX}{row_alarm}")
  
         alarm_box.grid(column=0, row=row_alarm + 2)
         alarm_box.config(state=alarm_text[AlarmsProperties.STATE], command=lambda alarm_json=alarm_json, alarm_box=alarm_box: self.edit_frame.edit(alarm_json, alarm_box))
 
         alarm_box.bind("<Button-3>", lambda event, alarm_box=alarm_box: toggle_alarm(event, alarm_box))
 
-        delete_alarm.grid(column=2, row=row_alarm + 2, padx=5, pady=1, sticky='w')
+        delete_alarm.grid(column=1, row=row_alarm + 2, padx=5, pady=1, sticky='w')
         delete_alarm.config(command=lambda alarm_json=alarm_json : [self.remove_alarm_box(alarm_json), alarm_box.destroy(), delete_alarm.destroy()])
         return alarm_box
 
@@ -151,7 +175,7 @@ class Alarms(tk.Frame):
 
 
     class AlarmPopup(tk.Tk):
-        def __init__(self, root, alarm_properties, *args, **kwargs):
+        def __init__(self, root, alarm_AlarmsProperties, *args, **kwargs):
             tk.Toplevel.__init__(self, *args, **kwargs)
             self._root = root
             self.sound_process = None
@@ -159,15 +183,15 @@ class Alarms(tk.Frame):
             self.title('Settings')
             self.mute_sound_text = 'Mute sound'
             self.play_sound_text = 'Play sound'
-            alarm_format = f"{alarm_properties[AlarmsProperties.TIME]}\n{' '.join([str(day) for day in alarm_properties[AlarmsProperties.DAYS]])}\n {alarm_properties[AlarmsProperties.SOUND]}  "
+            alarm_format = f"{alarm_AlarmsProperties[AlarmsProperties.TIME]}\n{' '.join([str(day) for day in alarm_AlarmsProperties[AlarmsProperties.DAYS]])}\n {alarm_AlarmsProperties[AlarmsProperties.SOUND]}  "
 
             ttk.Label(self, text=alarm_format, font='Mistral 18 bold').pack(side='left')
             ttk.Button(self, text="Stop alarm", command=lambda: self.stop_alarm()).pack(side='right')    
             ttk.Button(self, text="Snooze").pack(side='right') #,command=lambda alarm=text: [snooze_alarm(), stop_alarm()]
                 #    ).pack(side='right')
             mute_sound_btn = ttk.Button(self, text = self.mute_sound_text )
-            if AlarmsProperties.SOUNDS_EXT in alarm_properties[AlarmsProperties.SOUND]:
-                music_to_play = f"{AlarmsProperties.SOUND_DIR}/{alarm_properties[AlarmsProperties.SOUND]}"
+            if AlarmsProperties.SOUNDS_EXT in alarm_AlarmsProperties[AlarmsProperties.SOUND]:
+                music_to_play = f"{self.app_prop.SOUND_DIR}/{alarm_AlarmsProperties[AlarmsProperties.SOUND]}"
                 mute_sound_btn.config(command=lambda mute_sound_btn=mute_sound_btn, music_to_play=music_to_play : self.mute_sound(mute_sound_btn, music_to_play))
                 mute_sound_btn.pack(side='right')
 
@@ -202,7 +226,9 @@ class Alarms(tk.Frame):
     class EditAlarm(tk.Frame):
         def __init__(self, root, *args, **kwargs):
             self._root = root
-            tk.Frame.__init__(self, root, background='blue', borderwidth=15,relief='sunken', *args, **kwargs)
+            self.img_edit = PhotoImage(file=f"{root.app_prop.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}")
+            self.app_prop = root.app_prop
+            tk.Frame.__init__(self, root, background='blue', borderwidth=5,relief='sunken', *args, **kwargs)
             #FIXME blue from config
             self.json_conf = self._root.json_conf
             self.json_alarms = self._root.json_alarms
@@ -216,9 +242,12 @@ class Alarms(tk.Frame):
             alarm_format = self.json_alarms.section[json_alarm]
             alarm_format_lbl = f" {alarm_format[AlarmsProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[AlarmsProperties.DAYS]])} \n {alarm_format[AlarmsProperties.SOUND]}"
 
-            def create_alarm_name_lbl(txt, config_name = 'alarm_label_bg', width=20, anchor='center'):
-                alarm_label = tk.Label(self, anchor=anchor, width=width, 
-                                        background=self.json_conf[config_name],
+            def create_alarm_name_lbl(txt, anchor='center'):
+                alarm_label = tk.Label(self, anchor=anchor,
+                                        image = self.img_edit,
+                                        background=self.json_conf['bg_edit'],
+                                        fg=self.json_conf['fg_edit'],
+                                        compound='center',
                                         text=txt
                                     )
                 alarm_label.grid(column=1, row=0, sticky='ns')   
@@ -235,7 +264,7 @@ class Alarms(tk.Frame):
 
             def create_sound_list_from_dir():
                 music_list = []
-                for file in glob.glob(f"{AlarmsProperties.SOUND_DIR}/*{AlarmsProperties.SOUNDS_EXT}"):
+                for file in glob.glob(f"{self.app_prop.SOUND_DIR}/*{self.app_prop.SOUNDS_EXT}"):
                     #FIXME sounds = const?  
                     music_list.append(file)
                 return music_list
@@ -248,7 +277,7 @@ class Alarms(tk.Frame):
                             background=self.json_conf['select_sound_bg']
                             )
                 selected_snd = tk.StringVar()
-                selected_snd.set(AlarmsProperties.SOUND_DIR+'\\'+sound)
+                selected_snd.set(self.app_prop.SOUND_DIR+'\\'+sound)
                 choose_music = ttk.OptionMenu(self, selected_snd, "",*create_sound_list_from_dir(), style='my.TMenubutton')
                 choose_music.grid(column=2, row=0, sticky="nsew")
                 choose_music.config()
@@ -300,7 +329,6 @@ class Alarms(tk.Frame):
                 self.json_alarms.modify_section(alarm_json, AlarmsProperties.TIME, new_hour)
                 self.json_alarms.modify_section(alarm_json, AlarmsProperties.DAYS, new_days)
                 self.json_alarms.modify_section(alarm_json, AlarmsProperties.SOUND, new_sound)
-                #TODO SAVE ALARM TO CONFIG
                 # add hours and days to editing alarm
             
             def create_edit_appearance():
@@ -315,7 +343,10 @@ class Alarms(tk.Frame):
         #FIXME fix this lul create_edit_appearance
     
 
-    #TODO Alarms = 1 big frame / 2
-    # 1 = edit
-    # 2 = alarms
+    #TODO ADD BUTTONS IMG / CHECK ENTRY (image or sth) smae as SELECT SOUND
+    # after all images commit and push 
+    # remove unused thinsgs in config.json
+    # some changes in functions and mostly changed backgrounds into images
+    # comment that in settings json {{comment: 'x y etc ' }}
+    
     

@@ -5,12 +5,17 @@
     },
     "menu_options":{
         "menu_background":"blue",
-        "menu_btn_bg":"lightblue",
-        "menu_btn_bg_active":"yellow"
+        "menu_fg":"yellow"
+    },
+    "footer_options":{
+        "footer_bg":"blue",
+        "footer_fg":"yellow"
     },
     "alarms_options":{
         "bg_alarms":"blue",
+        "fg_buttons":"yellow",
         "bg_edit":"blue",
+        "fg_edit": "yellow",
         "day_name":{
             "Monday":"Mon",
             "Tuesday":"Tue",

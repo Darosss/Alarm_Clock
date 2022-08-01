@@ -1,40 +1,22 @@
 {
     "alarm_box1": {
-        "time": "16:13:21",
+        "time": "18:31:07",
         "days": [
-            "Fri",
-            "Sun"
+            "Mon"
         ],
-        "sound": "5.mp3",
+        "sound": "none",
         "state": "normal"
     },
     "alarm_box3": {
-        "time": "23:48:43",
+        "time": "18:31:15",
         "days": [
-            "Sun"
+            "Mon"
         ],
         "sound": "none",
         "state": "normal"
     },
     "alarm_box4": {
-        "time": "23:49:54",
-        "days": [
-            "Sun"
-        ],
-        "sound": "none",
-        "state": "normal"
-    },
-    "alarm_box5": {
-        "time": "23:49:56",
-        "days": [
-            "Fri",
-            "Sun"
-        ],
-        "sound": "none",
-        "state": "normal"
-    },
-    "alarm_box6": {
-        "time": "11:59:04",
+        "time": "18:31:15",
         "days": [
             "Mon"
         ],

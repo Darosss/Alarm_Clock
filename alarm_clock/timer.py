@@ -3,7 +3,6 @@ from tkinter import ttk
 import tkinter as tk
 from datetime import datetime
 from datetime import timedelta
-#TODO STOPWATCH TIMER CHANGE TO CLASS TK.FRAME
 class Timer(tk.Frame):
     def __init__(self, root, json_conf, json_alarms, *args, **kwargs):
         self._root = root
