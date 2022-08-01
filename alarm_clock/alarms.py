@@ -1,4 +1,5 @@
 from turtle import back
+from numpy import delete
 import pkg_resources
 pkg_resources.require("playsound==1.2.2")
 from playsound import playsound
@@ -22,21 +23,28 @@ class AlarmsProperties:
 class Alarms(tk.Frame):
     def __init__(self, root, json_conf, json_alarms, *args, **kwargs):
         self._root = root
-        self.config_name = 'config.ini'
         self.json_conf = json_conf
         self.json_alarms = json_alarms
         tk.Frame.__init__(self, root, *args, **kwargs)
         self.edit_frame = self.EditAlarm(self)
-        self.alarms_frame = None
+        self.alarms_frame = tk.Frame(self, background = self.json_conf["bg_alarms"])
+        
         self.check_days = []
         self.snoozed_alarms = []
         self.snoozed_time = 1
         self.checked_days = []
-        self.__create_alarm_boxes_frame(root)
+        self.__create_alarm_boxes_frame(self)
+        self.refresh_alarms()
         self.set_alarms()
-        
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
+        self.columnconfigure(1, weight=1)
+        self.alarms_frame.grid(row=0, column=1, sticky='nsew')
+        self.edit_frame.grid(row=0, column =0, sticky='nsew')
+        self.config(background='blue')
+
     def __create_alarm_boxes_frame(self, append, width=30):
-        self.alarms_frame = tk.Frame(append, background = self.json_conf["bg_alarms"])
+        
         tk.Label(self.alarms_frame, text='Alarms' , background=self.json_conf['lbl_alarms_bg'], justify='center',
                   borderwidth=1, relief="solid"
                   ).grid(column=0, row=0, sticky='new')
@@ -47,18 +55,14 @@ class Alarms(tk.Frame):
                                 background=self.json_conf['add_btn_bg_color'], 
                                 activebackground=self.json_conf['add_btn_bg_color_active']
                                 )
-
-        self.refresh_alarms()
-    
         self.alarms_frame.config(borderwidth=15, relief='sunken')
         self.alarms_frame.grid(column=1, row=1, sticky="nsew")
         add_button.grid(column=2, row=0, padx=5, pady=1)
         add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
-
+        
     def refresh_alarms(self):
         self.alarms_frame.grid_slaves().clear()
         for row, alarm in enumerate(self.json_alarms.section): 
-            print(alarm)
             self.create_alarm(self.alarms_frame, alarm, row)
 
     def create_alarm(self, append, alarm_json, row_alarm):
@@ -110,6 +114,7 @@ class Alarms(tk.Frame):
         #FIXME for now its only day in engluish to need to change that
         row_alarm_box = frame.grid_size()[1]
         print(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}")
+        #FIXME random alarm_box number 
         self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.TIME, dt_string)
         self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.DAYS, [today_name])
         self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.SOUND, 'none')
@@ -144,6 +149,7 @@ class Alarms(tk.Frame):
                         self.AlarmPopup(self, alarm_prop)
         self.alarms_frame.after(1000, self.set_alarms)
 
+
     class AlarmPopup(tk.Tk):
         def __init__(self, root, alarm_properties, *args, **kwargs):
             tk.Toplevel.__init__(self, *args, **kwargs)
@@ -159,7 +165,7 @@ class Alarms(tk.Frame):
             ttk.Button(self, text="Stop alarm", command=lambda: self.stop_alarm()).pack(side='right')    
             ttk.Button(self, text="Snooze").pack(side='right') #,command=lambda alarm=text: [snooze_alarm(), stop_alarm()]
                 #    ).pack(side='right')
-            mute_sound_btn = ttk.Button(self, text="Mute sound")
+            mute_sound_btn = ttk.Button(self, text = self.mute_sound_text )
             if AlarmsProperties.SOUNDS_EXT in alarm_properties[AlarmsProperties.SOUND]:
                 music_to_play = f"{AlarmsProperties.SOUND_DIR}/{alarm_properties[AlarmsProperties.SOUND]}"
                 mute_sound_btn.config(command=lambda mute_sound_btn=mute_sound_btn, music_to_play=music_to_play : self.mute_sound(mute_sound_btn, music_to_play))
@@ -196,12 +202,12 @@ class Alarms(tk.Frame):
     class EditAlarm(tk.Frame):
         def __init__(self, root, *args, **kwargs):
             self._root = root
-            tk.Frame.__init__(self, root, *args, **kwargs)
+            tk.Frame.__init__(self, root, background='blue', borderwidth=15,relief='sunken', *args, **kwargs)
+            #FIXME blue from config
             self.json_conf = self._root.json_conf
             self.json_alarms = self._root.json_alarms
             self.check_days = None
             self.checked_days = None
-            self.grid(column=0, row=1, sticky="nsew")
 
         def edit(self, json_alarm, alarm_box):
             self.check_days = self._root.check_days
@@ -258,7 +264,6 @@ class Alarms(tk.Frame):
                 save_btn.grid(column=2, row=2, sticky="nsew")
     
             def create_checkbox_days():
-                # day_names = self.config.get_key("alarms_options", "day_name").split(",")
                 day_names = self.json_conf['day_name']
 
                 checkbox_days_frame = tk.Frame(self)
@@ -308,4 +313,9 @@ class Alarms(tk.Frame):
                 return
             create_edit_appearance()
         #FIXME fix this lul create_edit_appearance
+    
+
+    #TODO Alarms = 1 big frame / 2
+    # 1 = edit
+    # 2 = alarms
     

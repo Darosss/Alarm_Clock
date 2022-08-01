@@ -23,19 +23,17 @@ class SectionNames:
 class AlarmApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-        self.json_conf = ConfigJSON('config.json')
+        self.json_conf = ConfigJSON('config.json').section
         self.json_alarms = ConfigJSON('alarms.json')
-        self.geometry(self.json_conf.section[SectionNames.APP_SETTINGS]["resolution"])
-        self._alarm_app_frame = Alarms(self, self.json_conf.section[SectionNames.ALARMS_OPTIONS], self.json_alarms)
-        # self._stopwatch_app_frame = StopwatchFrame(self)
-        # self._timer_app_frame = TimerFrame(self)
-        self._stopwatch_app_frame = None
-        self._timer_app_frame = None
+        self.geometry(self.json_conf[SectionNames.APP_SETTINGS]["resolution"])
+        self._alarm_app_frame = Alarms(self, self.json_conf[SectionNames.ALARMS_OPTIONS], self.json_alarms)
+        self._stopwatch_app_frame = Stopwatch(self, self.json_conf[SectionNames.STOPWATCH_OPTIONS], self.json_alarms)
+        self._timer_app_frame = Timer(self, self.json_conf[SectionNames.TIMER_OPTIONS], self.json_alarms)
         
         self._menu = MainMenu(self)
         self._footer_frame = FooterFrame(self)
 
-        self._menu_frame = MenuFrame(self, self.json_conf.section[SectionNames.MENU_OPTIONS], 
+        self._menu_frame = MenuFrame(self, self.json_conf[SectionNames.MENU_OPTIONS], 
                                      self._alarm_app_frame, 
                                      self._stopwatch_app_frame, 
                                      self._timer_app_frame
@@ -54,8 +52,8 @@ class AlarmApp(tk.Tk):
         print('upload')
       
     def menu_settings(self):
-        # SettingsWindow(self, self.json_conf[])
         pass
+        # SettingsWindow(self, self.json_conf    pass
     def quit_app(self):
         self.quit()
 
@@ -126,35 +124,11 @@ class WindowMenu(tk.Menu):
         self.add_command(label="Settings", command=parent.root.menu_settings)
         self.add_command(label="Exit", command=parent.root.quit_app)
 
-
-# class AlarmsFrame(tk.Frame):
-#     def __init__(self, root, *args, **kwargs):
-#         self._root = root
-#         tk.Frame.__init__(self, root, *args, **kwargs)
-#         alarms = Alarms(self, 'config.ini', 'new.TFrame')
-
-
-class StopwatchFrame(tk.Frame):
-    def __init__(self, root, *args, **kwargs):
-        self._root = root
-        tk.Frame.__init__(self, root, *args, **kwargs)
-        stopwatch = Stopwatch('config.ini', 'new.TFrame')
-        stopwatch.create_stopwatch_frame(self)
-        
-
-class TimerFrame(tk.Frame):
-    def __init__(self, root, *args, **kwargs):
-        self._root = root
-        tk.Frame.__init__(self, root, *args, **kwargs)
-        timer = Timer('config.ini', 'new.TFrame')
-        timer.create_timer_frame(self)
-
-
 class MenuFrame(tk.Frame):
     def __init__(self, root, config_sett, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
         self._root = root
         self.config_sett = config_sett
-        tk.Frame.__init__(self, root, background=config_sett["menu_background"], *args, **kwargs)
+        tk.Frame.__init__(self, root, background=config_sett["menu_background"], borderwidth=15, relief='sunken', *args, **kwargs)
 
         menu_btn_alarms = self.create_menu_button("Alarms", alarm_frame)   
         menu_btn_stopwatch = self.create_menu_button("Stopwatch" , stopwatch_frame)
@@ -175,6 +149,7 @@ class MenuFrame(tk.Frame):
         return btn
 
     def clear_and_show_clicked(self, what, col_grid=0, row_grid=1, colspan=2, stick='nsew'):
+        print(what)
         for slave in self._root.grid_slaves(row=1, column=0):
             slave.grid_forget()
             slave.grid_remove()

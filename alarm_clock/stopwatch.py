@@ -6,14 +6,15 @@ from datetime import timedelta
 from pyparsing import string_start
 
 
-class Stopwatch:
-    def __init__(self, config_name, style):
-        self.config_name = config_name
-        self.section_name = 'stopwatch_options'
-        self.config = Config(config_name)
+class Stopwatch(tk.Frame):
+    def __init__(self, root, json_conf, json_alarms, *args, **kwargs):
+        self._root = root
+        self.json_conf = json_conf
+        self.json_alarms = json_alarms
+        tk.Frame.__init__(self, root, *args, **kwargs)
+
         self.stopwatch_frame = None
         self.saved_frame = None
-        self.styleName = style
         self.str_start = "Start"
         self.str_resume = "Resume"
         self.str_pause = "Pause"
@@ -21,25 +22,21 @@ class Stopwatch:
         self.counting_interval = None
         self.stopwatch_time = [0, 0, 0, 0, 0]
         self.count_saved_times = 1
+        self.create_stopwatch_frame(self)
 
     def create_stopwatch_frame(self, append):
-        self.stopwatch_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
-        self.saved_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
+        self.stopwatch_frame = tk.Frame(append, borderwidth=15, relief='sunken')
+        self.saved_frame = tk.Frame(append, borderwidth=15, relief='sunken')
 
-        s_t_title_bg = self.config.get_key(self.section_name, "s_t_title_bg")
-        s_t_bg = self.config.get_key(self.section_name, "s_t_bg")
-        saved_times_title = ttk.Label(self.saved_frame, text='Saved times', background=s_t_title_bg, font=('default', 25),padding=20)
-        saved_times = ttk.Label(self.saved_frame, text='', background=s_t_bg, font=('default', 25),padding=20)
+      
+        saved_times_title = ttk.Label(self.saved_frame, text='Saved times', background=self.json_conf["s_t_title_bg"], font=('default', 25),padding=20)
+        saved_times = ttk.Label(self.saved_frame, text='', background=self.json_conf["s_t_bg"], font=('default', 25),padding=20)
 
-        time_title_bg = self.config.get_key(self.section_name, "time_title_bg")
-        time_bg = self.config.get_key(self.section_name, "time_bg")
-        ttk.Label(self.stopwatch_frame, text='Stopwatch', background=time_title_bg,  font=('default', 25),padding=20).pack()
-        time_label = ttk.Label(self.stopwatch_frame, padding=20, background=time_bg,  font=('default', 25), text='Stopwatch')
+        ttk.Label(self.stopwatch_frame, text='Stopwatch', background=self.json_conf["time_title_bg"],  font=('default', 25),padding=20).pack()
+        time_label = ttk.Label(self.stopwatch_frame, padding=20, background=self.json_conf["time_bg"],  font=('default', 25), text='Stopwatch')
 
-        btns_bg = self.config.get_key(self.section_name, "btns_bg")
-        btns_bg_active = self.config.get_key(self.section_name, "btns_bg_active")
-        stop = tk.Button(self.stopwatch_frame, background=btns_bg, activebackground=btns_bg_active, name=f"{self.stop.lower()}", text=self.stop)
-        start_pause = tk.Button(self.stopwatch_frame, background=btns_bg, activebackground=btns_bg_active, name=f"{self.str_start.lower()}/{self.str_pause.lower()}",
+        stop = tk.Button(self.stopwatch_frame, background=self.json_conf["btns_bg"], activebackground=self.json_conf["btns_bg_active"], name=f"{self.stop.lower()}", text=self.stop)
+        start_pause = tk.Button(self.stopwatch_frame, background=self.json_conf["btns_bg"], activebackground=self.json_conf["btns_bg_active"], name=f"{self.str_start.lower()}/{self.str_pause.lower()}",
                                  text=self.str_start)
         start_pause.config(command=lambda lbl=time_label, btn=start_pause, stp=stop: self.toggle_start_pause(btn, lbl, stp))
         stop.config(command=lambda lbl=time_label, btn=stop, sp=start_pause, save=saved_times: self.stop_stopwatch(btn, sp, lbl, save))

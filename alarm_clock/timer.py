@@ -3,48 +3,44 @@ from tkinter import ttk
 import tkinter as tk
 from datetime import datetime
 from datetime import timedelta
-
-class Timer:
-    def __init__(self, config_name, style):
-        self.config_name = config_name
-        self.section_name = 'timer_options'
+#TODO STOPWATCH TIMER CHANGE TO CLASS TK.FRAME
+class Timer(tk.Frame):
+    def __init__(self, root, json_conf, json_alarms, *args, **kwargs):
+        self._root = root
+        self.json_conf = json_conf
+        self.json_alarms = json_alarms
+        tk.Frame.__init__(self, root, *args, **kwargs)
         self.stopwatch_frame = None
-        self.timer_frame = None      
+        self.timer_frame = None    
+          
         self.str_start = "Start"
         self.str_resume = "Resume"
         self.str_pause = "Pause"
         self.stop = "Stop"
         self.is_counting = None
         self.timer_time = [0, 0, 0, 0, 0]
-        self.styleName = style  
         self.count_saved_times = 1
+        self.create_timer_frame(self)
 
-    def get_config_key(self, key_name):
-        return self.config.get_key(self.section_name, key_name)
-    
     def create_timer_frame(self, append):
-        self.timer_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
+        self.timer_frame = tk.Frame(append, borderwidth=15, relief='sunken')
         self.timer_frame.pack(side='right', expand=True, fill="both")
 
-        self.saved_frame = ttk.Frame(append, style=self.styleName, borderwidth=15, relief='sunken')
+        self.saved_frame = tk.Frame(append, borderwidth=15, relief='sunken')
         self.saved_frame.pack(side='left', expand=True, fill="both")
 
-        s_t_title_bg = self.get_config_key("s_t_title_bg")
-        s_t_bg = self.get_config_key("s_t_bg")
-        ttk.Label(self.saved_frame, text='Saved times', background=s_t_title_bg, font=('default', 25),padding=20).pack(expand=True)
-        saved_times = ttk.Label(self.saved_frame, text='', background=s_t_bg, font=('default', 25),padding=20)
+        ttk.Label(self.saved_frame, text='Saved times', background=self.json_conf['s_t_title_bg'], font=('default', 25),padding=20).pack(expand=True)
+        saved_times = ttk.Label(self.saved_frame, text='', background=self.json_conf["s_t_bg"], font=('default', 25),padding=20)
 
-        time_title_bg = self.get_config_key("time_title_bg")
-        time_bg = self.get_config_key("time_bg")
-        ttk.Label(self.timer_frame, text='Timer', background=time_title_bg,  font=('default', 25),padding=20).pack(side="top", fill='both')
         
-        time_entry = ttk.Entry(self.timer_frame, background=time_bg,  font=('default', 25))
+        
+        ttk.Label(self.timer_frame, text='Timer', background=self.json_conf["time_title_bg"],  font=('default', 25),padding=20).pack(side="top", fill='both')
+        
+        time_entry = ttk.Entry(self.timer_frame, background=self.json_conf["time_bg"],  font=('default', 25))
         time_entry.insert(1, ':'.join(str(x) for x in self.timer_time))
 
-        btns_bg = self.get_config_key("btns_bg")
-        btns_bg_active = self.get_config_key("btns_bg_active")
-        stop = tk.Button(self.timer_frame, background=btns_bg, activebackground=btns_bg_active, text=self.stop)
-        start_pause = tk.Button(self.timer_frame, background=btns_bg, activebackground=btns_bg_active, text=self.str_start)
+        stop = tk.Button(self.timer_frame, background=self.json_conf["btns_bg"], activebackground=self.json_conf["btns_bg_active"], text=self.stop)
+        start_pause = tk.Button(self.timer_frame, background=self.json_conf["btns_bg"], activebackground=self.json_conf["btns_bg_active"], text=self.str_start)
 
         start_pause.config(command=lambda tim_entr=time_entry, btn=start_pause, stp=stop: self.toggle_start_pause(btn, tim_entr, stp))
         stop.config(command=lambda tim_entr=time_entry, btn=stop, sp=start_pause: self.stop_timer(btn, sp, tim_entr))
