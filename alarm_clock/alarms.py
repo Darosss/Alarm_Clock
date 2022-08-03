@@ -9,7 +9,7 @@ from tkinter import PhotoImage, ttk
 from datetime import datetime
 from datetime import timedelta
 import glob2 as glob
-
+from my_widgets import MyButton, MyLabel
 
 class AlarmsProperties:
     ALARM_PREFIX = 'alarm_box'
@@ -27,15 +27,19 @@ class Alarms(tk.Frame):
         self.json_conf = json_conf
         self.json_alarms = json_alarms
         tk.Frame.__init__(self, root, *args, **kwargs)
+        self.bg_alarms = self.json_conf["bg_alarms"]
+        self.fg_alarms = self.json_conf["fg_buttons"]
         self.edit_frame = self.EditAlarm(self)
-        self.alarms_frame = tk.Frame(self, background = self.json_conf["bg_alarms"])
         
+        self.alarms_frame = tk.Frame(self, background = self.json_conf["bg_alarms"])
+        self.alarms_frame.columnconfigure(0, weight=1)
+        self.alarms_frame.columnconfigure(1, weight=1)
         #this should be in class Alarms -> alarmslist
         self.btn_big = PhotoImage(file=f'{self.app_prop.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}')
         self.btn_med = self.btn_big.subsample(5,2)
         self.btn_width_no_height = self.btn_big.subsample(1,2)
         
-        
+
         self.check_days = []
         self.snoozed_alarms = []
         self.snoozed_time = 1
@@ -43,52 +47,38 @@ class Alarms(tk.Frame):
         self.__create_alarm_boxes_frame()
         self.refresh_alarms()
         self.set_alarms()
-        #this should be in class Alarms -> alarmslist
 
+
+        #this should be in class Alarms -> alarmslist
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
+
         self.alarms_frame.grid(row=0, column=1, sticky='nsew')
         self.edit_frame.grid(row=0, column =0, sticky='nsew')
         self.config(background=self.json_conf['bg_alarms'])
-        
-    def create_image_button(self, append, text, image, name=''):
-        return tk.Button(append, text=text, 
-                                image = image,
-                                highlightthickness = 0, bd = 0,
-                                activebackground=self.json_conf["bg_alarms"],
-                                activeforeground=self.json_conf["fg_buttons"],
-                                compound='center',
-                                bg=self.json_conf["bg_alarms"],
-                                border=0,
-                                fg=self.json_conf["fg_buttons"],
-                                name=name
-                                
-                                )
-        
 
     def __create_alarm_boxes_frame(self, width=30):
-        tk.Label(self.alarms_frame, text='Alarms', 
-                background=self.json_conf['bg_alarms'], 
-                justify='center',
-                borderwidth=1, relief="solid",
-                image=self.btn_width_no_height,
-                compound='center',
-                bg=self.json_conf["bg_alarms"],
-                border=0,
-                fg=self.json_conf["fg_buttons"]
-                ).grid(column=0, row=0, sticky='new')
+        alarm_title_lbl = MyLabel(self.alarms_frame, "Alarms",
+                                self.fg_alarms, self.bg_alarms,
+                                image=self.btn_width_no_height,
+                                )
         
-        # add buttons for adding new alarms
-        add_button = self.create_image_button(self.alarms_frame, 'Add', self.btn_width_no_height, 'add_btn')
-        
-        self.alarms_frame.config(borderwidth=5, relief='sunken')
-        self.alarms_frame.grid(column=1, row=1, sticky="nsew")
-        self.alarms_frame.columnconfigure(0, weight=1)
-        self.alarms_frame.columnconfigure(1, weight=1)
-        add_button.grid(column=2, row=0, padx=5, pady=1)
+        add_button =  MyButton(self.alarms_frame, 'Add', 
+                                self.fg_alarms, self.bg_alarms, 
+                                image=self.btn_width_no_height, 
+                                name='add_alarm_btn'
+                              )
+
+
+
         add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
-        
+        self.alarms_frame.config(borderwidth=5, relief='sunken')
+
+        alarm_title_lbl.grid(column=0, row=0, sticky='new')
+        add_button.grid(column=2, row=0, padx=5, pady=1)
+        self.alarms_frame.grid(column=1, row=1, sticky="nsew")
+
     def refresh_alarms(self):
         self.alarms_frame.grid_slaves().clear()
         for row, alarm in enumerate(self.json_alarms.section): 
@@ -109,17 +99,25 @@ class Alarms(tk.Frame):
         #TODO HERE
         
         alarm_format = f"{alarm_text[AlarmsProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_text[AlarmsProperties.DAYS]])} \n {alarm_text[AlarmsProperties.SOUND]}"
-        alarm_box = self.create_image_button(append, alarm_format, self.btn_big, f"{AlarmsProperties.ALARM_PREFIX}_{row_alarm}")
-
-        delete_alarm = self.create_image_button(append, AlarmsProperties.DELETE_STRING, self.btn_med, f"delete_{AlarmsProperties.ALARM_PREFIX}{row_alarm}")
- 
-        alarm_box.grid(column=0, row=row_alarm + 2)
+        alarm_box = MyButton(append, alarm_format, 
+                            self.fg_alarms, self.bg_alarms,
+                            image=self.btn_big, 
+                            name=f"{AlarmsProperties.ALARM_PREFIX}_{row_alarm}"
+                            )
+        delete_alarm = MyButton(append, AlarmsProperties.DELETE_STRING, 
+                                self.fg_alarms, self.bg_alarms, 
+                                image=self.btn_med, 
+                                name=f"delete_{AlarmsProperties.ALARM_PREFIX}{row_alarm}"
+                                )
+        
+        
         alarm_box.config(state=alarm_text[AlarmsProperties.STATE], command=lambda alarm_json=alarm_json, alarm_box=alarm_box: self.edit_frame.edit(alarm_json, alarm_box))
-
-        alarm_box.bind("<Button-3>", lambda event, alarm_box=alarm_box: toggle_alarm(event, alarm_box))
-
-        delete_alarm.grid(column=1, row=row_alarm + 2, padx=5, pady=1, sticky='w')
         delete_alarm.config(command=lambda alarm_json=alarm_json : [self.remove_alarm_box(alarm_json), alarm_box.destroy(), delete_alarm.destroy()])
+        
+        alarm_box.bind("<Button-3>", lambda event, alarm_box=alarm_box: toggle_alarm(event, alarm_box))
+        
+        alarm_box.grid(column=0, row=row_alarm + 2)
+        delete_alarm.grid(column=1, row=row_alarm + 2, padx=5, pady=1, sticky='w')
         return alarm_box
 
     def clear_edit_frame(self):
@@ -233,6 +231,9 @@ class Alarms(tk.Frame):
             #FIXME blue from config
             self.json_conf = self._root.json_conf
             self.json_alarms = self._root.json_alarms
+            self.fg_edit = self.json_conf['fg_edit']
+            self.bg_edit = self.json_conf['bg_edit']
+
             self.check_days = None
             self.checked_days = None
 
@@ -242,17 +243,6 @@ class Alarms(tk.Frame):
 
             alarm_format = self.json_alarms.section[json_alarm]
             alarm_format_lbl = f" {alarm_format[AlarmsProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[AlarmsProperties.DAYS]])} \n {alarm_format[AlarmsProperties.SOUND]}"
-
-            def create_alarm_name_lbl(txt, anchor='center'):
-                alarm_label = tk.Label(self, anchor=anchor,
-                                        image = self.img_edit,
-                                        background=self.json_conf['bg_edit'],
-                                        fg=self.json_conf['fg_edit'],
-                                        compound='center',
-                                        text=txt
-                                    )
-                alarm_label.grid(column=1, row=0, sticky='ns')   
-                return alarm_label
 
             def create_hours_entry(time, font_size=self.json_conf['hours_entry_font_size'], bg=self.json_conf['bg_edit'], width=10):
                 hours = tk.Entry(self, width=width, 
@@ -290,21 +280,6 @@ class Alarms(tk.Frame):
                 choose_music.grid(column=2, row=0, sticky="nsew")
                 choose_music.config()
                 return selected_snd
-
-            def create_save_button(hours_entry, selected_snd):
-                save_btn = tk.Button(self, text="Save", 
-                                    font=('Helvetica', self.json_conf['save_btn_font_size']),
-                                    image = self.img_edit,
-                                    highlightthickness = 0, bd = 0,
-                                    activebackground=self.json_conf["bg_edit"],
-                                    activeforeground=self.json_conf["fg_edit"],
-                                    compound='center',
-                                    bg=self.json_conf["bg_edit"],
-                                    border=0,
-                                    fg=self.json_conf["fg_edit"]
-                                    )
-                save_btn.config(command=lambda alarm_json=json_alarm, alarm_box=alarm_box, hour=hours_entry: save_alarm(alarm_json, alarm_box, hour, selected_snd.get()))
-                save_btn.grid(column=2, row=2, sticky="nsew")
     
             def create_checkbox_days():
                 day_names = self.json_conf['day_name']
@@ -351,20 +326,30 @@ class Alarms(tk.Frame):
             
             def create_edit_appearance():
                 hours_entry = create_hours_entry(alarm_format[AlarmsProperties.TIME])
-                create_alarm_name_lbl(alarm_format_lbl)
+                MyLabel(self, alarm_format_lbl,
+                            self.fg_edit, self.bg_edit,
+                            image=self.img_edit
+                            ).grid(column=1, row=0, sticky='ns')   
+
                 create_sound_list_from_dir()
                 selected_snd = create_sound_selection(alarm_format[AlarmsProperties.SOUND])
-                create_save_button(hours_entry, selected_snd)
+                
+                save_btn = MyButton(self, "Save", 
+                                    self.fg_edit, self.bg_edit, 
+                                    image=self.img_edit, 
+                                    name=f"save_alarm"
+                                    )
+                save_btn.config(command=lambda alarm_json=json_alarm, alarm_box=alarm_box, hour=hours_entry: save_alarm(alarm_json, alarm_box, hour, selected_snd.get()))
+                save_btn.grid(column=2, row=2, sticky="nsew")
                 create_checkbox_days()
                 return
             create_edit_appearance()
         #FIXME fix this lul create_edit_appearance
     
-
-    #TODO ADD BUTTONS IMG / CHECK ENTRY (image or sth) smae as SELECT SOUND
-    # after all images commit and push 
-    # remove unused thinsgs in config.json
-    # some changes in functions and mostly changed backgrounds into images
+#TODO
+     # some changes in functions and mostly changed backgrounds into images
     # comment that in settings json {{comment: 'x y etc ' }}
-    
+    #Class of buttons (foreground activefg bg active bg image compound text)
+    # same for labels and entry
+    # and checkbox?
     

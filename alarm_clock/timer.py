@@ -1,7 +1,7 @@
 from multiprocessing.sharedctypes import Value
 from tkinter import PhotoImage, ttk
 import tkinter as tk
-
+from my_widgets import MyButton, MyLabel
 
 class TimerProperties:
     IMAGE_NAME = 'timer.png'
@@ -13,6 +13,8 @@ class Timer(tk.Frame):
         self.app_prop = app_properties
         self.json_conf = json_conf
         self.json_alarms = json_alarms
+        self.bg_timer = self.json_conf['bg_timer']
+        self.fg_timer = self.json_conf['fg_timer']
         tk.Frame.__init__(self, root, *args, **kwargs)
         self.btn_big = PhotoImage(file=f'{self.app_prop.IMAGES_DIR}/{TimerProperties.IMAGE_NAME}')
         self.btn_med = self.btn_big.subsample(5,2)
@@ -39,25 +41,49 @@ class Timer(tk.Frame):
         self.saved_frame = tk.Frame(append, borderwidth=5, background=self.bg, relief='sunken')
         self.saved_frame.pack(side='left', expand=True, fill="both")
 
-        ttk.Label(self.saved_frame, text='Saved times', compound='center', image=self.btn_big, background=self.bg, foreground=self.fg, font=('default', 25),padding=20).pack(expand=True)
-        saved_times = ttk.Label(self.saved_frame, text='', background=self.bg, foreground=self.fg, font=('default', 25),padding=20)
 
+        saved_times_title_lbl = MyLabel(self.saved_frame, 'Saved times',
+                            self.fg, self.bg,
+                            image=self.btn_big,
+                            font=('default', 25)
+                            )
+
+        saved_times_lbl = MyLabel(self.saved_frame, '',
+                            self.fg, self.bg,
+                            font=('default', 25)
+                            )
         
-        
-        ttk.Label(self.timer_frame, text='Timer', compound='center', image=self.btn_big, background=self.bg, foreground=self.fg,  font=('default', 25),padding=20).pack(side="top", fill='both')
-        
+        timer_lbl = MyLabel(self.timer_frame, 'Timer',
+                            self.fg, self.bg,
+                            image=self.btn_big,
+                            font=('default', 25)
+                            )
+
         time_entry = tk.Entry(self.timer_frame, foreground=self.fg, background=self.bg,  font=('default', 25))
         time_entry.insert(1, ':'.join(str(x) for x in self.timer_time))
-
-        stop = tk.Button(self.timer_frame, highlightthickness = 0, bd = 0, background=self.bg,  foreground=self.fg, compound='center', image=self.btn_width_no_height, activebackground=self.bg, activeforeground=self.fg, text=self.stop)
-        start_pause = tk.Button(self.timer_frame, highlightthickness = 0, bd = 0, compound='center', image=self.btn_width_no_height, background=self.bg, foreground=self.fg, activebackground=self.bg, activeforeground=self.fg, text=self.str_start)
-
+    
+        stop = MyButton(self.timer_frame, self.stop, 
+                        self.fg_timer,  self.bg_timer,
+                        image=self.btn_width_no_height, 
+                        name=self.stop.lower()
+                        )
+        start_pause = MyButton(self.timer_frame, self.str_start, 
+                        self.fg_timer,  self.bg_timer,
+                        image=self.btn_width_no_height, 
+                        name=f"{self.str_start.lower()}/{self.str_pause.lower()}"
+                        )
+        
         start_pause.config(command=lambda tim_entr=time_entry, btn=start_pause, stp=stop: self.toggle_start_pause(btn, tim_entr, stp))
         stop.config(command=lambda tim_entr=time_entry, btn=stop, sp=start_pause: self.stop_timer(btn, sp, tim_entr))
         
+
+        timer_lbl.pack(side="top", fill='both')
         time_entry.pack(expand=True)
         start_pause.pack(side='top', fill="both")
-        saved_times.pack(fill="both")
+
+        saved_times_lbl.pack(fill="both")
+        saved_times_title_lbl.pack(side='top', expand=True)
+
 
     def toggle_start_pause(self, btn, entry_timer, stop_btn, stop=False):
         if stop:

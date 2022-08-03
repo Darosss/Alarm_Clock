@@ -4,7 +4,7 @@
         "days": [
             "Mon"
         ],
-        "sound": "none",
+        "sound": "2.mp3",
         "state": "normal"
     },
     "alarm_box3": {
@@ -23,14 +23,6 @@
             "Sun"
         ],
         "sound": "3.mp3",
-        "state": "normal"
-    },
-    "alarm_box5": {
-        "time": "14:04:51",
-        "days": [
-            "Wed"
-        ],
-        "sound": "none",
         "state": "normal"
     }
 }

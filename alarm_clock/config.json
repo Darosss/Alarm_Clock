@@ -5,7 +5,9 @@
     },
     "menu_options":{
         "menu_background":"blue",
-        "menu_fg":"yellow"
+        "menu_fg":"yellow",
+        "bg_menu":"blue",
+        "fg_menu":"yellow"
     },
     "footer_options":{
         "footer_bg":"blue",
