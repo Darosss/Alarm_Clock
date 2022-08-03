@@ -69,7 +69,7 @@ class Alarms(tk.Frame):
 
     def __create_alarm_boxes_frame(self, width=30):
         tk.Label(self.alarms_frame, text='Alarms', 
-                background=self.json_conf['lbl_alarms_bg'], 
+                background=self.json_conf['bg_alarms'], 
                 justify='center',
                 borderwidth=1, relief="solid",
                 image=self.btn_width_no_height,
@@ -227,6 +227,7 @@ class Alarms(tk.Frame):
         def __init__(self, root, *args, **kwargs):
             self._root = root
             self.img_edit = PhotoImage(file=f"{root.app_prop.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}")
+            self.img_check_day = self.img_edit.subsample(5,4)
             self.app_prop = root.app_prop
             tk.Frame.__init__(self, root, background='blue', borderwidth=5,relief='sunken', *args, **kwargs)
             #FIXME blue from config
@@ -253,10 +254,12 @@ class Alarms(tk.Frame):
                 alarm_label.grid(column=1, row=0, sticky='ns')   
                 return alarm_label
 
-            def create_hours_entry(time, font_size=self.json_conf['hours_entry_font_size'], bg=self.json_conf['hours_entry_bg'], width=10):
-                hours = tk.Entry(self, bd=1, width=width, 
+            def create_hours_entry(time, font_size=self.json_conf['hours_entry_font_size'], bg=self.json_conf['bg_edit'], width=10):
+                hours = tk.Entry(self, width=width, 
+                                
                                 font=("default", font_size), 
-                                background=bg
+                                background=bg,
+                                foreground=self.json_conf['fg_edit']
                                 )
                 hours.insert(0, f"{time}")
                 hours.grid(column=1, row=2, sticky='nsew')
@@ -274,7 +277,12 @@ class Alarms(tk.Frame):
                 
                 s.configure('my.TMenubutton', font=('Helvetica', 
                             self.json_conf['select_sound_font_size']), 
-                            background=self.json_conf['select_sound_bg']
+                            image=self.img_edit,
+                            background=self.json_conf['bg_edit'],
+                            compound='center',
+                            foreground=self.json_conf['fg_edit'],
+            
+
                             )
                 selected_snd = tk.StringVar()
                 selected_snd.set(self.app_prop.SOUND_DIR+'\\'+sound)
@@ -285,9 +293,15 @@ class Alarms(tk.Frame):
 
             def create_save_button(hours_entry, selected_snd):
                 save_btn = tk.Button(self, text="Save", 
-                                    background=self.json_conf['save_btn_bg'],
-                                    activebackground=self.json_conf['save_btn_bg_active'], 
-                                    font=('Helvetica', self.json_conf['save_btn_font_size'])
+                                    font=('Helvetica', self.json_conf['save_btn_font_size']),
+                                    image = self.img_edit,
+                                    highlightthickness = 0, bd = 0,
+                                    activebackground=self.json_conf["bg_edit"],
+                                    activeforeground=self.json_conf["fg_edit"],
+                                    compound='center',
+                                    bg=self.json_conf["bg_edit"],
+                                    border=0,
+                                    fg=self.json_conf["fg_edit"]
                                     )
                 save_btn.config(command=lambda alarm_json=json_alarm, alarm_box=alarm_box, hour=hours_entry: save_alarm(alarm_json, alarm_box, hour, selected_snd.get()))
                 save_btn.grid(column=2, row=2, sticky="nsew")
@@ -295,17 +309,21 @@ class Alarms(tk.Frame):
             def create_checkbox_days():
                 day_names = self.json_conf['day_name']
 
-                checkbox_days_frame = tk.Frame(self)
+                checkbox_days_frame = tk.Frame(self, bg=self.json_conf['bg_edit'])
                 checkbox_days_frame.grid(row=5, column=0, columnspan=len(day_names), sticky="nsew")
 
                 s_check_bx = ttk.Style()
-                s_check_bx.configure('my.TCheckbutton', background=self.json_conf['check_box_bg'])
+                s_check_bx.configure('my.TCheckbutton', 
+                                        image=self.img_check_day, 
+                                        background=self.json_conf['bg_edit'],
+                                        foreground=self.json_conf['fg_edit']
+                                    )
 
                 # save editing alarm button and add to grid
                 self.check_days.clear()
                 self.checked_days.clear()
                 for indx, day in enumerate(day_names):
-                    check_button_day = ttk.Checkbutton(checkbox_days_frame, text=day, style='my.TCheckbutton')
+                    check_button_day = ttk.Checkbutton(checkbox_days_frame, compound='center', text=day, style='my.TCheckbutton')
                     if day[0:3] in alarm_format[AlarmsProperties.DAYS]:
                         #FIXME should be first letter from config, but for now it is like this
                         self.checked_days.append(tk.IntVar(value = 1))

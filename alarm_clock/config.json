@@ -1,7 +1,7 @@
 {
     "app_settings":{
         "resolution":"1100x700",
-        "style_background":"blue"
+        "bg_app":"blue"
     },
     "menu_options":{
         "menu_background":"blue",
@@ -25,39 +25,18 @@
             "Saturday":"Sat",
             "Sunday":"Sun"
         },
-        "select_sound_bg":"lightblue",
         "select_sound_font_size":15,
         "save_btn_font_size":26,
-        "save_btn_bg":"lightblue",
-        "save_btn_bg_active":"yellow",
         "hours_entry_font_size":40,
-        "hours_entry_bg":"lightblue",
-        "alarm_label_bg":"lightblue",
         "alarm_label_font_size":20,
-        "check_box_bg":"lightblue",
-        "alarm_box_bg":"lightblue",
-        "alarm_box_bg_active":"yellow",
-        "lbl_alarms_bg":"lightblue",
-        "lbl_alarms_font_s":35,
-        "add_btn_bg_color":"lightblue",
-        "add_btn_bg_color_active":"yellow",
-        "delete_bg_color":"lightblue",
-        "delete_bg_color_active":"yellow"
+        "lbl_alarms_font_s":35
     },
     "stopwatch_options":{
-        "s_t_title_bg":"lightblue",
-        "s_t_bg":"lightblue",
-        "time_title_bg":"lightblue",
-        "time_bg":"lightblue",
-        "btns_bg":"lightblue",
-        "btns_bg_active":"yellow"
+        "bg_stopwatch": "blue",
+        "fg_stopwatch": "yellow"
     },
     "timer_options":{
-        "s_t_title_bg":"lightblue",
-        "s_t_bg":"lightblue",
-        "time_title_bg":"lightblue",
-        "time_bg":"lightblue",
-        "btns_bg":"lightblue",
-        "btns_bg_active":"yellow"
+        "bg_timer": "blue",
+        "fg_timer": "yellow"
     }
 }

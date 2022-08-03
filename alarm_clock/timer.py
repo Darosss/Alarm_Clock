@@ -1,14 +1,23 @@
 from multiprocessing.sharedctypes import Value
-from tkinter import ttk
+from tkinter import PhotoImage, ttk
 import tkinter as tk
-from datetime import datetime
-from datetime import timedelta
+
+
+class TimerProperties:
+    IMAGE_NAME = 'timer.png'
+
+
 class Timer(tk.Frame):
-    def __init__(self, root, json_conf, json_alarms, *args, **kwargs):
+    def __init__(self, root, app_properties, json_conf, json_alarms, *args, **kwargs):
         self._root = root
+        self.app_prop = app_properties
         self.json_conf = json_conf
         self.json_alarms = json_alarms
         tk.Frame.__init__(self, root, *args, **kwargs)
+        self.btn_big = PhotoImage(file=f'{self.app_prop.IMAGES_DIR}/{TimerProperties.IMAGE_NAME}')
+        self.btn_med = self.btn_big.subsample(5,2)
+        self.btn_width_no_height = self.btn_big.subsample(1,2)
+
         self.stopwatch_frame = None
         self.timer_frame = None    
           
@@ -19,27 +28,29 @@ class Timer(tk.Frame):
         self.is_counting = None
         self.timer_time = [0, 0, 0, 0, 0]
         self.count_saved_times = 1
+        self.bg = self.json_conf['bg_timer']
+        self.fg = self.json_conf['fg_timer']
         self.create_timer_frame(self)
 
     def create_timer_frame(self, append):
-        self.timer_frame = tk.Frame(append, borderwidth=15, relief='sunken')
+        self.timer_frame = tk.Frame(append, borderwidth=5, background=self.bg, relief='sunken')
         self.timer_frame.pack(side='right', expand=True, fill="both")
 
-        self.saved_frame = tk.Frame(append, borderwidth=15, relief='sunken')
+        self.saved_frame = tk.Frame(append, borderwidth=5, background=self.bg, relief='sunken')
         self.saved_frame.pack(side='left', expand=True, fill="both")
 
-        ttk.Label(self.saved_frame, text='Saved times', background=self.json_conf['s_t_title_bg'], font=('default', 25),padding=20).pack(expand=True)
-        saved_times = ttk.Label(self.saved_frame, text='', background=self.json_conf["s_t_bg"], font=('default', 25),padding=20)
+        ttk.Label(self.saved_frame, text='Saved times', compound='center', image=self.btn_big, background=self.bg, foreground=self.fg, font=('default', 25),padding=20).pack(expand=True)
+        saved_times = ttk.Label(self.saved_frame, text='', background=self.bg, foreground=self.fg, font=('default', 25),padding=20)
 
         
         
-        ttk.Label(self.timer_frame, text='Timer', background=self.json_conf["time_title_bg"],  font=('default', 25),padding=20).pack(side="top", fill='both')
+        ttk.Label(self.timer_frame, text='Timer', compound='center', image=self.btn_big, background=self.bg, foreground=self.fg,  font=('default', 25),padding=20).pack(side="top", fill='both')
         
-        time_entry = ttk.Entry(self.timer_frame, background=self.json_conf["time_bg"],  font=('default', 25))
+        time_entry = tk.Entry(self.timer_frame, foreground=self.fg, background=self.bg,  font=('default', 25))
         time_entry.insert(1, ':'.join(str(x) for x in self.timer_time))
 
-        stop = tk.Button(self.timer_frame, background=self.json_conf["btns_bg"], activebackground=self.json_conf["btns_bg_active"], text=self.stop)
-        start_pause = tk.Button(self.timer_frame, background=self.json_conf["btns_bg"], activebackground=self.json_conf["btns_bg_active"], text=self.str_start)
+        stop = tk.Button(self.timer_frame, highlightthickness = 0, bd = 0, background=self.bg,  foreground=self.fg, compound='center', image=self.btn_width_no_height, activebackground=self.bg, activeforeground=self.fg, text=self.stop)
+        start_pause = tk.Button(self.timer_frame, highlightthickness = 0, bd = 0, compound='center', image=self.btn_width_no_height, background=self.bg, foreground=self.fg, activebackground=self.bg, activeforeground=self.fg, text=self.str_start)
 
         start_pause.config(command=lambda tim_entr=time_entry, btn=start_pause, stp=stop: self.toggle_start_pause(btn, tim_entr, stp))
         stop.config(command=lambda tim_entr=time_entry, btn=stop, sp=start_pause: self.stop_timer(btn, sp, tim_entr))

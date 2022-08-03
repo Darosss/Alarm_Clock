@@ -18,7 +18,17 @@
     "alarm_box4": {
         "time": "18:31:15",
         "days": [
-            "Mon"
+            "Mon",
+            "Thu",
+            "Sun"
+        ],
+        "sound": "3.mp3",
+        "state": "normal"
+    },
+    "alarm_box5": {
+        "time": "14:04:51",
+        "days": [
+            "Wed"
         ],
         "sound": "none",
         "state": "normal"

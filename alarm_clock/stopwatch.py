@@ -1,17 +1,21 @@
-from tkinter import ttk
+from tkinter import PhotoImage, ttk
 import tkinter as tk
-from datetime import datetime
-from datetime import timedelta
 
-from pyparsing import string_start
+
+class StopwatchProperties:
+    IMAGE_NAME = 'stopwatch.png'
 
 
 class Stopwatch(tk.Frame):
-    def __init__(self, root, json_conf, json_alarms, *args, **kwargs):
+    def __init__(self, root, app_properties, json_conf, json_alarms, *args, **kwargs):
         self._root = root
+        self.app_prop = app_properties
         self.json_conf = json_conf
         self.json_alarms = json_alarms
         tk.Frame.__init__(self, root, *args, **kwargs)
+
+        self.btn_big = PhotoImage(file=f'{self.app_prop.IMAGES_DIR}/{StopwatchProperties.IMAGE_NAME}')
+        self.btn_width_no_height = self.btn_big.subsample(1,2)
 
         self.stopwatch_frame = None
         self.saved_frame = None
@@ -24,19 +28,20 @@ class Stopwatch(tk.Frame):
         self.count_saved_times = 1
         self.create_stopwatch_frame(self)
 
+
     def create_stopwatch_frame(self, append):
-        self.stopwatch_frame = tk.Frame(append, borderwidth=15, relief='sunken')
-        self.saved_frame = tk.Frame(append, borderwidth=15, relief='sunken')
+        self.stopwatch_frame = tk.Frame(append, borderwidth=5, background=self.json_conf["bg_stopwatch"], relief='sunken')
+        self.saved_frame = tk.Frame(append, borderwidth=5, background=self.json_conf["bg_stopwatch"], relief='sunken')
 
       
-        saved_times_title = ttk.Label(self.saved_frame, text='Saved times', background=self.json_conf["s_t_title_bg"], font=('default', 25),padding=20)
-        saved_times = ttk.Label(self.saved_frame, text='', background=self.json_conf["s_t_bg"], font=('default', 25),padding=20)
+        saved_times_title = ttk.Label(self.saved_frame, text='Saved times', compound='center', image=self.btn_big, background=self.json_conf["bg_stopwatch"], foreground=self.json_conf['fg_stopwatch'], font=('default', 25),padding=20)
+        saved_times = ttk.Label(self.saved_frame, text='',  background=self.json_conf["bg_stopwatch"], foreground=self.json_conf['fg_stopwatch'], font=('default', 25),padding=20)
 
-        ttk.Label(self.stopwatch_frame, text='Stopwatch', background=self.json_conf["time_title_bg"],  font=('default', 25),padding=20).pack()
-        time_label = ttk.Label(self.stopwatch_frame, padding=20, background=self.json_conf["time_bg"],  font=('default', 25), text='Stopwatch')
+        ttk.Label(self.stopwatch_frame, text='Stopwatch', compound='center', image=self.btn_big, background=self.json_conf["bg_stopwatch"], foreground=self.json_conf['fg_stopwatch'],  font=('default', 25),padding=20).pack()
+        time_label = ttk.Label(self.stopwatch_frame, padding=20, compound='center', image=self.btn_big, background=self.json_conf["bg_stopwatch"], foreground=self.json_conf['fg_stopwatch'],  font=('default', 25), text='Stopwatch')
 
-        stop = tk.Button(self.stopwatch_frame, background=self.json_conf["btns_bg"], activebackground=self.json_conf["btns_bg_active"], name=f"{self.stop.lower()}", text=self.stop)
-        start_pause = tk.Button(self.stopwatch_frame, background=self.json_conf["btns_bg"], activebackground=self.json_conf["btns_bg_active"], name=f"{self.str_start.lower()}/{self.str_pause.lower()}",
+        stop = tk.Button(self.stopwatch_frame, compound='center', highlightthickness = 0, bd = 0,image=self.btn_width_no_height, background=self.json_conf["bg_stopwatch"], foreground=self.json_conf['fg_stopwatch'],activebackground=self.json_conf["bg_stopwatch"], activeforeground=self.json_conf['fg_stopwatch'], name=f"{self.stop.lower()}", text=self.stop)
+        start_pause = tk.Button(self.stopwatch_frame, compound='center',highlightthickness = 0, bd = 0, image=self.btn_width_no_height, background=self.json_conf["bg_stopwatch"], foreground=self.json_conf['fg_stopwatch'],activebackground=self.json_conf["bg_stopwatch"], activeforeground=self.json_conf['fg_stopwatch'], name=f"{self.str_start.lower()}/{self.str_pause.lower()}",
                                  text=self.str_start)
         start_pause.config(command=lambda lbl=time_label, btn=start_pause, stp=stop: self.toggle_start_pause(btn, lbl, stp))
         stop.config(command=lambda lbl=time_label, btn=stop, sp=start_pause, save=saved_times: self.stop_stopwatch(btn, sp, lbl, save))

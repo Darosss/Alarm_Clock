@@ -39,9 +39,8 @@ class AlarmApp(tk.Tk):
         self.json_alarms = ConfigJSON('alarms.json')
         self.geometry(self.json_conf[ConfigProperties.APP_SETTINGS]["resolution"])
         self._alarm_app_frame = Alarms(self, AppProperties, self.json_conf[ConfigProperties.ALARMS_OPTIONS], self.json_alarms)
-        self._stopwatch_app_frame = Stopwatch(self, self.json_conf[ConfigProperties.STOPWATCH_OPTIONS], self.json_alarms)
-        self._timer_app_frame = Timer(self, self.json_conf[ConfigProperties.TIMER_OPTIONS], self.json_alarms)
-        
+        self._stopwatch_app_frame = Stopwatch(self, AppProperties, self.json_conf[ConfigProperties.STOPWATCH_OPTIONS], self.json_alarms)
+        self._timer_app_frame = Timer(self, AppProperties, self.json_conf[ConfigProperties.TIMER_OPTIONS], self.json_alarms)
         # self.img_menu = PhotoImage(file=f'/{IMAGE_NAME}')
         
 
