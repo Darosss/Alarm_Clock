@@ -12,8 +12,8 @@ class Stopwatch(tk.Frame):
         self.app_prop = app_properties
         self.json_conf = json_conf
         self.json_alarms = json_alarms
-        self.bg_stopwatch = self.json_conf["bg_stopwatch"]
-        self.fg_stopwatch = self.json_conf["fg_stopwatch"]
+        self.bg_stopwatch = self.json_conf["bg_stopwatch"]["value"]
+        self.fg_stopwatch = self.json_conf["fg_stopwatch"]["value"]
 
         tk.Frame.__init__(self, root, *args, **kwargs)
 
@@ -27,8 +27,8 @@ class Stopwatch(tk.Frame):
         self.counting_interval = None
         self.stopwatch_time = [0, 0, 0, 0, 0]
         self.count_saved_times = 1
-        self.stopwatch_frame = tk.Frame(self, borderwidth=5, background=self.json_conf["bg_stopwatch"], relief='sunken')
-        self.saved_frame = tk.Frame(self, borderwidth=5, background=self.json_conf["bg_stopwatch"], relief='sunken')
+        self.stopwatch_frame = tk.Frame(self, borderwidth=5, background=self.bg_stopwatch, relief='sunken')
+        self.saved_frame = tk.Frame(self, borderwidth=5, background=self.bg_stopwatch, relief='sunken')
         self.stopwatch_frame.pack(side='right', expand=True, fill='both')
         self.saved_frame.pack(side='left', expand=True, fill='both')
         self.create_stopwatch_frame()

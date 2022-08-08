@@ -5,7 +5,7 @@ from config import *
 from alarms import Alarms
 from stopwatch import Stopwatch
 from timer import Timer
-from my_widgets import MyButton
+from my_widgets import MyButton, MyLabel
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
 
@@ -29,7 +29,7 @@ class AppProperties:
 class MainFramesProp:
     MENU_IMG = 'menu.png'
     TIMER_IMG = 'timer.png'
-    
+    SETTINGS_IMG = 'settings.png'
 
 class AlarmApp(tk.Tk):
     def __init__(self, *args, **kwargs):
@@ -37,7 +37,7 @@ class AlarmApp(tk.Tk):
 
         self.json_conf = ConfigJSON(ConfigProperties.CONFIG_NAME).section
         self.json_alarms = ConfigJSON('alarms.json')
-        self.geometry(self.json_conf[ConfigProperties.APP_SETTINGS]["resolution"])
+        self.geometry(self.json_conf[ConfigProperties.APP_SETTINGS]["resolution"]["value"])
         self._alarm_app_frame = Alarms(self, AppProperties, self.json_conf[ConfigProperties.ALARMS_OPTIONS], self.json_alarms)
         self._stopwatch_app_frame = Stopwatch(self, AppProperties, self.json_conf[ConfigProperties.STOPWATCH_OPTIONS], self.json_alarms)
         self._timer_app_frame = Timer(self, AppProperties, self.json_conf[ConfigProperties.TIMER_OPTIONS], self.json_alarms)
@@ -69,28 +69,35 @@ class AlarmApp(tk.Tk):
       
     def menu_settings(self):
         pass
-        # SettingsWindow(self, self.json_conf    pass
+        SettingsWindow(self.json_conf)
     def quit_app(self):
         self.quit()
 
 
 class SettingsWindow(tk.Tk):
-    def __init__(self, root, config_sett, *args, **kwargs):
-        self._root = root
+    def __init__(self, json_conf, *args, **kwargs):
         tk.Toplevel.__init__(self, *args, **kwargs)
-        self.config_sett = config_sett
+        self.json_conf = json_conf
+        self.fg = json_conf[ConfigProperties.APP_SETTINGS]['fg_settings']
+        self.bg = json_conf[ConfigProperties.APP_SETTINGS]['bg_settings']
         self.geometry("750x250")
         self.title('Settings')
+        self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{MainFramesProp.SETTINGS_IMG}')
+        
         for col in range(3): self.columnconfigure(col, weight=1)
 
-        save_btn = ttk.Button(self, text="Save")
+        save_btn = MyButton(self, 'Save', 
+                                self.fg, self.bg, 
+                                image=self.btn_big, 
+                                name='save_sett_btn'
+                              )
         save_btn.grid(column=2, row=0)
         save_btn.config(command = lambda : self.save_settings())
         
-        for section in self.config_sett.get_all_sections():
-            if not section[0] == "_":
-                self.write_config_settings(section)
-        
+        # for section in self.config_sett.get_all_sections():
+        #     if not section[0] == "_":
+        #         self.write_config_settings(section)
+        print(self.json_conf)
     def save_settings(self):
         for slave in self.grid_slaves():
             if slave.widgetName == 'entry':
@@ -146,9 +153,9 @@ class MenuFrame(tk.Frame):
         self.img_menu = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{MainFramesProp.MENU_IMG}")
 
         self.config_sett = config_sett
-        self.bg_menu = self.config_sett['bg_menu']
-        self.fg_menu = self.config_sett['fg_menu']
-        tk.Frame.__init__(self, root, background=config_sett["menu_background"], borderwidth=5, relief='raised', *args, **kwargs)
+        self.bg_menu = self.config_sett['menu_bg']["value"]
+        self.fg_menu = self.config_sett['menu_fg']["value"]
+        tk.Frame.__init__(self, root, background=self.bg_menu, borderwidth=5, relief='raised', *args, **kwargs)
         menu_btn_alarms= MyButton(self, 'Alarms', 
                                 self.fg_menu, self.bg_menu, 
                                 image=self.img_menu, 
@@ -184,17 +191,19 @@ class FooterFrame(tk.Frame):
     def __init__(self, root, config_sett, *args, **kwargs):
         self._root = root
         self.config_sett = config_sett
+        self.bg_footer = self.config_sett['footer_bg']["value"]
+        self.fg_footer = self.config_sett["footer_fg"]["value"] 
         self.img_timer = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{MainFramesProp.TIMER_IMG}")
         
-        tk.Frame.__init__(self, root, background=self.config_sett['footer_bg'], *args, **kwargs)
+        tk.Frame.__init__(self, root, background=self.bg_footer, *args, **kwargs)
         self.time_label = tk.Label(self,
                                 justify='center',
                                 font=('calibri', 25, 'bold'),
                                 image = self.img_timer,
                                 compound='center',
-                                background=self.config_sett["footer_bg"], 
-                                foreground=self.config_sett["footer_fg"],
-                                activebackground=self.config_sett["footer_bg"], 
+                                background=self.bg_footer, 
+                                foreground=self.fg_footer,
+                                activebackground=self.fg_footer, 
                                 )
         self.time()
 

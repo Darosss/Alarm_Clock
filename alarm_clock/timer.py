@@ -13,8 +13,8 @@ class Timer(tk.Frame):
         self.app_prop = app_properties
         self.json_conf = json_conf
         self.json_alarms = json_alarms
-        self.bg_timer = self.json_conf['bg_timer']
-        self.fg_timer = self.json_conf['fg_timer']
+        self.bg_timer = self.json_conf['bg_timer']["value"]
+        self.fg_timer = self.json_conf['fg_timer']["value"]
         tk.Frame.__init__(self, root, *args, **kwargs)
         self.btn_big = PhotoImage(file=f'{self.app_prop.IMAGES_DIR}/{TimerProperties.IMAGE_NAME}')
         self.btn_med = self.btn_big.subsample(5,2)
@@ -30,36 +30,35 @@ class Timer(tk.Frame):
         self.is_counting = None
         self.timer_time = [0, 0, 0, 0, 0]
         self.count_saved_times = 1
-        self.bg = self.json_conf['bg_timer']
-        self.fg = self.json_conf['fg_timer']
+
         self.create_timer_frame(self)
 
     def create_timer_frame(self, append):
-        self.timer_frame = tk.Frame(append, borderwidth=5, background=self.bg, relief='sunken')
+        self.timer_frame = tk.Frame(append, borderwidth=5, background=self.bg_timer, relief='sunken')
         self.timer_frame.pack(side='right', expand=True, fill="both")
 
-        self.saved_frame = tk.Frame(append, borderwidth=5, background=self.bg, relief='sunken')
+        self.saved_frame = tk.Frame(append, borderwidth=5, background=self.bg_timer, relief='sunken')
         self.saved_frame.pack(side='left', expand=True, fill="both")
 
 
         saved_times_title_lbl = MyLabel(self.saved_frame, 'Saved times',
-                            self.fg, self.bg,
+                            self.fg_timer, self.bg_timer,
                             image=self.btn_big,
                             font=('default', 25)
                             )
 
         saved_times_lbl = MyLabel(self.saved_frame, '',
-                            self.fg, self.bg,
+                            self.fg_timer, self.bg_timer,
                             font=('default', 25)
                             )
         
         timer_lbl = MyLabel(self.timer_frame, 'Timer',
-                            self.fg, self.bg,
+                            self.fg_timer, self.bg_timer,
                             image=self.btn_big,
                             font=('default', 25)
                             )
 
-        time_entry = tk.Entry(self.timer_frame, foreground=self.fg, background=self.bg,  font=('default', 25))
+        time_entry = tk.Entry(self.timer_frame, foreground=self.fg_timer, background=self.bg_timer,  font=('default', 25))
         time_entry.insert(1, ':'.join(str(x) for x in self.timer_time))
     
         stop = MyButton(self.timer_frame, self.stop, 
