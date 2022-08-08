@@ -1,44 +1,102 @@
 {
-    "app_settings":{
-        "resolution":"1100x700",
-        "bg_app":"blue"
+  "app_settings": {
+    "resolution": {
+      "value": "1100x700",
+      "description": "Resolution of app window"
     },
-    "menu_options":{
-        "menu_background":"blue",
-        "menu_fg":"yellow",
-        "bg_menu":"blue",
-        "fg_menu":"yellow"
-    },
-    "footer_options":{
-        "footer_bg":"blue",
-        "footer_fg":"yellow"
-    },
-    "alarms_options":{
-        "bg_alarms":"blue",
-        "fg_buttons":"yellow",
-        "bg_edit":"blue",
-        "fg_edit": "yellow",
-        "day_name":{
-            "Monday":"Mon",
-            "Tuesday":"Tue",
-            "Wednesday":"Wed",
-            "Thursday":"Thu",
-            "Friday":"Fri",
-            "Saturday":"Sat",
-            "Sunday":"Sun"
-        },
-        "select_sound_font_size":15,
-        "save_btn_font_size":26,
-        "hours_entry_font_size":40,
-        "alarm_label_font_size":20,
-        "lbl_alarms_font_s":35
-    },
-    "stopwatch_options":{
-        "bg_stopwatch": "blue",
-        "fg_stopwatch": "yellow"
-    },
-    "timer_options":{
-        "bg_timer": "blue",
-        "fg_timer": "yellow"
+    "bg_app": {
+      "value": "blue",
+      "description": "Background color app"
     }
+  },
+  "menu_options": {
+    "menu_bg": {
+      "value": "blue",
+      "description": "Background menu"
+    },
+    "menu_fg": {
+      "value": "yellow",
+      "description": "Foreground menu"
+    }
+  },
+  "footer_options": {
+    "footer_bg": {
+      "value": "blue",
+      "description": "Background footer"
+    },
+    "footer_fg": {
+      "value": "yellow",
+      "description": "Background footer"
+    }
+  },
+  "alarms_options": {
+    "bg_alarms": {
+      "value": "blue",
+      "description": "Background alarms"
+    },
+    "fg_buttons": {
+      "value": "yellow",
+      "description": "Foreground buttons alarms"
+    },
+    "bg_edit": {
+      "value": "blue",
+      "description": "Background edit alarms"
+    },
+    "fg_edit": {
+      "value": "yellow",
+      "description": "Foreground edit alarms"
+    },
+    "day_name": {
+      "value": {
+        "Monday": "Mon",
+        "Tuesday": "Tue",
+        "Wednesday": "Wed",
+        "Thursday": "Thu",
+        "Friday": "Fri",
+        "Saturday": "Sat",
+        "Sunday": "Sun"
+      },
+      "description": "Names of days"
+    },
+    "select_sound_font_size": {
+      "value": 15,
+      "description": "Select sound font size"
+    },
+    "save_btn_font_size": {
+      "value": 15,
+      "description": "Save button font size"
+    },
+    "hours_entry_font_size": {
+      "value": 40,
+      "description": "Hours entry edit font size"
+    },
+    "alarm_label_font_size": {
+      "value": 20,
+      "description": "Alarm labels font size"
+    },
+    "lbl_alarms_font_s": {
+      "value": 35,
+      "description": "Alarm labels font isze"
+    }
+  },
+  "stopwatch_options": {
+    "bg_stopwatch": {
+      "value": "blue",
+      "description": "Alarm labels font isze"
+    },
+    "fg_stopwatch": {
+      "value": "yellow",
+      "description": "Alarm labels font size"
+    }
+  },
+  "timer_options": {
+    "bg_timer": {
+      "value": "blue",
+      "description": "Alarm labels font isze"
+    },
+    "fg_timer": {
+      "value": "yellow",
+      "description": "Alarm labels font size"
+    }
+  }
 }
