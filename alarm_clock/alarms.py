@@ -85,7 +85,7 @@ class Alarms(tk.Frame):
             self.create_alarm(self.alarms_frame, alarm, row)
 
     def create_alarm(self, append, alarm_json, row_alarm):
-        alarm_text = self.json_alarms.section[alarm_json]
+        alarm_text = self.json_alarms.section[alarm_json]["value"]
         def toggle_alarm(e, alarm_box):
             state_now = ""
             if alarm_box[AlarmsProperties.STATE] == 'disabled':
@@ -164,7 +164,7 @@ class Alarms(tk.Frame):
         today = now.strftime("%A")
         now_time = dt_string + "\n" + today[0:3]
         for alarm in self.json_alarms.section:
-            alarm_prop = self.json_alarms.section[alarm]
+            alarm_prop = self.json_alarms.section[alarm]["value"]
             if alarm_prop['state'] == 'normal':
                 if today[0:3] in  alarm_prop['days']:
                     if dt_string in alarm_prop['time'] :
@@ -242,7 +242,7 @@ class Alarms(tk.Frame):
             self.check_days = self._root.check_days
             self.checked_days = self._root.checked_days
 
-            alarm_format = self.json_alarms.section[json_alarm]
+            alarm_format = self.json_alarms.section[json_alarm]["value"]
             alarm_format_lbl = f" {alarm_format[AlarmsProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[AlarmsProperties.DAYS]])} \n {alarm_format[AlarmsProperties.SOUND]}"
 
             def create_hours_entry(time, font_size=self.json_conf['hours_entry_font_size']["value"], bg=self.bg_edit, width=10):

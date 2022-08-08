@@ -7,6 +7,14 @@
     "bg_app": {
       "value": "blue",
       "description": "Background color app"
+    },
+    "fg_settings": {
+      "value": "blue",
+      "description": "Background color app"
+    },
+    "bg_settings": {
+      "value": "blue",
+      "description": "Background color app"
     }
   },
   "menu_options": {

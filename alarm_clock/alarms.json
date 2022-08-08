@@ -1,28 +1,11 @@
 {
-    "alarm_box1": {
-        "time": "18:31:07",
-        "days": [
-            "Mon"
-        ],
-        "sound": "2.mp3",
-        "state": "normal"
+  "alarm_box1": {
+    "value": {
+      "time": "18:33:31",
+      "days": ["Mon"],
+      "sound": "2.mp3",
+      "state": "normal"
     },
-    "alarm_box3": {
-        "time": "18:31:15",
-        "days": [
-            "Mon"
-        ],
-        "sound": "none",
-        "state": "normal"
-    },
-    "alarm_box4": {
-        "time": "18:31:15",
-        "days": [
-            "Mon",
-            "Thu",
-            "Sun"
-        ],
-        "sound": "3.mp3",
-        "state": "normal"
-    }
+    "description": "kappa"
+  }
 }
