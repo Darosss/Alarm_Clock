@@ -1,3 +1,4 @@
+from operator import index
 import tkinter as tk
 from tkinter import PhotoImage, ttk
 from datetime import datetime
@@ -78,8 +79,8 @@ class SettingsWindow(tk.Tk):
     def __init__(self, json_conf, *args, **kwargs):
         tk.Toplevel.__init__(self, *args, **kwargs)
         self.json_conf = json_conf
-        self.fg = json_conf[ConfigProperties.APP_SETTINGS]['fg_settings']
-        self.bg = json_conf[ConfigProperties.APP_SETTINGS]['bg_settings']
+        self.fg = json_conf[ConfigProperties.APP_SETTINGS]['fg_settings']["value"]
+        self.bg = json_conf[ConfigProperties.APP_SETTINGS]['bg_settings']["value"]
         self.geometry("750x250")
         self.title('Settings')
         self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{MainFramesProp.SETTINGS_IMG}')
@@ -97,7 +98,20 @@ class SettingsWindow(tk.Tk):
         # for section in self.config_sett.get_all_sections():
         #     if not section[0] == "_":
         #         self.write_config_settings(section)
-        print(self.json_conf)
+        for section in self.json_conf:
+            print("----------------")
+            print(section)
+            self.add_header_label(section)
+            for index, subsect in enumerate(self.json_conf[section]):
+                print('**')
+                print(subsect)
+                print(self.json_conf[section][subsect])
+                
+                self.add_setting(self.json_conf[section][subsect]["description"], 
+                                section, subsect, 
+                                self.json_conf[section][subsect]["value"], 
+                                index)
+
     def save_settings(self):
         for slave in self.grid_slaves():
             if slave.widgetName == 'entry':
@@ -109,21 +123,13 @@ class SettingsWindow(tk.Tk):
         row_grid = self.grid_size()[1] + 1
         ttk.Label(self, text=header_name, justify='center', background="lightblue").grid(column=0, columnspan=2, row = row_grid, sticky="e")
 
-    def add_setting(self, sett_descr, section_name, option_name, row, width=20):
+    def add_setting(self, sett_descr, section_name, option_name, value, row, width=20):
         row_grid = self.grid_size()[1] + row
-        ttk.Label(self, text=sett_descr, background="lightblue").grid(column=0, row = row_grid, sticky="nse")
+        ttk.Label(self, text=sett_descr).grid(column=0, row = row_grid, sticky="nse")
         res_entry = tk.Entry(self, width=width, name=f"{section_name}/{option_name}")
-        res_entry.insert(0, self.config_sett.get_key(section_name, option_name))
+        res_entry.insert(0, value)
         res_entry.grid(column = 1, row = row_grid, sticky="nsew")
 
-    def write_config_settings(self, section_name):
-        alarms_appearance = self.config_sett.get_sections_keys(section_name, False)
-        self.add_header_label(section_name)
-        for index, sett in enumerate(alarms_appearance):
-            sett_split = sett.split("/")
-            sett_key_name = sett_split[0]
-            sett_descrip = sett_split[1].split("#")[1]
-            self.add_setting(sett_descrip, section_name, sett_key_name, index)
   #settigns soon  
 
 class MainMenu(tk.Menu):
