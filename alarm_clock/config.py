@@ -13,7 +13,7 @@ class ConfigJSON:
         with open(self.config, 'r+') as config_json:
             if alarm not in self.json_conf:
                 self.json_conf.update( {alarm:{}})
-            self.json_conf[alarm][option] = value 
+            self.json_conf[alarm]["value"][option]= value 
 
             config_json.seek(0)
             json.dump(self.json_conf, config_json, indent=4)
