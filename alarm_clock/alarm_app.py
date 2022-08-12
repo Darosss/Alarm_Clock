@@ -35,19 +35,19 @@ class MainFramesProp:
 class AlarmApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
-
-        self.json_conf = ConfigJSON(ConfigProperties.CONFIG_NAME).section
+        self.json_conf = ConfigJSON(ConfigProperties.CONFIG_NAME)
+        self.json_conf_section = self.json_conf.section
         self.json_alarms = ConfigJSON('alarms.json')
-        self.geometry(self.json_conf[ConfigProperties.APP_SETTINGS]["resolution"]["value"])
-        self._alarm_app_frame = Alarms(self, AppProperties, self.json_conf[ConfigProperties.ALARMS_OPTIONS], self.json_alarms)
-        self._stopwatch_app_frame = Stopwatch(self, AppProperties, self.json_conf[ConfigProperties.STOPWATCH_OPTIONS], self.json_alarms)
-        self._timer_app_frame = Timer(self, AppProperties, self.json_conf[ConfigProperties.TIMER_OPTIONS], self.json_alarms)
+        self.geometry(self.json_conf_section[ConfigProperties.APP_SETTINGS]["resolution"]["value"])
+        self._alarm_app_frame = Alarms(self, AppProperties, self.json_conf_section[ConfigProperties.ALARMS_OPTIONS], self.json_alarms)
+        self._stopwatch_app_frame = Stopwatch(self, AppProperties, self.json_conf_section[ConfigProperties.STOPWATCH_OPTIONS], self.json_alarms)
+        self._timer_app_frame = Timer(self, AppProperties, self.json_conf_section[ConfigProperties.TIMER_OPTIONS], self.json_alarms)
        
 
         self._menu = MainMenu(self)
-        self._footer_frame = FooterFrame(self, self.json_conf[ConfigProperties.FOOTER_OPTIONS])
+        self._footer_frame = FooterFrame(self, self.json_conf_section[ConfigProperties.FOOTER_OPTIONS])
 
-        self._menu_frame = MenuFrame(self, self.json_conf[ConfigProperties.MENU_OPTIONS], 
+        self._menu_frame = MenuFrame(self, self.json_conf_section[ConfigProperties.MENU_OPTIONS], 
                                      self._alarm_app_frame, 
                                      self._stopwatch_app_frame, 
                                      self._timer_app_frame
@@ -77,14 +77,18 @@ class AlarmApp(tk.Tk):
 
 class SettingsWindow(tk.Tk):
     def __init__(self, json_conf, *args, **kwargs):
-        tk.Toplevel.__init__(self, *args, **kwargs)
         self.json_conf = json_conf
-        self.fg = json_conf[ConfigProperties.APP_SETTINGS]['fg_settings']["value"]
-        self.bg = json_conf[ConfigProperties.APP_SETTINGS]['bg_settings']["value"]
-        self.geometry("750x250")
+        self.fg = json_conf.section[ConfigProperties.APP_SETTINGS]['fg_settings']["value"]
+        self.bg = json_conf.section[ConfigProperties.APP_SETTINGS]['bg_settings']["value"]
+        self.resolution = json_conf.section[ConfigProperties.APP_SETTINGS]['resolution_settings']["value"]
+        self.font_size =  json_conf.section[ConfigProperties.APP_SETTINGS]['settings_font_size']["value"]
+        tk.Toplevel.__init__(self, background=self.bg,  *args, **kwargs)
+
+        self.geometry(self.resolution)
         self.title('Settings')
         self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{MainFramesProp.SETTINGS_IMG}')
-        
+        self.img_section = self.btn_big.subsample(2,2)
+        self.img_description = self.btn_big.subsample(1,2)
         for col in range(3): self.columnconfigure(col, weight=1)
 
         save_btn = MyButton(self, 'Save', 
@@ -95,38 +99,46 @@ class SettingsWindow(tk.Tk):
         save_btn.grid(column=2, row=0)
         save_btn.config(command = lambda : self.save_settings())
         
-        # for section in self.config_sett.get_all_sections():
-        #     if not section[0] == "_":
-        #         self.write_config_settings(section)
-        for section in self.json_conf:
-            print("----------------")
-            print(section)
+        for section in self.json_conf.section:
             self.add_header_label(section)
-            for index, subsect in enumerate(self.json_conf[section]):
-                print('**')
-                print(subsect)
-                print(self.json_conf[section][subsect])
+            for index, subsect in enumerate(self.json_conf.section[section]):
                 
-                self.add_setting(self.json_conf[section][subsect]["description"], 
+                self.add_setting(self.json_conf.section[section][subsect]["description"], 
                                 section, subsect, 
-                                self.json_conf[section][subsect]["value"], 
+                                self.json_conf.section[section][subsect]["value"], 
                                 index)
 
     def save_settings(self):
+        
         for slave in self.grid_slaves():
             if slave.widgetName == 'entry':
+                option_value = slave.get()
+                if option_value.isdigit():
+                    option_value = int(option_value)
                 sect_and_key = slave.winfo_name().split("/")
-                new_key = self.config_sett.get_key(sect_and_key[0], sect_and_key[1], True)
-                new_key = new_key.replace(new_key.split("#")[0], slave.get())
-                self.config_sett.save_config(sect_and_key[0], sect_and_key[1], new_key) 
+                self.json_conf.modify_settings(sect_and_key[0], sect_and_key[1], option_value)
+                 
     def add_header_label(self, header_name):
         row_grid = self.grid_size()[1] + 1
-        ttk.Label(self, text=header_name, justify='center', background="lightblue").grid(column=0, columnspan=2, row = row_grid, sticky="e")
-
+        MyLabel(self, header_name,
+            self.fg, self.bg,
+            image=self.img_section,
+            font=("default", self.font_size*2),
+            ).grid(column=0, columnspan=2, row = row_grid, sticky="e") 
+       
     def add_setting(self, sett_descr, section_name, option_name, value, row, width=20):
         row_grid = self.grid_size()[1] + row
-        ttk.Label(self, text=sett_descr).grid(column=0, row = row_grid, sticky="nse")
-        res_entry = tk.Entry(self, width=width, name=f"{section_name}/{option_name}")
+        MyLabel(self, sett_descr,
+            self.fg, self.bg,
+            image=self.img_description,
+            font=("default", self.font_size),
+            ).grid(column=0, row = row_grid, sticky="nse")
+        res_entry = tk.Entry(self, width=width, 
+                    font=("default", self.font_size),
+                    background=self.bg,
+                    foreground=self.fg,
+                    name = f"{section_name}/{option_name}"
+                    )
         res_entry.insert(0, value)
         res_entry.grid(column = 1, row = row_grid, sticky="nsew")
 
@@ -161,7 +173,7 @@ class MenuFrame(tk.Frame):
         self.config_sett = config_sett
         self.bg_menu = self.config_sett['menu_bg']["value"]
         self.fg_menu = self.config_sett['menu_fg']["value"]
-        tk.Frame.__init__(self, root, background=self.bg_menu, borderwidth=5, relief='raised', *args, **kwargs)
+        tk.Frame.__init__(self, root, background=self.bg_menu, borderwidth=1, relief='raised', *args, **kwargs)
         menu_btn_alarms= MyButton(self, 'Alarms', 
                                 self.fg_menu, self.bg_menu, 
                                 image=self.img_menu, 

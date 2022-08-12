@@ -26,7 +26,7 @@ class Alarms(tk.Frame):
         self.app_prop = app_properties
         self.json_conf = json_conf
         self.json_alarms = json_alarms
-        tk.Frame.__init__(self, root, *args, **kwargs)
+        tk.Frame.__init__(self, root, *args, **kwargs, relief="sunken", borderwidth=2)
 
         self.bg_alarms = self.json_conf["bg_alarms"]["value"]
         self.fg_alarms = self.json_conf["fg_buttons"]["value"]
@@ -74,8 +74,6 @@ class Alarms(tk.Frame):
 
 
         add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
-        self.alarms_frame.config(borderwidth=5, relief='sunken')
-
         alarm_title_lbl.grid(column=0, row=0, sticky='new')
         add_button.grid(column=2, row=0, padx=5, pady=1)
 
@@ -231,7 +229,7 @@ class Alarms(tk.Frame):
             self.json_alarms = self._root.json_alarms
             self.fg_edit = self.json_conf['fg_edit']["value"]
             self.bg_edit = self.json_conf['bg_edit']["value"]
-            tk.Frame.__init__(self, root, background=self.bg_edit, borderwidth=5,relief='sunken', *args, **kwargs)
+            tk.Frame.__init__(self, root, background=self.bg_edit,borderwidth=2, relief="sunken", *args, **kwargs)
             #FIXME blue from config
 
 
@@ -283,7 +281,7 @@ class Alarms(tk.Frame):
                 return selected_snd
     
             def create_checkbox_days():
-                day_names = self.json_conf['day_name']["value"]
+                day_names = self.json_conf['day_name']["value"].split(",")
 
                 checkbox_days_frame = tk.Frame(self, bg=self.bg_edit)
                 checkbox_days_frame.grid(row=5, column=0, columnspan=len(day_names), sticky="nsew")
