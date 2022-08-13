@@ -19,6 +19,7 @@ class AlarmsProperties:
     DAYS = 'days'
     SOUND = 'sound'
     STATE = 'state'
+    DESCR = 'description'
 
 class Alarms(tk.Frame):
     def __init__(self, root, app_properties, json_conf, json_alarms, *args, **kwargs):
@@ -83,7 +84,7 @@ class Alarms(tk.Frame):
             self.create_alarm(self.alarms_frame, alarm, row)
 
     def create_alarm(self, append, alarm_json, row_alarm):
-        alarm_text = self.json_alarms.section[alarm_json]["value"]
+        alarm_text = self.json_alarms.section[alarm_json]
         def toggle_alarm(e, alarm_box):
             state_now = ""
             if alarm_box[AlarmsProperties.STATE] == 'disabled':
@@ -162,7 +163,7 @@ class Alarms(tk.Frame):
         today = now.strftime("%A")
         now_time = dt_string + "\n" + today[0:3]
         for alarm in self.json_alarms.section:
-            alarm_prop = self.json_alarms.section[alarm]["value"]
+            alarm_prop = self.json_alarms.section[alarm]
             if alarm_prop['state'] == 'normal':
                 if today[0:3] in  alarm_prop['days']:
                     if dt_string in alarm_prop['time'] :
@@ -185,9 +186,10 @@ class Alarms(tk.Frame):
             self.stop_alarm_txt = 'Stop alarm'
             self.img = PhotoImage(file=f'{app_prop.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}')
             self.img_button = self.img.subsample(3,2)
-            alarm_format = f"{alarm_popup[AlarmsProperties.TIME]}\n{' '.join([str(day) for day in alarm_popup[AlarmsProperties.DAYS]])}\n {alarm_popup[AlarmsProperties.SOUND]}  "
-            MyLabel(self, alarm_format, self.fg, self.bg, image=self.img
-                    ).pack(side='top', fill="y") 
+            alarm_format = [alarm_popup[AlarmsProperties.TIME],' '.join([str(day) for day in alarm_popup[AlarmsProperties.DAYS]]), alarm_popup[AlarmsProperties.SOUND], alarm_popup[AlarmsProperties.DESCR]]
+            for index, alarm_part in enumerate(alarm_format):
+                MyLabel(self, alarm_part, self.fg, self.bg, image=self.img
+                        ).pack(side='top') 
             MyButton(self, self.stop_alarm_txt, self.fg, self.bg, image=self.img_button, 
                     name=f"stop_alarm", command= lambda: self.stop_alarm()
                     ).pack(side='top')  
@@ -241,9 +243,10 @@ class Alarms(tk.Frame):
             self.app_prop = root.app_prop
             self.json_conf = self._root.json_conf
             self.json_alarms = self._root.json_alarms
+            
             self.fg_edit = self.json_conf['fg_edit']["value"]
             self.bg_edit = self.json_conf['bg_edit']["value"]
-            tk.Frame.__init__(self, root, background=self.bg_edit,borderwidth=2, relief="sunken", *args, **kwargs)
+            tk.Frame.__init__(self, root, background=self.bg_edit, borderwidth=2, relief="sunken", *args, **kwargs)
 
 
             self.check_days = None
@@ -253,7 +256,9 @@ class Alarms(tk.Frame):
             self.check_days = self._root.check_days
             self.checked_days = self._root.checked_days
 
-            alarm_format = self.json_alarms.section[json_alarm]["value"]
+            alarm_properties = self.json_alarms.section[json_alarm]
+            alarm_format = alarm_properties
+            alarm_description = alarm_properties["description"]
             alarm_format_lbl = f" {alarm_format[AlarmsProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[AlarmsProperties.DAYS]])} \n {alarm_format[AlarmsProperties.SOUND]}"
 
             def create_hours_entry(time, font_size=self.json_conf['hours_entry_font_size']["value"], bg=self.bg_edit, width=10):
@@ -264,7 +269,7 @@ class Alarms(tk.Frame):
                                 foreground=self.fg_edit
                                 )
                 hours.insert(0, f"{time}")
-                hours.grid(column=1, row=2, sticky='nsew')
+                
                 return hours
 
             def create_sound_list_from_dir():
@@ -321,8 +326,9 @@ class Alarms(tk.Frame):
                     self.check_days.append(check_button_day)
                 # this loop is creating each day of the week and add it to checkbutton in array and add to grid
 
-            def save_alarm(alarm_json, alarm_box, hour, snd_save):
+            def save_alarm(alarm_json, alarm_box, hour, descr, snd_save):
                 new_hour = hour.get()
+                new_description = descr.get()
                 new_days = []
                 new_sound = snd_save.split('\\')[1]
                 for day_check in self.check_days:
@@ -331,13 +337,15 @@ class Alarms(tk.Frame):
                         #FIXME 0:3 changed to dyunamical
                 alarm_format = f"{new_hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound}"
                 alarm_box['text'] = alarm_format
-                self.json_alarms.modify_section(alarm_json, AlarmsProperties.TIME, new_hour)
-                self.json_alarms.modify_section(alarm_json, AlarmsProperties.DAYS, new_days)
-                self.json_alarms.modify_section(alarm_json, AlarmsProperties.SOUND, new_sound)
+                self.json_alarms.modify_alarm(alarm_json, new_hour, new_days, new_sound, new_description)
+
                 # add hours and days to editing alarm
             
             def create_edit_appearance():
                 hours_entry = create_hours_entry(alarm_format[AlarmsProperties.TIME])
+                hours_entry.grid(column=1, row=2, sticky='nsew')
+                description_entry = create_hours_entry(alarm_description)
+                description_entry.grid(column=1, row=1, sticky="nsew")
                 MyLabel(self, alarm_format_lbl,
                             self.fg_edit, self.bg_edit,
                             image=self.img_edit
@@ -351,7 +359,7 @@ class Alarms(tk.Frame):
                                     image=self.img_edit, 
                                     name=f"save_alarm"
                                     )
-                save_btn.config(command=lambda alarm_json=json_alarm, alarm_box=alarm_box, hour=hours_entry: save_alarm(alarm_json, alarm_box, hour, selected_snd.get()))
+                save_btn.config(command=lambda alarm_json=json_alarm, alarm_box=alarm_box, hour=hours_entry: save_alarm(alarm_json, alarm_box, hour, description_entry, selected_snd.get()))
                 save_btn.grid(column=2, row=2, sticky="nsew")
                 create_checkbox_days()
                 return
@@ -360,12 +368,11 @@ class Alarms(tk.Frame):
     
 #TODO
     #Class of buttons (foreground activefg bg active bg image compound text)
-    # same for labels and entry
     # and checkbox?
 
-#TODO
-    # popup window
     # description for alarm in json
     # add every font size, border, colors etc. (mostly they will be relative but still config)
 
-    
+    #TODO my_widgets create entry (alarms edit, descr edit, settings edit)
+    #MODIFY VALUE
+    #MODIFY DESCRIPITON

@@ -1,122 +1,122 @@
 {
-  "app_settings": {
-    "resolution": {
-      "value": "1100x700",
-      "description": "Resolution of app window"
+    "app_settings": {
+        "resolution": {
+            "value": "1100x700",
+            "description": "Resolution of app window"
+        },
+        "bg_app": {
+            "value": "blue",
+            "description": "Background color app"
+        },
+        "resolution_settings": {
+            "value": "1100x700",
+            "description": "Settings resolution"
+        },
+        "fg_settings": {
+            "value": "yellow",
+            "description": "Foreground settings color app"
+        },
+        "bg_settings": {
+            "value": "blue",
+            "description": "Background settings color app"
+        },
+        "settings_font_size": {
+            "value": 10,
+            "description": "Settings entry font size"
+        }
     },
-    "bg_app": {
-      "value": "blue",
-      "description": "Background color app"
+    "menu_options": {
+        "menu_bg": {
+            "value": "blue",
+            "description": "Background menu"
+        },
+        "menu_fg": {
+            "value": "yellow",
+            "description": "Foreground menu"
+        }
     },
-    "resolution_settings": {
-      "value": "1100x700",
-      "description": "Settings resolution"
+    "footer_options": {
+        "footer_bg": {
+            "value": "blue",
+            "description": "Background footer"
+        },
+        "footer_fg": {
+            "value": "yellow",
+            "description": "Background footer"
+        }
     },
-    "fg_settings": {
-      "value": "yellow",
-      "description": "Foreground settings color app"
+    "alarms_options": {
+        "alarm_popup_resolution": {
+            "value": "500x500",
+            "description": "Alarm window popup resolution"
+        },
+        "bg_alarm_popup": {
+            "value": "blue",
+            "description": "Alarm window popup resolution"
+        },
+        "fg_alarm_popup": {
+            "value": "yellow",
+            "description": "Alarm window popup resolution"
+        },
+        "day_name": {
+            "value": "Mon,Wed,Tue,Thu,Fri,Sat,Sun",
+            "description": "Names of days separated by [,](always take 3 first for now)"
+        },
+        "bg_alarms": {
+            "value": "blue",
+            "description": "Background alarms"
+        },
+        "fg_buttons": {
+            "value": "yellow",
+            "description": "Foreground buttons alarms"
+        },
+        "bg_edit": {
+            "value": "blue",
+            "description": "Background edit alarms"
+        },
+        "fg_edit": {
+            "value": "yellow",
+            "description": "Foreground edit alarms"
+        },
+        "select_sound_font_size": {
+            "value": 15,
+            "description": "Select sound font size"
+        },
+        "save_btn_font_size": {
+            "value": 15,
+            "description": "Save button font size"
+        },
+        "hours_entry_font_size": {
+            "value": 40,
+            "description": "Hours entry edit font size"
+        },
+        "alarm_label_font_size": {
+            "value": 20,
+            "description": "Alarm labels font size"
+        },
+        "lbl_alarms_font_s": {
+            "value": 35,
+            "description": "Alarm labels font size"
+        }
     },
-    "bg_settings": {
-      "value": "blue",
-      "description": "Background settings color app"
+    "stopwatch_options": {
+        "bg_stopwatch": {
+            "value": "blue",
+            "description": "Alarm labels font isze"
+        },
+        "fg_stopwatch": {
+            "value": "yellow",
+            "description": "Alarm labels font size"
+        }
     },
-    "settings_font_size": {
-      "value": 10,
-      "description": "Settings entry font size"
+    "timer_options": {
+        "bg_timer": {
+            "value": "blue",
+            "description": "Alarm labels font isze"
+        },
+        "fg_timer": {
+            "value": "yellow",
+            "description": "Alarm labels font size"
+        }
     }
-  },
-  "menu_options": {
-    "menu_bg": {
-      "value": "blue",
-      "description": "Background menu"
-    },
-    "menu_fg": {
-      "value": "yellow",
-      "description": "Foreground menu"
-    }
-  },
-  "footer_options": {
-    "footer_bg": {
-      "value": "blue",
-      "description": "Background footer"
-    },
-    "footer_fg": {
-      "value": "yellow",
-      "description": "Background footer"
-    }
-  },
-  "alarms_options": {
-    "alarm_popup_resolution": {
-      "value": "750x250",
-      "description": "Alarm window popup resolution"
-    },
-    "bg_alarm_popup": {
-      "value": "blue",
-      "description": "Alarm window popup resolution"
-    },
-    "fg_alarm_popup": {
-      "value": "yellow",
-      "description": "Alarm window popup resolution"
-    },
-    "day_name": {
-      "value": "Mon,Wed,Tue,Thu,Fri,Sat,Sun",
-      "description": "Names of days separated by [,]"
-    },
-    "bg_alarms": {
-      "value": "blue",
-      "description": "Background alarms"
-    },
-    "fg_buttons": {
-      "value": "yellow",
-      "description": "Foreground buttons alarms"
-    },
-    "bg_edit": {
-      "value": "blue",
-      "description": "Background edit alarms"
-    },
-    "fg_edit": {
-      "value": "yellow",
-      "description": "Foreground edit alarms"
-    },
-    "select_sound_font_size": {
-      "value": 15,
-      "description": "Select sound font size"
-    },
-    "save_btn_font_size": {
-      "value": 15,
-      "description": "Save button font size"
-    },
-    "hours_entry_font_size": {
-      "value": 40,
-      "description": "Hours entry edit font size"
-    },
-    "alarm_label_font_size": {
-      "value": 20,
-      "description": "Alarm labels font size"
-    },
-    "lbl_alarms_font_s": {
-      "value": 35,
-      "description": "Alarm labels font size"
-    }
-  },
-  "stopwatch_options": {
-    "bg_stopwatch": {
-      "value": "blue",
-      "description": "Alarm labels font isze"
-    },
-    "fg_stopwatch": {
-      "value": "yellow",
-      "description": "Alarm labels font size"
-    }
-  },
-  "timer_options": {
-    "bg_timer": {
-      "value": "blue",
-      "description": "Alarm labels font isze"
-    },
-    "fg_timer": {
-      "value": "yellow",
-      "description": "Alarm labels font size"
-    }
-  }
 }
