@@ -166,31 +166,45 @@ class Alarms(tk.Frame):
             if alarm_prop['state'] == 'normal':
                 if today[0:3] in  alarm_prop['days']:
                     if dt_string in alarm_prop['time'] :
-                        self.AlarmPopup(self, alarm_prop)
+                        self.AlarmPopup(self, self.json_conf, self.app_prop, alarm_prop)
         self.alarms_frame.after(1000, self.set_alarms)
 
 
     class AlarmPopup(tk.Tk):
-        def __init__(self, root, alarm_AlarmsProperties, *args, **kwargs):
-            tk.Toplevel.__init__(self, *args, **kwargs)
+        def __init__(self, root, config_prop, app_prop, alarm_popup, *args, **kwargs):
+            self.bg = config_prop["bg_alarm_popup"]["value"]
+            self.fg = config_prop["fg_alarm_popup"]["value"]
+            tk.Toplevel.__init__(self, background=self.bg, *args, **kwargs)
             self._root = root
             self.sound_process = None
-            self.geometry("750x250")
+            self.geometry(config_prop["alarm_popup_resolution"]["value"])
             self.title('Settings')
-            self.mute_sound_text = 'Mute sound'
-            self.play_sound_text = 'Play sound'
-            alarm_format = f"{alarm_AlarmsProperties[AlarmsProperties.TIME]}\n{' '.join([str(day) for day in alarm_AlarmsProperties[AlarmsProperties.DAYS]])}\n {alarm_AlarmsProperties[AlarmsProperties.SOUND]}  "
-
-            ttk.Label(self, text=alarm_format, font='Mistral 18 bold').pack(side='left')
-            ttk.Button(self, text="Stop alarm", command=lambda: self.stop_alarm()).pack(side='right')    
-            ttk.Button(self, text="Snooze").pack(side='right') #,command=lambda alarm=text: [snooze_alarm(), stop_alarm()]
-                #    ).pack(side='right')
-            mute_sound_btn = ttk.Button(self, text = self.mute_sound_text )
-            if AlarmsProperties.SOUNDS_EXT in alarm_AlarmsProperties[AlarmsProperties.SOUND]:
-                music_to_play = f"{self.app_prop.SOUND_DIR}/{alarm_AlarmsProperties[AlarmsProperties.SOUND]}"
+            self.mute_sound_txt = 'Mute sound'
+            self.play_sound_txt = 'Play sound'
+            self.snooze_alarm_txt = 'Snooze alarm'
+            self.stop_alarm_txt = 'Stop alarm'
+            self.img = PhotoImage(file=f'{app_prop.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}')
+            self.img_button = self.img.subsample(3,2)
+            alarm_format = f"{alarm_popup[AlarmsProperties.TIME]}\n{' '.join([str(day) for day in alarm_popup[AlarmsProperties.DAYS]])}\n {alarm_popup[AlarmsProperties.SOUND]}  "
+            MyLabel(self, alarm_format, self.fg, self.bg, image=self.img
+                    ).pack(side='top', fill="y") 
+            MyButton(self, self.stop_alarm_txt, self.fg, self.bg, image=self.img_button, 
+                    name=f"stop_alarm", command= lambda: self.stop_alarm()
+                    ).pack(side='top')  
+            MyButton(self, self.snooze_alarm_txt, self.fg, self.bg, image=self.img_button, 
+                    name=f"snooze_alarm",
+                    ).pack(side='top')  
+                 #TODO SNOOZE alarm
+                 # #,command=lambda alarm=text: [snooze_alarm(), stop_alarm()]
+            mute_sound_btn = MyButton(self, self.mute_sound_txt, 
+                            self.fg, self.bg, 
+                            image=self.img_button, 
+                            name=f"mute_alarm",
+                            )
+            if app_prop.SOUNDS_EXT in alarm_popup[AlarmsProperties.SOUND]:
+                music_to_play = f"{app_prop.SOUND_DIR}/{alarm_popup[AlarmsProperties.SOUND]}"
                 mute_sound_btn.config(command=lambda mute_sound_btn=mute_sound_btn, music_to_play=music_to_play : self.mute_sound(mute_sound_btn, music_to_play))
-                mute_sound_btn.pack(side='right')
-
+                mute_sound_btn.pack(side='top')
                 self.start_sound(music_to_play)
             # if sounds != none  toggle music button and play music threading
         
@@ -201,11 +215,11 @@ class Alarms(tk.Frame):
 
         def mute_sound(self, btn, music_to_play):
             self.sound_process.kill()
-            if btn['text'] ==  self.mute_sound_text:
-                btn['text'] = self.play_sound_text 
+            if btn['text'] ==  self.mute_sound_txt:
+                btn['text'] = self.play_sound_txt 
                 return
             self.start_sound(music_to_play)
-            btn['text'] =  self.mute_sound_text
+            btn['text'] =  self.mute_sound_txt
 
         def snooze_alarm(self):
             snooze_time_now = datetime.now() + timedelta(minutes=1)
@@ -230,7 +244,6 @@ class Alarms(tk.Frame):
             self.fg_edit = self.json_conf['fg_edit']["value"]
             self.bg_edit = self.json_conf['bg_edit']["value"]
             tk.Frame.__init__(self, root, background=self.bg_edit,borderwidth=2, relief="sunken", *args, **kwargs)
-            #FIXME blue from config
 
 
             self.check_days = None
@@ -346,9 +359,13 @@ class Alarms(tk.Frame):
         #FIXME fix this lul create_edit_appearance
     
 #TODO
-     # some changes in functions and mostly changed backgrounds into images
-    # comment that in settings json {{comment: 'x y etc ' }}
     #Class of buttons (foreground activefg bg active bg image compound text)
     # same for labels and entry
     # and checkbox?
+
+#TODO
+    # popup window
+    # description for alarm in json
+    # add every font size, border, colors etc. (mostly they will be relative but still config)
+
     

@@ -76,6 +76,7 @@ class AlarmApp(tk.Tk):
 
 
 class SettingsWindow(tk.Tk):
+    #TODO scrolable
     def __init__(self, json_conf, *args, **kwargs):
         self.json_conf = json_conf
         self.fg = json_conf.section[ConfigProperties.APP_SETTINGS]['fg_settings']["value"]

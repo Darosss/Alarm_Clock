@@ -8,13 +8,21 @@
       "value": "blue",
       "description": "Background color app"
     },
+    "resolution_settings": {
+      "value": "1100x700",
+      "description": "Settings resolution"
+    },
     "fg_settings": {
-      "value": "blue",
-      "description": "Background color app"
+      "value": "yellow",
+      "description": "Foreground settings color app"
     },
     "bg_settings": {
       "value": "blue",
-      "description": "Background color app"
+      "description": "Background settings color app"
+    },
+    "settings_font_size": {
+      "value": 10,
+      "description": "Settings entry font size"
     }
   },
   "menu_options": {
@@ -38,6 +46,22 @@
     }
   },
   "alarms_options": {
+    "alarm_popup_resolution": {
+      "value": "750x250",
+      "description": "Alarm window popup resolution"
+    },
+    "bg_alarm_popup": {
+      "value": "blue",
+      "description": "Alarm window popup resolution"
+    },
+    "fg_alarm_popup": {
+      "value": "yellow",
+      "description": "Alarm window popup resolution"
+    },
+    "day_name": {
+      "value": "Mon,Wed,Tue,Thu,Fri,Sat,Sun",
+      "description": "Names of days separated by [,]"
+    },
     "bg_alarms": {
       "value": "blue",
       "description": "Background alarms"
@@ -53,18 +77,6 @@
     "fg_edit": {
       "value": "yellow",
       "description": "Foreground edit alarms"
-    },
-    "day_name": {
-      "value": {
-        "Monday": "Mon",
-        "Tuesday": "Tue",
-        "Wednesday": "Wed",
-        "Thursday": "Thu",
-        "Friday": "Fri",
-        "Saturday": "Sat",
-        "Sunday": "Sun"
-      },
-      "description": "Names of days"
     },
     "select_sound_font_size": {
       "value": 15,
@@ -84,7 +96,7 @@
     },
     "lbl_alarms_font_s": {
       "value": 35,
-      "description": "Alarm labels font isze"
+      "description": "Alarm labels font size"
     }
   },
   "stopwatch_options": {
