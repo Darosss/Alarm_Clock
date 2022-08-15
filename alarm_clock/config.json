@@ -1,7 +1,7 @@
 {
     "app_settings": {
         "resolution": {
-            "value": "1100x700",
+            "value": "1120x700",
             "description": "Resolution of app window"
         },
         "bg_app": {
@@ -9,7 +9,7 @@
             "description": "Background color app"
         },
         "resolution_settings": {
-            "value": "1100x700",
+            "value": "1100x900",
             "description": "Settings resolution"
         },
         "fg_settings": {
@@ -20,9 +20,33 @@
             "value": "blue",
             "description": "Background settings color app"
         },
-        "settings_font_size": {
+        "font_size_settings": {
             "value": 10,
             "description": "Settings entry font size"
+        },
+        "images_dir": {
+            "value": "imgs",
+            "description": "Directory of images"
+        },
+        "sounds_ext": {
+            "value": "mp3",
+            "description": "Extensions of sounds"
+        },
+        "start_txt": {
+            "value": "Start",
+            "description": "Text of start button"
+        },
+        "stop_txt": {
+            "value": "Stop",
+            "description": "Text of stop button"
+        },
+        "pause_txt": {
+            "value": "Pause",
+            "description": "Text of pause button"
+        },
+        "resume_txt": {
+            "value": "Resume",
+            "description": "Text of resume button"
         }
     },
     "menu_options": {

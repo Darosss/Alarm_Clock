@@ -7,11 +7,10 @@ class ConfigJSON:
             self.json_conf = json.loads(config_json.read())
     @property
     def section(self):
-         return self.json_conf
+        return self.json_conf
 
     def add_alarm(self, alarm, time, days, sound, description):
         with open(self.config, 'r+') as config_json:
-            print(self.json_conf)
             self.json_conf.update( 
                     {   
                         alarm:{

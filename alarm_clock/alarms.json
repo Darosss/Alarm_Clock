@@ -1,11 +1,59 @@
 {
-  "alarm_box1": {
-    "value": {
-      "time": "18:33:31",
-      "days": ["Mon"],
-      "sound": "2.mp3",
-      "state": "normal"
+    "alarm_box1": {
+        "time": "20:09:02",
+        "days": [
+            "Mon",
+            "Fri",
+            "Sat",
+            "Sun"
+        ],
+        "sound": "2.mp3",
+        "state": "normal",
+        "description": "ZJ32 mrowki"
     },
-    "description": "kappa"
-  }
+    "alarm_box3": {
+        "time": "21:10:22",
+        "days": [
+            "Fri"
+        ],
+        "sound": "none",
+        "state": "normal",
+        "description": "sader"
+    },
+    "alarm_box4": {
+        "time": "11:11:44",
+        "days": [
+            "Fri"
+        ],
+        "sound": "1.mp3",
+        "state": "normal",
+        "description": "dziwki w dupie"
+    },
+    "alarm_box5": {
+        "time": "14:12:10",
+        "days": [
+            "Sun"
+        ],
+        "sound": "none",
+        "state": "normal",
+        "description": "disabled"
+    },
+    "alarm_box6": {
+        "time": "14:14:48",
+        "days": [
+            "Sun"
+        ],
+        "sound": "4.mp3",
+        "state": "normal",
+        "description": "321312"
+    },
+    "alarm_box7": {
+        "time": "14:02:25",
+        "days": [
+            "Mon"
+        ],
+        "sound": "none",
+        "state": "normal",
+        "description": ""
+    }
 }
