@@ -27,7 +27,7 @@ class Alarms(tk.Frame):
         self.app_prop = app_properties
         self.json_conf = json_conf
         self.json_alarms = json_alarms
-        tk.Frame.__init__(self, root, *args, **kwargs, relief="sunken", borderwidth=2)
+        tk.Frame.__init__(self, root, *args, **kwargs)
 
         self.bg_alarms = self.json_conf["bg_alarms"]["value"]
         self.fg_alarms = self.json_conf["fg_buttons"]["value"]
@@ -134,12 +134,7 @@ class Alarms(tk.Frame):
         today_name = now.strftime("%a")
         #FIXME for now its only day in engluish to need to change that
         row_alarm_box = frame.grid_size()[1]
-        print(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}")
-        #FIXME random alarm_box number 
-        self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.TIME, dt_string)
-        self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.DAYS, [today_name])
-        self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.SOUND, 'none')
-        self.json_alarms.modify_section(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", AlarmsProperties.STATE, 'disabled')
+        self.json_alarms.add_alarm(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", dt_string, [today_name], 'none', 'disabled')
         self.refresh_alarms()
     # function which for add new alarm box
 
@@ -246,7 +241,7 @@ class Alarms(tk.Frame):
             
             self.fg_edit = self.json_conf['fg_edit']["value"]
             self.bg_edit = self.json_conf['bg_edit']["value"]
-            tk.Frame.__init__(self, root, background=self.bg_edit, borderwidth=2, relief="sunken", *args, **kwargs)
+            tk.Frame.__init__(self, root, background=self.bg_edit, *args, **kwargs)
 
 
             self.check_days = None

@@ -9,9 +9,11 @@ from timer import Timer
 from my_widgets import MyButton, MyLabel
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
+# It's first interract with tkinter
 
 class ConfigProperties:
     CONFIG_NAME = 'config.json'
+    ALARMS_CNF_NAME = 'alarms.json'
     SOUNDS_DIR = 'sounds'
     APP_SETTINGS = 'app_settings'
     MENU_OPTIONS = 'menu_options'
@@ -21,13 +23,10 @@ class ConfigProperties:
     TIMER_OPTIONS = 'timer_options'
     FOOTER_OPTIONS = 'footer_options'
 
-
 class AppProperties:
     IMAGES_DIR = 'imgs'
     SOUND_DIR = 'sounds'
     SOUNDS_EXT = ".mp3"
-
-class MainFramesProp:
     MENU_IMG = 'menu.png'
     TIMER_IMG = 'timer.png'
     SETTINGS_IMG = 'settings.png'
@@ -37,7 +36,7 @@ class AlarmApp(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         self.json_conf = ConfigJSON(ConfigProperties.CONFIG_NAME)
         self.json_conf_section = self.json_conf.section
-        self.json_alarms = ConfigJSON('alarms.json')
+        self.json_alarms = ConfigJSON(ConfigProperties.ALARMS_CNF_NAME)
         self.geometry(self.json_conf_section[ConfigProperties.APP_SETTINGS]["resolution"]["value"])
         self._alarm_app_frame = Alarms(self, AppProperties, self.json_conf_section[ConfigProperties.ALARMS_OPTIONS], self.json_alarms)
         self._stopwatch_app_frame = Stopwatch(self, AppProperties, self.json_conf_section[ConfigProperties.STOPWATCH_OPTIONS], self.json_alarms)
@@ -84,20 +83,35 @@ class SettingsWindow(tk.Tk):
         self.resolution = json_conf.section[ConfigProperties.APP_SETTINGS]['resolution_settings']["value"]
         self.font_size =  json_conf.section[ConfigProperties.APP_SETTINGS]['settings_font_size']["value"]
         tk.Toplevel.__init__(self, background=self.bg,  *args, **kwargs)
-
+        self.setting_frame = tk.Frame(self, background="green")
+        self.setting_frame.pack(side="top", fill="both")
+        my_canvas = tk.Canvas(self.setting_frame)
+        
+        myscrollbar=ttk.Scrollbar(self.setting_frame, orient="vertical", command=my_canvas.yview)
+        #myscrollbar.grid(column=3, row=0, rowspan=10, sticky="nw")
+        myscrollbar.pack(side="right", fill="y")
+        my_canvas.configure(yscrollcommand=myscrollbar.set)
+        my_canvas.bind('<Configure>', lambda e: my_canvas.configure(scrollregion = my_canvas.bbox("all")))
+        
+        self.second_frame = tk.Frame(my_canvas)
+        my_canvas.create_window((0,0), window=self.second_frame, anchor="nw")
+        my_canvas.pack(side="left", fill="both", expand=1)
+        
+        #TODO DO SCROLL BETTER  ENDEND LAST TIME 9:05
         self.geometry(self.resolution)
         self.title('Settings')
-        self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{MainFramesProp.SETTINGS_IMG}')
+        self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{AppProperties.SETTINGS_IMG}')
         self.img_section = self.btn_big.subsample(2,2)
         self.img_description = self.btn_big.subsample(1,2)
         for col in range(3): self.columnconfigure(col, weight=1)
 
-        save_btn = MyButton(self, 'Save', 
+        save_btn = MyButton(self.second_frame, 'Save', 
                                 self.fg, self.bg, 
                                 image=self.btn_big, 
                                 name='save_sett_btn'
                               )
-        save_btn.grid(column=2, row=0)
+        #save_btn.grid(column=2, row=0)
+        save_btn.pack(side="right")
         save_btn.config(command = lambda : self.save_settings())
         
         for section in self.json_conf.section:
@@ -121,27 +135,27 @@ class SettingsWindow(tk.Tk):
                  
     def add_header_label(self, header_name):
         row_grid = self.grid_size()[1] + 1
-        MyLabel(self, header_name,
+        MyLabel(self.second_frame, header_name,
             self.fg, self.bg,
             image=self.img_section,
             font=("default", self.font_size*2),
-            ).grid(column=0, columnspan=2, row = row_grid, sticky="e") 
+            ).pack(side="top")#.grid(column=0, columnspan=2, row = row_grid, sticky="e") 
        
     def add_setting(self, sett_descr, section_name, option_name, value, row, width=20):
         row_grid = self.grid_size()[1] + row
-        MyLabel(self, sett_descr,
+        MyLabel(self.second_frame, sett_descr,
             self.fg, self.bg,
             image=self.img_description,
             font=("default", self.font_size),
-            ).grid(column=0, row = row_grid, sticky="nse")
-        res_entry = tk.Entry(self, width=width, 
+            ).pack(side="top")#.grid(column=0, row = row_grid, sticky="nse")
+        res_entry = tk.Entry(self.second_frame, width=width, 
                     font=("default", self.font_size),
                     background=self.bg,
                     foreground=self.fg,
                     name = f"{section_name}/{option_name}"
                     )
         res_entry.insert(0, value)
-        res_entry.grid(column = 1, row = row_grid, sticky="nsew")
+        res_entry.pack(side="top")#grid(column = 1, row = row_grid, sticky="nsew")
 
   #settigns soon  
 
@@ -169,7 +183,7 @@ class WindowMenu(tk.Menu):
 class MenuFrame(tk.Frame):
     def __init__(self, root, config_sett, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
         self._root = root
-        self.img_menu = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{MainFramesProp.MENU_IMG}")
+        self.img_menu = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{AppProperties.MENU_IMG}")
 
         self.config_sett = config_sett
         self.bg_menu = self.config_sett['menu_bg']["value"]
@@ -199,7 +213,6 @@ class MenuFrame(tk.Frame):
         menu_btn_timer.pack(side='left', expand=True)
         
     def clear_and_show_clicked(self, what, col_grid=0, row_grid=1, colspan=2, stick='nsew'):
-        print(what)
         for slave in self._root.grid_slaves(row=1, column=0):
             slave.grid_forget()
             slave.grid_remove()
@@ -212,9 +225,9 @@ class FooterFrame(tk.Frame):
         self.config_sett = config_sett
         self.bg_footer = self.config_sett['footer_bg']["value"]
         self.fg_footer = self.config_sett["footer_fg"]["value"] 
-        self.img_timer = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{MainFramesProp.TIMER_IMG}")
+        self.img_timer = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{AppProperties.TIMER_IMG}")
         
-        tk.Frame.__init__(self, root, background=self.bg_footer, *args, **kwargs)
+        tk.Frame.__init__(self, root, background=self.bg_footer, borderwidth=1, relief='sunken', *args, **kwargs)
         self.time_label = tk.Label(self,
                                 justify='center',
                                 font=('calibri', 25, 'bold'),

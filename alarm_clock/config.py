@@ -8,27 +8,38 @@ class ConfigJSON:
     @property
     def section(self):
          return self.json_conf
-    
+
+    def add_alarm(self, alarm, time, days, sound, description):
+        with open(self.config, 'r+') as config_json:
+            print(self.json_conf)
+            self.json_conf.update( 
+                    {   
+                        alarm:{
+                            "time":time,
+                            "days":days,
+                            "sound":sound,
+                            "state":"disabled",
+                            "description":description    
+                        }
+                    })
+            config_json.seek(0)
+            json.dump(self.json_conf, config_json, indent=4)
+            config_json.truncate()  
+
     def modify_alarm(self, alarm, time, days, sound, description):
         with open(self.config, 'r+') as config_json:
             self.json_conf[alarm]["time"] = time
             self.json_conf[alarm]["days"] = days
             self.json_conf[alarm]["sound"] = sound
             self.json_conf[alarm]["description"] = description
+            
             config_json.seek(0)
             json.dump(self.json_conf, config_json, indent=4)
             config_json.truncate()  
 
-    def modify_section(self, section, *option, value):
+    def modify_section(self, section, option, value):
         with open(self.config, 'r+') as config_json:
-            if section not in self.json_conf:
-                self.json_conf.update( 
-                    {section:{
-                        "value":{},
-                        "description":{}    
-                    }
-                     })
-            self.json_conf[section]["value"][option]= value 
+            self.json_conf[section][option]= value 
             config_json.seek(0)
             json.dump(self.json_conf, config_json, indent=4)
             config_json.truncate()  
