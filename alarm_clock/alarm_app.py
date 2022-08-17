@@ -1,33 +1,29 @@
 import tkinter as tk
 from tkinter import PhotoImage, ttk
-from datetime import datetime
-from datetime import timedelta
-from turtle import back
+from datetime import datetime, timedelta
 from config import ConfigJSON
 from my_widgets import MyButton, MyLabel
 from playsound import playsound
 import multiprocessing
-import tkinter as tk
 import glob2 as glob
-import tkinter as tk
 import pkg_resources
 pkg_resources.require("playsound==1.2.2")
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
 # It's first interract with tkinter
-class AlarmsProperties:
-    ALARM_PREFIX = 'alarm_box'
-    DELETE_STRING = 'X'
-    IMAGE_NAME = 'alarms.png'
+
+#TODO Description for alarm on left/right 
+# More configuration fe. font sizes, borders, colors?
+# Better grid 
+
+class ConfigProperties:
+    CONFIG = ConfigJSON('config.json')
+    ALARMS = ConfigJSON('alarms.json')
     TIME = 'time'
     DAYS = 'days'
     SOUND = 'sound'
     STATE = 'state'
     DESCR = 'description'
-
-class ConfigProperties:
-    CONFIG = ConfigJSON('config.json')
-    ALARMS = ConfigJSON('alarms.json')
     APP_SETTINGS = CONFIG.section['app_settings']
     MENU_OPTIONS = CONFIG.section['menu_options']
     ALARMS_OPTIONS = CONFIG.section['alarms_options']
@@ -36,19 +32,21 @@ class ConfigProperties:
     FOOTER_OPTIONS = CONFIG.section['footer_options']
 
 class AppProperties:
-    IMAGES_DIR = 'imgs'
-    SOUND_DIR = 'sounds'
+    IMAGES_DIR = ConfigProperties.APP_SETTINGS['images_dir']['value']
+    SOUND_DIR = ConfigProperties.APP_SETTINGS['sounds_dir']['value']
     SOUNDS_EXT = f".{ConfigProperties.APP_SETTINGS['sounds_ext']['value']}"
     START_TXT = ConfigProperties.APP_SETTINGS['start_txt']['value']
     STOP_TXT = ConfigProperties.APP_SETTINGS['stop_txt']['value']
     PAUSE_TXT = ConfigProperties.APP_SETTINGS['pause_txt']['value']
     RESUME_TXT = ConfigProperties.APP_SETTINGS['resume_txt']['value']
-    SETTINGS_IMG = 'settings.png'
-    MENU_IMG = 'menu.png'
-    FOOTER_TIMER_IMG = 'footer_timer.png'
-    ALARMS_IMG = 'alarms.png'
-    TIMER_IMG = 'timer.png'
-    STOPWATCH_IMG = 'stopwatch.png'
+    ALARMS_IMG = f'{IMAGES_DIR}/alarms.png'
+    SETTINGS_IMG = f'{IMAGES_DIR}/settings.png'
+    MENU_IMG = f'{IMAGES_DIR}/menu.png'
+    FOOTER_TIMER_IMG = f'{IMAGES_DIR}/footer_timer.png'
+    TIMER_IMG = f'{IMAGES_DIR}/timer.png'
+    STOPWATCH_IMG = f'{IMAGES_DIR}/stopwatch.png'
+    DELETE_STRING = 'X'
+    ALARM_PREFIX = "alarm_box"
 
 
 class AlarmApp(tk.Tk):
@@ -118,7 +116,7 @@ class SettingsWindow(tk.Tk):
         #TODO DO SCROLL BETTER  ENDEND LAST TIME 9:05
         self.geometry(self.resolution)
         self.title('Settings')
-        self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{AppProperties.SETTINGS_IMG}')
+        self.btn_big = PhotoImage(file=AppProperties.SETTINGS_IMG)
         self.img_section = self.btn_big.subsample(2,2)
         self.img_description = self.btn_big.subsample(1,2)
         for col in range(3): self.columnconfigure(col, weight=1)
@@ -206,7 +204,7 @@ class WindowMenu(tk.Menu):
 class MenuFrame(tk.Frame):
     def __init__(self, root, config_sett, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
         self._root = root
-        self.img_menu = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{AppProperties.MENU_IMG}")
+        self.img_menu = PhotoImage(file=AppProperties.MENU_IMG)
 
         self.config_sett = config_sett
         self.bg_menu = self.config_sett['menu_bg']["value"]
@@ -250,7 +248,7 @@ class FooterFrame(tk.Frame):
         self.bg_footer = self.config_footer["footer_bg"]["value"]
         self.fg_footer = self.config_footer["footer_fg"]["value"]
         #TODO add fiont size, maybe border
-        self.img_timer = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{AppProperties.TIMER_IMG}")
+        self.img_timer = PhotoImage(file=AppProperties.TIMER_IMG)
         
         tk.Frame.__init__(self, root, background=self.bg_footer, borderwidth=1, relief='sunken', *args, **kwargs)
         self.time_label = tk.Label(self,
@@ -278,8 +276,6 @@ class FooterFrame(tk.Frame):
 class Alarms(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
-        # self.json_conf = json_conf
-        # self.json_alarms = json_alarms
         self.config_alarm = ConfigProperties.ALARMS_OPTIONS
         self.alarms_list = ConfigProperties.ALARMS
         
@@ -294,7 +290,7 @@ class Alarms(tk.Frame):
         self.alarms_frame.columnconfigure(1, weight=1)
         
         #this should be in class Alarms -> alarmslist
-        self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}')
+        self.btn_big = PhotoImage(file=AppProperties.ALARMS_IMG)
         self.btn_med = self.btn_big.subsample(5,2)
         self.btn_width_no_height = self.btn_big.subsample(1,2)
         
@@ -343,30 +339,30 @@ class Alarms(tk.Frame):
         alarm_text = self.alarms_list.section[alarm_json]
         def toggle_alarm(e, alarm_box):
             state_now = ""
-            if alarm_box[AlarmsProperties.STATE] == 'disabled':
+            if alarm_box[ConfigProperties.STATE] == 'disabled':
                 state_now = 'normal'
             else:
                 state_now = "disabled"
-            alarm_box[AlarmsProperties.STATE] = state_now
-            alarm_text[AlarmsProperties.STATE] = state_now
-            self.alarms_list.modify_section(alarm_json, AlarmsProperties.STATE, state_now)
+            alarm_box[ConfigProperties.STATE] = state_now
+            alarm_text[ConfigProperties.STATE] = state_now
+            self.alarms_list.modify_section(alarm_json, ConfigProperties.STATE, state_now)
             #save to config json(toggle state = disabled / normal)
         #TODO HERE
         
-        alarm_format = f"{alarm_text[AlarmsProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_text[AlarmsProperties.DAYS]])} \n {alarm_text[AlarmsProperties.SOUND]}"
+        alarm_format = f"{alarm_text[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_text[ConfigProperties.DAYS]])} \n {alarm_text[ConfigProperties.SOUND]}"
         alarm_box = MyButton(append, alarm_format, 
                             self.fg_alarms, self.bg_alarms,
                             image=self.btn_big, 
-                            name=f"{AlarmsProperties.ALARM_PREFIX}_{row_alarm}"
+                            name=f"{AppProperties.ALARM_PREFIX}_{row_alarm}"
                             )
-        delete_alarm = MyButton(append, AlarmsProperties.DELETE_STRING, 
+        delete_alarm = MyButton(append, AppProperties.DELETE_STRING, 
                                 self.fg_alarms, self.bg_alarms, 
                                 image=self.btn_med, 
-                                name=f"delete_{AlarmsProperties.ALARM_PREFIX}{row_alarm}"
+                                name=f"delete_{AppProperties.ALARM_PREFIX}{row_alarm}"
                                 )
         
         
-        alarm_box.config(state=alarm_text[AlarmsProperties.STATE], command=lambda alarm_json=alarm_json, alarm_box=alarm_box: self.edit_frame.edit(alarm_json, alarm_box))
+        alarm_box.config(state=alarm_text[ConfigProperties.STATE], command=lambda alarm_json=alarm_json, alarm_box=alarm_box: self.edit_frame.edit(alarm_json, alarm_box))
         delete_alarm.config(command=lambda alarm_json=alarm_json : [self.remove_alarm_box(alarm_json), alarm_box.destroy(), delete_alarm.destroy()])
         
         alarm_box.bind("<Button-3>", lambda event, alarm_box=alarm_box: toggle_alarm(event, alarm_box))
@@ -390,16 +386,16 @@ class Alarms(tk.Frame):
         today_name = now.strftime("%a")
         #FIXME for now its only day in engluish to need to change that
         row_alarm_box = frame.grid_size()[1]
-        self.alarms_list.add_alarm(f"{AlarmsProperties.ALARM_PREFIX}{row_alarm_box}", dt_string, [today_name], 'none', '')
+        self.alarms_list.add_alarm(f"{AppProperties.ALARM_PREFIX}{row_alarm_box}", dt_string, [today_name], 'none', '')
         self.refresh_alarms()
     # function which for add new alarm box
 
     def check_alarms(self):
         alarms = []
         for alarm in self.alarms_frame.grid_slaves():
-            if AlarmsProperties.ALARM_PREFIX not in str(alarm):
+            if AppProperties.ALARM_PREFIX not in str(alarm):
                 continue
-            if alarm[AlarmsProperties.STATE] == "normal":
+            if alarm[ConfigProperties.STATE] == "normal":
                 al = alarm['text'].split("\n")
                 alarms.append(al)
         for snoozed_alarm in self.snoozed_alarms:
@@ -435,9 +431,9 @@ class Alarms(tk.Frame):
             self.play_sound_txt = 'Play sound'
             self.snooze_alarm_txt = 'Snooze alarm'
             self.stop_alarm_txt = 'Stop alarm'
-            self.img = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}')
+            self.img = PhotoImage(file=ConfigProperties.IMAGE_NAME)
             self.img_button = self.img.subsample(3,2)
-            alarm_format = [alarm_popup[AlarmsProperties.TIME],' '.join([str(day) for day in alarm_popup[AlarmsProperties.DAYS]]), alarm_popup[AlarmsProperties.SOUND], alarm_popup[AlarmsProperties.DESCR]]
+            alarm_format = [alarm_popup[ConfigProperties.TIME],' '.join([str(day) for day in alarm_popup[ConfigProperties.DAYS]]), alarm_popup[ConfigProperties.SOUND], alarm_popup[ConfigProperties.DESCR]]
             for index, alarm_part in enumerate(alarm_format):
                 MyLabel(self, alarm_part, self.fg, self.bg, image=self.img
                         ).pack(side=tk.TOP) 
@@ -454,8 +450,8 @@ class Alarms(tk.Frame):
                             image=self.img_button, 
                             name=f"mute_alarm",
                             )
-            if AppProperties.SOUNDS_EXT in alarm_popup[AlarmsProperties.SOUND]:
-                music_to_play = f"{AppProperties.SOUND_DIR}/{alarm_popup[AlarmsProperties.SOUND]}"
+            if AppProperties.SOUNDS_EXT in alarm_popup[ConfigProperties.SOUND]:
+                music_to_play = f"{AppProperties.SOUND_DIR}/{alarm_popup[ConfigProperties.SOUND]}"
                 mute_sound_btn.config(command=lambda mute_sound_btn=mute_sound_btn, music_to_play=music_to_play : self.mute_sound(mute_sound_btn, music_to_play))
                 mute_sound_btn.pack(side=tk.TOP)
                 self.start_sound(music_to_play)
@@ -489,7 +485,7 @@ class Alarms(tk.Frame):
     class EditAlarm(tk.Frame):
         def __init__(self, root, *args, **kwargs):
             self._root = root
-            self.img_edit = PhotoImage(file=f"{AppProperties.IMAGES_DIR}/{AlarmsProperties.IMAGE_NAME}")
+            self.img_edit = PhotoImage(file=AppProperties.ALARMS_IMG)
             self.img_check_day = self.img_edit.subsample(5,4)
             self.config_edit = ConfigProperties.ALARMS_OPTIONS
             self.alarms_list = ConfigProperties.ALARMS
@@ -508,7 +504,7 @@ class Alarms(tk.Frame):
             alarm_properties = self.alarms_list.section[json_alarm]
             alarm_format = alarm_properties
             alarm_description = alarm_properties["description"]
-            alarm_format_lbl = f" {alarm_format[AlarmsProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[AlarmsProperties.DAYS]])} \n {alarm_format[AlarmsProperties.SOUND]}"
+            alarm_format_lbl = f" {alarm_format[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[ConfigProperties.DAYS]])} \n {alarm_format[ConfigProperties.SOUND]}"
 
             def create_hours_entry(time, font_size=self.config_edit['hours_entry_font_size']["value"], bg=self.bg_edit, width=10):
                 hours = tk.Entry(self, width=width, 
@@ -565,7 +561,7 @@ class Alarms(tk.Frame):
                 self.checked_days.clear()
                 for indx, day in enumerate(day_names):
                     check_button_day = ttk.Checkbutton(checkbox_days_frame, compound=tk.CENTER, text=day, style='my.TCheckbutton')
-                    if day[0:3] in alarm_format[AlarmsProperties.DAYS]:
+                    if day[0:3] in alarm_format[ConfigProperties.DAYS]:
                         #FIXME should be first letter from config, but for now it is like this
                         self.checked_days.append(tk.IntVar(value = 1))
                         check_button_day.config(variable=self.checked_days[indx])
@@ -591,7 +587,7 @@ class Alarms(tk.Frame):
                 # add hours and days to editing alarm
             
             def create_edit_appearance():
-                hours_entry = create_hours_entry(alarm_format[AlarmsProperties.TIME])
+                hours_entry = create_hours_entry(alarm_format[ConfigProperties.TIME])
                 hours_entry.grid(column=1, row=2, sticky=tk.NSEW)
                 description_entry = create_hours_entry(alarm_description)
                 description_entry.grid(column=1, row=1, sticky=tk.NSEW)
@@ -601,7 +597,7 @@ class Alarms(tk.Frame):
                             ).grid(column=1, row=0, sticky=tk.NS)   
 
                 create_sound_list_from_dir()
-                selected_snd = create_sound_selection(alarm_format[AlarmsProperties.SOUND])
+                selected_snd = create_sound_selection(alarm_format[ConfigProperties.SOUND])
                 
                 save_btn = MyButton(self, "Save", 
                                     self.fg_edit, self.bg_edit, 
@@ -633,7 +629,7 @@ class Timer(tk.Frame):
         self.bg_timer = self.config_timer['bg_timer']["value"]
         self.fg_timer = self.config_timer['fg_timer']["value"]
         tk.Frame.__init__(self, root, *args, **kwargs)
-        self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{AppProperties.TIMER_IMG}')
+        self.btn_big = PhotoImage(file=AppProperties.TIMER_IMG)
         self.btn_med = self.btn_big.subsample(5,2)
         self.btn_width_no_height = self.btn_big.subsample(1,2)
 
@@ -776,7 +772,7 @@ class Stopwatch(tk.Frame):
 
         tk.Frame.__init__(self, root, *args, **kwargs)
 
-        self.btn_big = PhotoImage(file=f'{AppProperties.IMAGES_DIR}/{AppProperties.STOPWATCH_IMG}')
+        self.btn_big = PhotoImage(file=AppProperties.STOPWATCH_IMG)
         self.btn_width_no_height = self.btn_big.subsample(1,2)
 
         self.str_start = AppProperties.START_TXT
