@@ -60,7 +60,7 @@ class AlarmApp(tk.Tk):
         
         self._menu = MainMenu(self)
         self._footer_frame = FooterFrame(self)
-        self._menu_frame = MenuFrame(self, ConfigProperties.MENU_OPTIONS, 
+        self._menu_frame = MenuFrame(self, 
                                      self._alarm_app_frame, 
                                      self._stopwatch_app_frame, 
                                      self._timer_app_frame
@@ -69,6 +69,9 @@ class AlarmApp(tk.Tk):
         self.rowconfigure(0, weight=0)
         self.rowconfigure(1, weight=1)
         self.rowconfigure(2, weight=0)
+        # --------------MENU-----------------
+        # ALARMS | EDIT or STOPWATCH or TIMER
+        # -------------FOOTER----------------
 
         self.show_frame(self._alarm_app_frame)
 
@@ -98,6 +101,7 @@ class SettingsWindow(tk.Tk):
         self.bg = self.config_sett["bg_settings"]["value"]
         self.resolution = self.config_sett["resolution_settings"]["value"]
         self.font_size =  self.config_sett["font_size_settings"]["value"]
+        self.settings_font =  self.config_sett["font_family_settings"]["value"]
         tk.Toplevel.__init__(self, background=self.bg,  *args, **kwargs)
         self.head_frame = tk.Frame(self, background=self.bg)
         self.head_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=tk.TRUE)
@@ -116,14 +120,14 @@ class SettingsWindow(tk.Tk):
         #TODO DO SCROLL BETTER  ENDEND LAST TIME 9:05
         self.geometry(self.resolution)
         self.title('Settings')
-        self.btn_big = PhotoImage(file=AppProperties.SETTINGS_IMG)
-        self.img_section = self.btn_big.subsample(2,2)
-        self.img_description = self.btn_big.subsample(1,2)
+        self.btn_default = PhotoImage(file=AppProperties.SETTINGS_IMG)
+        self.img_section = self.btn_default.subsample(2,2)
+        self.img_description = self.btn_default.subsample(1,2)
         for col in range(3): self.columnconfigure(col, weight=1)
 
         save_btn = MyButton(self.settings_frame, 'Save', 
                                 self.fg, self.bg, 
-                                image=self.btn_big, 
+                                image=self.btn_default, 
                                 name='save_sett_btn'
                               )
         save_btn.grid(column=2, row=0)
@@ -156,7 +160,7 @@ class SettingsWindow(tk.Tk):
         MyLabel(self.settings_frame, header_name,
             self.fg, self.bg,
             image=self.img_section,
-            font=("default", self.font_size*2),
+            font=(self.settings_font, self.font_size*2),
             ).grid(column=0,row = row_grid, sticky="e") 
             #.pack(side=tk.TOP)#
             
@@ -166,10 +170,10 @@ class SettingsWindow(tk.Tk):
         MyLabel(self.settings_frame, sett_descr,
             self.fg, self.bg,
             image=self.img_description,
-            font=("default", self.font_size),
+            font=(self.settings_font, self.font_size),
             ).grid(column=0, row = row_grid, sticky="nse")#.pack(side=tk.TOP)#
         res_entry = tk.Entry(self.settings_frame, width=width, 
-                    font=("default", self.font_size),
+                    font=(self.settings_font, self.font_size),
                     background=self.bg,
                     foreground=self.fg,
                     
@@ -178,7 +182,7 @@ class SettingsWindow(tk.Tk):
         res_entry.insert(0, value)
         res_entry.grid(column = 1, row = row_grid, sticky=tk.NSEW)#pack(side=tk.TOP)#
 
-  #settigns soon  
+#FIXME Repair init function(make multiple functions from it)
 
 class MainMenu(tk.Menu):
     @property
@@ -202,26 +206,25 @@ class WindowMenu(tk.Menu):
         self.add_command(label="Exit", command=parent.root.quit_app)
 
 class MenuFrame(tk.Frame):
-    def __init__(self, root, config_sett, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
+    def __init__(self, root, alarm_frame, stopwatch_frame, timer_frame, *args, **kwargs):
         self._root = root
         self.img_menu = PhotoImage(file=AppProperties.MENU_IMG)
-
-        self.config_sett = config_sett
-        self.bg_menu = self.config_sett['menu_bg']["value"]
-        self.fg_menu = self.config_sett['menu_fg']["value"]
-        tk.Frame.__init__(self, root, background=self.bg_menu, borderwidth=1, relief='raised', *args, **kwargs)
+        self.config_menu = ConfigProperties.MENU_OPTIONS
+        self.bg = self.config_menu['menu_bg']["value"]
+        self.fg = self.config_menu['menu_fg']["value"]
+        tk.Frame.__init__(self, root, background=self.bg, borderwidth=1, relief='raised', *args, **kwargs)
         menu_btn_alarms= MyButton(self, 'Alarms', 
-                                self.fg_menu, self.bg_menu, 
+                                self.fg, self.bg, 
                                 image=self.img_menu, 
                                 name="alarms_menu_btn"
                                 )
         menu_btn_stopwatch= MyButton(self, 'Stopwatch', 
-                                self.fg_menu, self.bg_menu, 
+                                self.fg, self.bg, 
                                 image=self.img_menu, 
                                 name="stopwatch_menu_btn"
                                 )
         menu_btn_timer= MyButton(self, 'Timer', 
-                                self.fg_menu, self.bg_menu, 
+                                self.fg, self.bg, 
                                 image=self.img_menu, 
                                 name="timer_menu_btn"
                                 )
@@ -244,33 +247,26 @@ class FooterFrame(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
         self.config_footer = ConfigProperties.FOOTER_OPTIONS
-
         self.bg_footer = self.config_footer["footer_bg"]["value"]
         self.fg_footer = self.config_footer["footer_fg"]["value"]
-        #TODO add fiont size, maybe border
+        self.f_s_timer = self.config_footer["font_size_label"]["value"]
+        self.font_timer = self.config_footer["font_label"]["value"]
         self.img_timer = PhotoImage(file=AppProperties.TIMER_IMG)
         
         tk.Frame.__init__(self, root, background=self.bg_footer, borderwidth=1, relief='sunken', *args, **kwargs)
-        self.time_label = tk.Label(self,
-                                justify=tk.CENTER,
-                                font=('calibri', 25, 'bold'),
-                                image = self.img_timer,
-                                compound=tk.CENTER,
-                                background=self.bg_footer, 
-                                foreground=self.fg_footer,
-                                activebackground=self.fg_footer, 
-                                )
+        self.time_label = MyLabel(self,'', self.fg_footer, 
+                                    self.bg_footer, 
+                                    image=self.img_timer,
+                                    font=(self.font_timer, self.f_s_timer, 'bold') )
         self.time()
 
         self.time_label.grid(column=0, row=0, sticky=tk.NSEW)
         self.columnconfigure(0, weight =1)
         
-
     def time(self):
         time_now = datetime.now().strftime("%H:%M:%S")
         self.time_label['text'] = time_now
         self.time_label.after(1000, self.time)
-
 
 
 class Alarms(tk.Frame):
@@ -278,21 +274,21 @@ class Alarms(tk.Frame):
         self._root = root
         self.config_alarm = ConfigProperties.ALARMS_OPTIONS
         self.alarms_list = ConfigProperties.ALARMS
-        
+
         tk.Frame.__init__(self, root, *args, **kwargs)
 
         self.bg_alarms = self.config_alarm["bg_alarms"]["value"]
         self.fg_alarms = self.config_alarm["fg_buttons"]["value"]
-        self.edit_frame = self.EditAlarm(self)
         
+        self.edit_frame = self.EditAlarm(self)
         self.alarms_frame = tk.Frame(self, background = self.bg_alarms)
         self.alarms_frame.columnconfigure(0, weight=1)
         self.alarms_frame.columnconfigure(1, weight=1)
         
         #this should be in class Alarms -> alarmslist
-        self.btn_big = PhotoImage(file=AppProperties.ALARMS_IMG)
-        self.btn_med = self.btn_big.subsample(5,2)
-        self.btn_width_no_height = self.btn_big.subsample(1,2)
+        self.btn_default = PhotoImage(file=AppProperties.ALARMS_IMG)
+        self.btn_subsampl52 = self.btn_default.subsample(5,2)
+        self.small_widgets = self.btn_default.subsample(3,2)
         
 
         self.check_days = []
@@ -315,29 +311,25 @@ class Alarms(tk.Frame):
     def __create_alarm_boxes_frame(self):
         alarm_title_lbl = MyLabel(self.alarms_frame, "Alarms",
                                 self.fg_alarms, self.bg_alarms,
-                                image=self.btn_width_no_height,
+                                image=self.small_widgets,
                                 )
         
         add_button =  MyButton(self.alarms_frame, 'Add', 
                                 self.fg_alarms, self.bg_alarms, 
-                                image=self.btn_width_no_height, 
+                                image=self.small_widgets, 
                                 name='add_alarm_btn'
                               )
 
-
-
         add_button.config(command=lambda f=self.alarms_frame: self.add_alarm(f))
         alarm_title_lbl.grid(column=0, row=0, sticky=tk.NSEW)
-        add_button.grid(column=2, row=0, padx=5, pady=1)
+        add_button.grid(column=1, row=0, padx=5, pady=1, sticky=tk.W)
 
     def refresh_alarms(self):
         self.alarms_frame.grid_slaves().clear()
         for row, alarm in enumerate(self.alarms_list.section): 
             self.create_alarm(self.alarms_frame, alarm, row)
 
-    def create_alarm(self, append, alarm_json, row_alarm):
-        alarm_text = self.alarms_list.section[alarm_json]
-        def toggle_alarm(e, alarm_box):
+    def toggle_alarm(self, alarm_box, alarm_text, alarm_json):
             state_now = ""
             if alarm_box[ConfigProperties.STATE] == 'disabled':
                 state_now = 'normal'
@@ -346,26 +338,26 @@ class Alarms(tk.Frame):
             alarm_box[ConfigProperties.STATE] = state_now
             alarm_text[ConfigProperties.STATE] = state_now
             self.alarms_list.modify_section(alarm_json, ConfigProperties.STATE, state_now)
-            #save to config json(toggle state = disabled / normal)
-        #TODO HERE
-        
+
+    def create_alarm(self, append, alarm_json, row_alarm):
+        alarm_text = self.alarms_list.section[alarm_json]
+
         alarm_format = f"{alarm_text[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_text[ConfigProperties.DAYS]])} \n {alarm_text[ConfigProperties.SOUND]}"
         alarm_box = MyButton(append, alarm_format, 
                             self.fg_alarms, self.bg_alarms,
-                            image=self.btn_big, 
+                            image=self.btn_default, 
                             name=f"{AppProperties.ALARM_PREFIX}_{row_alarm}"
                             )
         delete_alarm = MyButton(append, AppProperties.DELETE_STRING, 
                                 self.fg_alarms, self.bg_alarms, 
-                                image=self.btn_med, 
+                                image=self.btn_subsampl52, 
                                 name=f"delete_{AppProperties.ALARM_PREFIX}{row_alarm}"
                                 )
-        
         
         alarm_box.config(state=alarm_text[ConfigProperties.STATE], command=lambda alarm_json=alarm_json, alarm_box=alarm_box: self.edit_frame.edit(alarm_json, alarm_box))
         delete_alarm.config(command=lambda alarm_json=alarm_json : [self.remove_alarm_box(alarm_json), alarm_box.destroy(), delete_alarm.destroy()])
         
-        alarm_box.bind("<Button-3>", lambda event, alarm_box=alarm_box: toggle_alarm(event, alarm_box))
+        alarm_box.bind("<Button-3>", lambda event, alarm_box=alarm_box, alarm_text=alarm_text, alarm = alarm_json: self.toggle_alarm(alarm_box, alarm_text, alarm))
         
         alarm_box.grid(column=0, row=row_alarm + 2)
         delete_alarm.grid(column=1, row=row_alarm + 2, padx=5, pady=1, sticky=tk.W)
@@ -380,7 +372,6 @@ class Alarms(tk.Frame):
             self.clear_edit_frame()
 
     def add_alarm(self, frame):
-     # this function is for adding new alarm, which maybe should be here, idk
         now = datetime.now()
         dt_string = now.strftime("%H:%M:%S")
         today_name = now.strftime("%a")
@@ -388,7 +379,6 @@ class Alarms(tk.Frame):
         row_alarm_box = frame.grid_size()[1]
         self.alarms_list.add_alarm(f"{AppProperties.ALARM_PREFIX}{row_alarm_box}", dt_string, [today_name], 'none', '')
         self.refresh_alarms()
-    # function which for add new alarm box
 
     def check_alarms(self):
         alarms = []
@@ -408,7 +398,6 @@ class Alarms(tk.Frame):
         now = datetime.now()
         dt_string = now.strftime("%H:%M:%S")
         today = now.strftime("%A")
-        now_time = dt_string + "\n" + today[0:3]
         for alarm in self.alarms_list.section:
             alarm_prop = self.alarms_list.section[alarm]
             if alarm_prop['state'] == 'normal':
@@ -491,6 +480,9 @@ class Alarms(tk.Frame):
             self.alarms_list = ConfigProperties.ALARMS
             self.fg_edit = self.config_edit['fg_edit']["value"]
             self.bg_edit = self.config_edit['bg_edit']["value"]
+            self.f_s_hours_entry = self.config_edit['hours_entry_font_size']["value"]
+            self.f_s_select_snd = self.config_edit['select_sound_font_size']["value"]
+            self.font_edit = self.config_edit['font_family_edit']["value"]
             tk.Frame.__init__(self, root, background=self.bg_edit, *args, **kwargs)
 
 
@@ -506,11 +498,10 @@ class Alarms(tk.Frame):
             alarm_description = alarm_properties["description"]
             alarm_format_lbl = f" {alarm_format[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[ConfigProperties.DAYS]])} \n {alarm_format[ConfigProperties.SOUND]}"
 
-            def create_hours_entry(time, font_size=self.config_edit['hours_entry_font_size']["value"], bg=self.bg_edit, width=10):
-                hours = tk.Entry(self, width=width, 
-                                
-                                font=("default", font_size), 
-                                background=bg,
+            def create_hours_entry(time):
+                hours = tk.Entry(self, width=10, 
+                                font=(self.font_edit, self.f_s_hours_entry), 
+                                background=self.bg_edit,
                                 foreground=self.fg_edit
                                 )
                 hours.insert(0, f"{time}")
@@ -527,14 +518,10 @@ class Alarms(tk.Frame):
             def create_sound_selection(sound):
                 s = ttk.Style()
                 
-                s.configure('my.TMenubutton', font=('Helvetica', 
-                            self.config_edit['select_sound_font_size']["value"]), 
-                            image=self.img_edit,
-                            background=self.bg_edit,
+                s.configure('my.TMenubutton', font=(self.font_edit, 
+                            self.f_s_select_snd), image=self.img_edit,
+                            background=self.bg_edit, foreground=self.fg_edit,
                             compound=tk.CENTER,
-                            foreground=self.fg_edit,
-            
-
                             )
                 selected_snd = tk.StringVar()
                 selected_snd.set(AppProperties.SOUND_DIR+'\\'+sound)
@@ -612,8 +599,6 @@ class Alarms(tk.Frame):
         #FIXME fix this lul create_edit_appearance
     
 #TODO
-    #Class of buttons (foreground activefg bg active bg image compound text)
-    # and checkbox?
 
     # description for alarm in json
     # add every font size, border, colors etc. (mostly they will be relative but still config)
@@ -628,10 +613,11 @@ class Timer(tk.Frame):
         self.config_timer = ConfigProperties.TIMER_OPTIONS
         self.bg_timer = self.config_timer['bg_timer']["value"]
         self.fg_timer = self.config_timer['fg_timer']["value"]
+        self.f_s_timer = self.config_timer['font_size_timer']["value"]
+        self.font_timer = self.config_timer['font_timer']["value"]
         tk.Frame.__init__(self, root, *args, **kwargs)
-        self.btn_big = PhotoImage(file=AppProperties.TIMER_IMG)
-        self.btn_med = self.btn_big.subsample(5,2)
-        self.btn_width_no_height = self.btn_big.subsample(1,2)
+        self.btn_default = PhotoImage(file=AppProperties.TIMER_IMG)
+        self.low_height_widgets = self.btn_default.subsample(3,2)
 
         self.stopwatch_frame = None
         self.timer_frame = None    
@@ -647,47 +633,46 @@ class Timer(tk.Frame):
         self.create_timer_frame(self)
 
     def create_timer_frame(self, append):
-        self.timer_frame = tk.Frame(append, borderwidth=5, background=self.bg_timer, relief='sunken')
+        self.timer_frame = tk.Frame(append, borderwidth=1, background=self.bg_timer, relief='sunken')
         self.timer_frame.pack(side='right', expand=True, fill=tk.BOTH)
 
-        self.saved_frame = tk.Frame(append, borderwidth=5, background=self.bg_timer, relief='sunken')
+        self.saved_frame = tk.Frame(append, borderwidth=1, background=self.bg_timer, relief='sunken')
         self.saved_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
 
         saved_times_title_lbl = MyLabel(self.saved_frame, 'Saved times',
                             self.fg_timer, self.bg_timer,
-                            image=self.btn_big,
-                            font=('default', 25)
+                            image=self.btn_default,
+                            font=(self.font_timer, self.f_s_timer)
                             )
 
         saved_times_lbl = MyLabel(self.saved_frame, '',
                             self.fg_timer, self.bg_timer,
-                            font=('default', 25)
+                            font=(self.font_timer, self.f_s_timer)
                             )
         
         timer_lbl = MyLabel(self.timer_frame, 'Timer',
                             self.fg_timer, self.bg_timer,
-                            image=self.btn_big,
-                            font=('default', 25)
+                            image=self.btn_default,
+                            font=(self.font_timer, self.f_s_timer)
                             )
 
-        time_entry = tk.Entry(self.timer_frame, foreground=self.fg_timer, background=self.bg_timer,  font=('default', 25))
+        time_entry = tk.Entry(self.timer_frame, foreground=self.fg_timer, background=self.bg_timer,  font=(self.font_timer, self.f_s_timer))
         time_entry.insert(1, ':'.join(str(x) for x in self.timer_time))
     
         stop = MyButton(self.timer_frame, self.stop, 
                         self.fg_timer,  self.bg_timer,
-                        image=self.btn_width_no_height, 
+                        image=self.low_height_widgets, 
                         name=self.stop.lower()
                         )
         start_pause = MyButton(self.timer_frame, self.str_start, 
                         self.fg_timer,  self.bg_timer,
-                        image=self.btn_width_no_height, 
+                        image=self.low_height_widgets, 
                         name=f"{self.str_start.lower()}/{self.str_pause.lower()}"
                         )
         
         start_pause.config(command=lambda tim_entr=time_entry, btn=start_pause, stp=stop: self.toggle_start_pause(btn, tim_entr, stp))
         stop.config(command=lambda tim_entr=time_entry, btn=stop, sp=start_pause: self.stop_timer(btn, sp, tim_entr))
-        
 
         timer_lbl.pack(side=tk.TOP, fill=tk.BOTH)
         time_entry.pack(expand=True)
@@ -741,7 +726,6 @@ class Timer(tk.Frame):
             
         time()
         
-
     def format_time_array(self):
         # 0 - days, 1 - hours, 2 - minutes, 3 - seconds, 4 miliseconds
         # its just for now, for look how it;ll look and maybe i'll change this
@@ -769,11 +753,12 @@ class Stopwatch(tk.Frame):
         self.config_stpwch = ConfigProperties.STOPWATCH_OPTIONS
         self.bg_stopwatch = self.config_stpwch["bg_stopwatch"]["value"]
         self.fg_stopwatch = self.config_stpwch["fg_stopwatch"]["value"]
-
+        self.f_s_stopwatch = self.config_stpwch['font_size_stopwatch']["value"]
+        self.font_stopwatch = self.config_stpwch['font_stopwatch']["value"]
         tk.Frame.__init__(self, root, *args, **kwargs)
 
-        self.btn_big = PhotoImage(file=AppProperties.STOPWATCH_IMG)
-        self.btn_width_no_height = self.btn_big.subsample(1,2)
+        self.btn_default = PhotoImage(file=AppProperties.STOPWATCH_IMG)
+        self.low_height_widgets = self.btn_default.subsample(3,2)
 
         self.str_start = AppProperties.START_TXT
         self.str_resume = AppProperties.RESUME_TXT
@@ -782,8 +767,8 @@ class Stopwatch(tk.Frame):
         self.counting_interval = None
         self.stopwatch_time = [0, 0, 0, 0, 0]
         self.count_saved_times = 1
-        self.stopwatch_frame = tk.Frame(self, borderwidth=5, background=self.bg_stopwatch, relief='sunken')
-        self.saved_frame = tk.Frame(self, borderwidth=5, background=self.bg_stopwatch, relief='sunken')
+        self.stopwatch_frame = tk.Frame(self, borderwidth=1, background=self.bg_stopwatch, relief='sunken')
+        self.saved_frame = tk.Frame(self, borderwidth=1, background=self.bg_stopwatch, relief='sunken')
         self.stopwatch_frame.pack(side='right', expand=True, fill=tk.BOTH)
         self.saved_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
         self.create_stopwatch_frame()
@@ -792,34 +777,33 @@ class Stopwatch(tk.Frame):
     def create_stopwatch_frame(self):
         saved_times_title_lbl = MyLabel(self.saved_frame, 'Saved times',
                             self.fg_stopwatch, self.bg_stopwatch,
-                            image=self.btn_big,
-                            font=('default', 25)
+                            image=self.btn_default,
+                            font=(self.font_stopwatch, self.f_s_stopwatch)
                             )
         saved_times_lbl = MyLabel(self.saved_frame, '',
                             self.fg_stopwatch, self.bg_stopwatch,
-                            font=('default', 25)
+                            font=(self.font_stopwatch, self.f_s_stopwatch)
                             )
         stopwatch_title_lbl = MyLabel(self.stopwatch_frame, 'Stopwatch',
                             self.fg_stopwatch, self.bg_stopwatch,
-                            image=self.btn_big,
-                            font=('default', 25)
+                            image=self.btn_default,
+                            font=(self.font_stopwatch, self.f_s_stopwatch)
                             )
         stopwatch_lbl = MyLabel(self.stopwatch_frame, '',
                             self.fg_stopwatch, self.bg_stopwatch,
-                            font=('default', 25)
+                            font=(self.font_stopwatch, self.f_s_stopwatch)
                             )
         stop =  MyButton(self.stopwatch_frame, self.stop, 
                         self.fg_stopwatch,  self.bg_stopwatch,
-                        image=self.btn_width_no_height, 
+                        image=self.low_height_widgets, 
                         name=self.stop.lower()
                         )
 
         start_pause = MyButton(self.stopwatch_frame, self.str_start, 
                         self.fg_stopwatch,  self.bg_stopwatch, 
-                        image=self.btn_width_no_height, 
+                        image=self.low_height_widgets, 
                         name=f"{self.str_start.lower()}/{self.str_pause.lower()}"
                         )
-        
         
         start_pause.config(command=lambda lbl=stopwatch_lbl, btn=start_pause, stp=stop: self.toggle_start_pause(btn, lbl, stp))
         stop.config(command=lambda lbl=stopwatch_lbl, btn=stop, sp=start_pause, save=saved_times_lbl: self.stop_stopwatch(btn, sp, lbl, save))
@@ -830,8 +814,6 @@ class Stopwatch(tk.Frame):
         stopwatch_title_lbl.pack()
         stopwatch_lbl.pack(expand=True)
         start_pause.pack(side=tk.TOP, fill=tk.BOTH)
-
-
 
     def toggle_start_pause(self, btn, watch_label, stop_btn, stop=False):
         if stop:
@@ -851,7 +833,6 @@ class Stopwatch(tk.Frame):
             btn.config(text=self.str_pause)
             self.countdown_time(watch_label, True)
 
-
     def stop_stopwatch(self, stop, start_pause_button, watch_label, save):
         
         save.config(text=f"{save['text']}\n{self.count_saved_times}: {self.format_time_array()}")
@@ -860,7 +841,6 @@ class Stopwatch(tk.Frame):
         self.stopwatch_time = [0] * len(self.stopwatch_time)
         stop.pack_forget()
         
-
     def format_time_array(self):
         # 0 - days, 1 - hours, 2 - minutes, 3 - seconds, 4 miliseconds
         # its just for now, for look how it;ll look and maybe i'll change this
@@ -891,4 +871,3 @@ class Stopwatch(tk.Frame):
             self.counting_interval = time_lbl.after(1, time)
             self.stopwatch_time[4] = self.stopwatch_time[4] + 1
         time()
-

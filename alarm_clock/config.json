@@ -24,6 +24,10 @@
       "value": 10,
       "description": "Settings entry font size"
     },
+    "font_family_settings": {
+      "value": "default",
+      "description": "Settings font family"
+    },
     "images_dir": {
       "value": "imgs",
       "description": "Directory of images"
@@ -71,6 +75,14 @@
     "footer_fg": {
       "value": "yellow",
       "description": "Background footer"
+    },
+    "font_size_label": {
+      "value": 25,
+      "description": "Font size label timer"
+    },
+    "font_label": {
+      "value": "calibri",
+      "description": "Font family label timer"
     }
   },
   "alarms_options": {
@@ -106,6 +118,10 @@
       "value": "yellow",
       "description": "Foreground edit alarms"
     },
+    "font_family_edit": {
+      "value": "default",
+      "description": "Foreground edit alarms"
+    },
     "select_sound_font_size": {
       "value": 15,
       "description": "Select sound font size"
@@ -135,6 +151,14 @@
     "fg_stopwatch": {
       "value": "yellow",
       "description": "Alarm labels font size"
+    },
+    "font_size_stopwatch": {
+      "value": 25,
+      "description": "Font size label timer"
+    },
+    "font_stopwatch": {
+      "value": "calibri",
+      "description": "Font family label timer"
     }
   },
   "timer_options": {
@@ -145,6 +169,14 @@
     "fg_timer": {
       "value": "yellow",
       "description": "Alarm labels font size"
+    },
+    "font_size_timer": {
+      "value": 25,
+      "description": "Font size label timer"
+    },
+    "font_timer": {
+      "value": "calibri",
+      "description": "Font family label timer"
     }
   }
 }
