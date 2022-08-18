@@ -9,7 +9,7 @@ class ConfigJSON:
     def section(self):
         return self.json_conf
 
-    def add_alarm(self, alarm, time, days, sound, description):
+    def add_alarm(self, alarm, time, days, sound, snooze_time, description):
         with open(self.config, 'r+') as config_json:
             self.json_conf.update( 
                     {   
@@ -18,6 +18,7 @@ class ConfigJSON:
                             "days":days,
                             "sound":sound,
                             "state":"disabled",
+                            "snooze_time":snooze_time,
                             "description":description    
                         }
                     })
@@ -60,4 +61,16 @@ class ConfigJSON:
             json.dump(self.json_conf, config_json, indent=4)
             config_json.truncate()  
 
-    #FIXME REPAIR REAPEATING CODE
+    def add_time(self, section, date, time, descript):
+        with open(self.config, 'r+') as config_json:
+            self.json_conf[section].update( 
+                    {   
+                        date:{
+                            "value":time,
+                            "description":descript,
+  
+                        }
+                    })
+            config_json.seek(0)
+            json.dump(self.json_conf, config_json, indent=4)
+            config_json.truncate()  
