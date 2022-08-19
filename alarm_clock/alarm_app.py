@@ -7,7 +7,7 @@ from playsound import playsound
 import multiprocessing
 import glob2 as glob
 import pkg_resources
-from threading import Timer as tim
+import threading
 
 pkg_resources.require("playsound==1.2.2")
 # Alarm clock that I wanted to create based on android alam clock but for windows
@@ -101,84 +101,82 @@ class SettingsWindow(tk.Tk):
         self.resolution = self.config_sett["resolution_settings"]["value"]
         self.font_size =  self.config_sett["font_size_settings"]["value"]
         self.settings_font =  self.config_sett["font_family_settings"]["value"]
-        tk.Toplevel.__init__(self, background=self.bg,  *args, **kwargs)
-        self.head_frame = tk.Frame(self, background=self.bg)
-        self.head_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=tk.TRUE)
-        self.my_canvas = tk.Canvas(self.head_frame, background=self.bg)
-        
-        myscrollbar=ttk.Scrollbar(self.head_frame, orient=tk.VERTICAL, command=self.my_canvas.yview)
-        #myscrollbar.grid(column=3, row=0, rowspan=10, sticky=tk.NW)
-        myscrollbar.pack(side=tk.RIGHT, fill="y")
-        self.my_canvas.configure(yscrollcommand=myscrollbar.set)
-        self.my_canvas.bind('<Configure>', lambda e: self.my_canvas.configure(scrollregion = self.my_canvas.bbox("all")))
-        
-        self.settings_frame = tk.Frame(self.my_canvas, background=self.bg)
-        self.my_canvas.create_window((0,0), window=self.settings_frame, anchor=tk.NW)
-        self.my_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
-        
-        self.geometry(self.resolution)
-        self.title('Settings')
         self.btn_default = PhotoImage(file=AppProperties.SETTINGS_IMG)
         self.img_section = self.btn_default.subsample(2,2)
         self.img_description = self.btn_default.subsample(1,2)
-        for col in range(3): self.columnconfigure(col, weight=1)
 
-        save_btn = MyButton(self.settings_frame, 'Save', 
-                                self.fg, self.bg, 
-                                image=self.btn_default, 
-                                name='save_sett_btn'
-                              )
-        save_btn.grid(column=2, row=0)
-        # save_btn.pack(side=tk.TOP)
-        save_btn.config(command = lambda sett_frame=self.settings_frame : self.save_settings(sett_frame))
-        for i in range(3):
-            self.settings_frame.columnconfigure(i, weight=1)
-        
-        for section in self.all_sections:
-            self.add_header_label(section)
+        tk.Toplevel.__init__(self, background=self.bg,  *args, **kwargs)
+        self.geometry(self.resolution)
+        self.title('Settings')
+     
+        self.create_settings_widgets()
+        self.create_save_btn()
+
+    def create_save_btn(self):
+        save_btn = MyButton(self, 'Save', 
+                            self.fg, self.bg,image=self.btn_default, 
+                            name='save_sett_btn')
+        save_btn.grid(column=0, row=0)
+        save_btn.config(command = lambda sett_frame=self : self.save_settings(sett_frame))
+    
+    def create_settings_widgets(self):
+        for index, section in enumerate(self.all_sections):
+
+            sectionFrame = tk.Frame(self, background=self.bg, name='section_frame_'+str(index))
             for index, subsect in enumerate(self.all_sections[section]):
-                
-                self.add_setting(self.all_sections[section][subsect]["description"], 
+                self.add_setting(sectionFrame, self.all_sections[section][subsect]["description"], 
                                 section, subsect, 
                                 self.all_sections[section][subsect]["value"], 
-                                index)
-
-    def save_settings(self, sett_frame):
-        for slave in sett_frame.grid_slaves():
-            print(slave)
-            if slave.widgetName == 'entry':
-                option_value = slave.get()
-                if option_value.isdigit():
-                    option_value = int(option_value)
-                sect_and_key = slave.winfo_name().split("/")
-                self.all_config.modify_settings(sect_and_key[0], sect_and_key[1], option_value)
-                 
-    def add_header_label(self, header_name):
-        row_grid = self.settings_frame.grid_size()[1] + 1
-        MyLabel(self.settings_frame, header_name,
-            self.fg, self.bg,
-            image=self.img_section,
-            font=(self.settings_font, self.font_size*2),
-            ).grid(column=0,row = row_grid, sticky="e") 
-            #.pack(side=tk.TOP)#
-            
-       
-    def add_setting(self, sett_descr, section_name, option_name, value, row, width=20):
-        row_grid = self.settings_frame.grid_size()[1] + row
-        MyLabel(self.settings_frame, sett_descr,
+                                sectionFrame.grid_size()[1]+1)
+            MyButton(self, section.capitalize(),
+                self.fg, self.bg,
+                image=self.img_section,
+                font=(self.settings_font, int(self.font_size**1.2)),
+                name=section+'_btn',
+                command=lambda secFram = sectionFrame: self.show_settings(secFram)
+                ).grid(column=self.grid_size()[0]+1, row=1, sticky=tk.W)
+           
+    def add_setting(self, append, sett_descr, section_name, option_name, value, row_grid, width=20):
+        MyLabel(append, sett_descr,
             self.fg, self.bg,
             image=self.img_description,
             font=(self.settings_font, self.font_size),
             ).grid(column=0, row = row_grid, sticky="nse")#.pack(side=tk.TOP)#
-        res_entry = tk.Entry(self.settings_frame, width=width, 
+        res_entry = tk.Entry(append, width=width, 
                     font=(self.settings_font, self.font_size),
                     background=self.bg,
                     foreground=self.fg,
-                    
                     name = f"{section_name}/{option_name}"
                     )
         res_entry.insert(0, value)
         res_entry.grid(column = 1, row = row_grid, sticky=tk.NSEW)#pack(side=tk.TOP)#
+
+    def show_settings(self, show):
+        for s in self.grid_slaves():
+            if 'section_frame' in s.winfo_name():
+                s.grid_forget()
+        show.grid(column=0, row=3)
+    
+    def save_settings(self, sett_frame):
+        for s in self.winfo_children():
+            if 'section_frame' in s.winfo_name():
+                for option in s.grid_slaves():
+                    if option.widgetName == 'entry':
+                        option_value = option.get()
+                        if option_value.isdigit():
+                            option_value = int(option_value)
+                        sect_and_key = option.winfo_name().split("/")
+                        self.all_config.modify_settings(sect_and_key[0], sect_and_key[1], option_value)
+
+    def add_button_section(self, section_name):
+        row_grid = self.grid_size()[1] + 1
+        return MyButton(self, section_name,
+            self.fg, self.bg,
+            image=self.img_section,
+            font=(self.settings_font, self.font_size*2),
+            ).grid(column=0, row = row_grid, sticky="e") 
+            #.pack(side=tk.TOP)#
+            
 
 #FIXME Repair init function(make multiple functions from it)
 class MainMenu(tk.Menu):
@@ -757,7 +755,7 @@ class Timer(tk.Frame):
 #
 #Descripion?
 
-#TODO add delay start for stopwatch and timer
+#FIXME delay bug start multiple 
 #TODO Add delete time from saved_time
 class Stopwatch(tk.Frame):
     def __init__(self, root, *args, **kwargs):
@@ -891,7 +889,7 @@ class Stopwatch(tk.Frame):
                 self.countdown_time(watch_label, True)
                 stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
             dela = int(delay.get())
-            self.timer = tim( float(dela), thji)
+            self.timer = threading.Timer( float(dela), thji)
             self.timer.start()
             
             return
