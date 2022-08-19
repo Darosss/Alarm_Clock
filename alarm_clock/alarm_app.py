@@ -801,7 +801,7 @@ class Stopwatch(tk.Frame):
         date = 'Date:\n'
         time = 'Time:\n'
         descript ='Description:\n'
-        for index, section in enumerate(self.saved_times.section['stopwatch']):
+        for index, section in enumerate(sorted(self.saved_times.section['stopwatch'], reverse=True)):
             date += f"{index+1}. {section}\n"
             time +=f"{self.saved_times.section['stopwatch'][section]['value']}\n"
             descript += f"{self.saved_times.section['stopwatch'][section]['description']}\n"
@@ -844,6 +844,11 @@ class Stopwatch(tk.Frame):
                             self.fg_stopwatch, self.bg_stopwatch,
                             font=(self.font_stopwatch, self.f_s_stopwatch)
                             )
+        desc_entry = tk.Entry(self.stopwatch_frame, width=30, 
+                    font=(self.font_stopwatch, self.f_s_stopwatch),
+                    background=self.bg_stopwatch,
+                    foreground=self.fg_stopwatch,
+                    )
         stop =  MyButton(self.stopwatch_frame, self.stop, 
                         self.fg_stopwatch,  self.bg_stopwatch,
                         image=self.low_height_widgets, 
@@ -857,9 +862,10 @@ class Stopwatch(tk.Frame):
                         )
         
         start_pause.config(command=lambda lbl=stopwatch_lbl, btn=start_pause, stp=stop: self.toggle_start_pause(btn, lbl, stp))
-        stop.config(command=lambda lbl=stopwatch_lbl, btn=stop, sp=start_pause: self.stop_stopwatch(btn, sp, lbl))
+        stop.config(command=lambda lbl=stopwatch_lbl, btn=stop, sp=start_pause, entry=desc_entry: self.stop_stopwatch(btn, sp, lbl, entry))
         stopwatch_title_lbl.pack()
         stopwatch_lbl.pack(expand=True)
+        desc_entry.pack()
         start_pause.pack(side=tk.TOP, fill=tk.BOTH)
 
     def toggle_start_pause(self, btn, watch_label, stop_btn, stop=False):
@@ -880,10 +886,9 @@ class Stopwatch(tk.Frame):
             btn.config(text=self.str_pause)
             self.countdown_time(watch_label, True)
 
-    def stop_stopwatch(self, stop, start_pause_button, watch_label):
+    def stop_stopwatch(self, stop, start_pause_button, watch_label, entry_val):
         time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
-        self.saved_times.add_time('stopwatch',time_now, ':'.join([str(time) for time in self.stopwatch_time if time>0]), 'desc fro mentry' )
-        
+        self.saved_times.add_time('stopwatch',time_now, ':'.join([str(time) for time in self.stopwatch_time if time>0]), entry_val.get() )
         self.toggle_start_pause(start_pause_button, watch_label, stop, True)
         self.stopwatch_time = [0] * len(self.stopwatch_time)
         stop.pack_forget()
