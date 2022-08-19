@@ -7,6 +7,8 @@ from playsound import playsound
 import multiprocessing
 import glob2 as glob
 import pkg_resources
+from threading import Timer as tim
+
 pkg_resources.require("playsound==1.2.2")
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
@@ -114,7 +116,6 @@ class SettingsWindow(tk.Tk):
         self.my_canvas.create_window((0,0), window=self.settings_frame, anchor=tk.NW)
         self.my_canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=tk.TRUE)
         
-        #TODO DO SCROLL BETTER  ENDEND LAST TIME 9:05
         self.geometry(self.resolution)
         self.title('Settings')
         self.btn_default = PhotoImage(file=AppProperties.SETTINGS_IMG)
@@ -756,7 +757,6 @@ class Timer(tk.Frame):
 #
 #Descripion?
 
-#TODO NOW Add entry for description, 
 #TODO add delay start for stopwatch and timer
 #TODO Add delete time from saved_time
 class Stopwatch(tk.Frame):
@@ -791,6 +791,8 @@ class Stopwatch(tk.Frame):
         self.saved_times_time = None
         self.saved_times_descript = None
 
+        self.timer = None
+
         self.stopwatch_frame.pack(side='right', expand=True, fill=tk.BOTH)
         self.saved_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
         self.create_savedtimes_widgets()
@@ -805,7 +807,7 @@ class Stopwatch(tk.Frame):
             date += f"{index+1}. {section}\n"
             time +=f"{self.saved_times.section['stopwatch'][section]['value']}\n"
             descript += f"{self.saved_times.section['stopwatch'][section]['description']}\n"
-       
+
             self.saved_times_time['text'] = time
             self.saved_times_date['text'] = date
             self.saved_times_descript  ['text'] = descript
@@ -844,11 +846,18 @@ class Stopwatch(tk.Frame):
                             self.fg_stopwatch, self.bg_stopwatch,
                             font=(self.font_stopwatch, self.f_s_stopwatch)
                             )
+        delay_entry = tk.Entry(self.stopwatch_frame, width=30, 
+                    font=(self.font_stopwatch, self.f_s_stopwatch),
+                    background=self.bg_stopwatch,
+                    foreground=self.fg_stopwatch,
+                    )
         desc_entry = tk.Entry(self.stopwatch_frame, width=30, 
                     font=(self.font_stopwatch, self.f_s_stopwatch),
                     background=self.bg_stopwatch,
                     foreground=self.fg_stopwatch,
                     )
+        desc_entry.insert(0, 'Description')
+        delay_entry.insert(0, 'Delay if 0 or null = no delay')
         stop =  MyButton(self.stopwatch_frame, self.stop, 
                         self.fg_stopwatch,  self.bg_stopwatch,
                         image=self.low_height_widgets, 
@@ -861,22 +870,30 @@ class Stopwatch(tk.Frame):
                         name=f"{self.str_start.lower()}/{self.str_pause.lower()}"
                         )
         
-        start_pause.config(command=lambda lbl=stopwatch_lbl, btn=start_pause, stp=stop: self.toggle_start_pause(btn, lbl, stp))
+        start_pause.config(command=lambda lbl=stopwatch_lbl, btn=start_pause, stp=stop, delay=delay_entry: self.toggle_start_pause(btn, lbl, stp, delay))
         stop.config(command=lambda lbl=stopwatch_lbl, btn=stop, sp=start_pause, entry=desc_entry: self.stop_stopwatch(btn, sp, lbl, entry))
         stopwatch_title_lbl.pack()
         stopwatch_lbl.pack(expand=True)
-        desc_entry.pack()
+        desc_entry.pack(side=tk.LEFT)
+        delay_entry.pack(side=tk.RIGHT)
         start_pause.pack(side=tk.TOP, fill=tk.BOTH)
 
-    def toggle_start_pause(self, btn, watch_label, stop_btn, stop=False):
+    def toggle_start_pause(self, btn, watch_label, stop_btn, delay, stop=False):
         if stop:
             self.countdown_time(watch_label) 
             btn.config(text=self.str_start)
             return
         if btn['text'] == self.str_start:
-            btn.config(text=self.str_pause)
-            self.countdown_time(watch_label, True)
-            stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
+            print(delay.get())
+            def thji():
+                print('kappa')
+                btn.config(text=self.str_pause)
+                self.countdown_time(watch_label, True)
+                stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
+            dela = int(delay.get())
+            self.timer = tim( float(dela), thji)
+            self.timer.start()
+            
             return
         elif btn['text'] == self.str_pause:
             btn.config(text=self.str_resume)
@@ -889,7 +906,7 @@ class Stopwatch(tk.Frame):
     def stop_stopwatch(self, stop, start_pause_button, watch_label, entry_val):
         time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
         self.saved_times.add_time('stopwatch',time_now, ':'.join([str(time) for time in self.stopwatch_time if time>0]), entry_val.get() )
-        self.toggle_start_pause(start_pause_button, watch_label, stop, True)
+        self.toggle_start_pause(start_pause_button, watch_label, stop, 0, True)
         self.stopwatch_time = [0] * len(self.stopwatch_time)
         stop.pack_forget()
         self.refresh_saved_times()
