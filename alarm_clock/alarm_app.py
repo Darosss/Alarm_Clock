@@ -8,6 +8,7 @@ import multiprocessing
 import glob2 as glob
 import pkg_resources
 import threading
+import random
 
 pkg_resources.require("playsound==1.2.2")
 # Alarm clock that I wanted to create based on android alam clock but for windows
@@ -407,21 +408,18 @@ class Alarms(tk.Frame):
                         self.AlarmPopup(self, self.config_alarm, alarm_prop)
         self.alarms_frame.after(1000, self.set_alarms)
 
-#TODO Changeing colors popup? Option for turn on or off
-
-
 #TODO Volume of alarm(probbaly not with playsound )
 #TODO Random alarm from list? (could be done)
 
 #TODO Create default.json for default options?
 
-
     class AlarmPopup(tk.Tk):
         def __init__(self, root, config_prop, alarm_popup, *args, **kwargs):
             self.bg = config_prop["bg_alarm_popup"]["value"]
             self.fg = config_prop["fg_alarm_popup"]["value"]
+            self.alarm_popup = alarm_popup
             self.snooze_time = alarm_popup['snooze_time']
-            tk.Toplevel.__init__(self, background=self.bg, *args, **kwargs)
+            tk.Toplevel.__init__(self, borderwidth=2, relief='raised', background=self.bg, *args, **kwargs)
             self._root = root
             self.overrideredirect(True)
             self.eval(f'tk::PlaceWindow {str(self)} center')
@@ -432,8 +430,19 @@ class Alarms(tk.Frame):
             self.play_sound_txt = 'Play sound'
             self.img = PhotoImage(file=AppProperties.ALARMS_IMG)
             self.img_button = self.img.subsample(3,2)
-            music_to_play = f"{AppProperties.SOUND_DIR}/{alarm_popup[ConfigProperties.SOUND]}"
-            alarm_format = [alarm_popup[ConfigProperties.TIME],' '.join([str(day) for day in alarm_popup[ConfigProperties.DAYS]]), alarm_popup[ConfigProperties.SOUND], alarm_popup[ConfigProperties.DESCR]]
+            self.relief_r = ['sunken', 'raised', 'flat', 'ridge', 'groove']
+            self.create_popup_widgets()
+
+            if config_prop["animation"]["value"]:
+                self.change_relief()
+
+        def create_popup_widgets(self):
+            
+            music_to_play = f"{AppProperties.SOUND_DIR}/{self.alarm_popup[ConfigProperties.SOUND]}"
+            alarm_format = [self.alarm_popup[ConfigProperties.TIME],
+                            ' '.join([str(day) for day in self.alarm_popup[ConfigProperties.DAYS]]), 
+                            self.alarm_popup[ConfigProperties.SOUND], 
+                            self.alarm_popup[ConfigProperties.DESCR]]
             for alarm_part in alarm_format:
                 MyLabel(self, alarm_part, self.fg, self.bg, image=self.img
                         ).pack(side=tk.TOP) 
@@ -456,7 +465,12 @@ class Alarms(tk.Frame):
                 mute_sound_btn.config(command=lambda mute_sound_btn=mute_sound_btn, music_to_play=music_to_play : self.mute_sound(mute_sound_btn, music_to_play))
                 mute_sound_btn.pack(side=tk.TOP)
             # if sounds != none  toggle music button and play music threading
-        
+
+        def change_relief(self):
+            
+            self.config(relief=random.choice( self.relief_r))
+            self.after(1000, self.change_relief)
+
         def stop_alarm(self):
             self.destroy()
             if self.sound_process != None:
