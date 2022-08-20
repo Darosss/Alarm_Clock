@@ -403,8 +403,7 @@ class Alarms(tk.Frame):
 #TODO Volume of alarm
 #TODO Random alarm from list? (could be done)
 #TODO Alarm popup without exitic by windows
-#TODO Settings(create dynamical buttons fe. App_option, menu_options) which will show options in menu for that section
-#But it should be like that: even if button is clicked options doesnt dissapear they are just hidden for save all
+
 #TODO Create default.json for default options?
 
 
@@ -882,16 +881,17 @@ class Stopwatch(tk.Frame):
             btn.config(text=self.str_start)
             return
         if btn['text'] == self.str_start:
-            print(delay.get())
             def thji():
-                print('kappa')
                 btn.config(text=self.str_pause)
                 self.countdown_time(watch_label, True)
                 stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
-            dela = int(delay.get())
-            self.timer = threading.Timer( float(dela), thji)
-            self.timer.start()
-            
+            if delay.get().isdigit():
+                dela = int(delay.get())
+                self.timer = threading.Timer( float(dela), thji)
+                self.timer.start()
+            else:
+                thji()
+
             return
         elif btn['text'] == self.str_pause:
             btn.config(text=self.str_resume)
