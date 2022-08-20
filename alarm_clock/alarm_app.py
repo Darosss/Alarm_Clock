@@ -108,7 +108,6 @@ class SettingsWindow(tk.Tk):
         tk.Toplevel.__init__(self, background=self.bg,  *args, **kwargs)
         self.geometry(self.resolution)
         self.title('Settings')
-     
         self.create_settings_widgets()
         self.create_save_btn()
 
@@ -413,6 +412,8 @@ class Alarms(tk.Frame):
             self.fg = config_prop["fg_alarm_popup"]["value"]
             tk.Toplevel.__init__(self, background=self.bg, *args, **kwargs)
             self._root = root
+            self.overrideredirect(True)
+            self.eval(f'tk::PlaceWindow {str(self)} center')
             self.sound_process = None
             self.geometry(config_prop["alarm_popup_resolution"]["value"])
             self.title('Settings')
