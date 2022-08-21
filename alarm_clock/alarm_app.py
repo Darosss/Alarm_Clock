@@ -701,25 +701,29 @@ class Timer(tk.Frame):
 
     def refresh_saved_times(self):
         for slave in self.time_frame.grid_slaves():
-            slave.destroy()
+            if "time_value" in slave.winfo_name():
+                slave.destroy()
+
         for index, section in enumerate(sorted(self.saved_times.section['timer'], reverse=True)):
             sec_lbl = MyLabel(self.time_frame, str(index+1) + ". " + section,
                               self.fg_timer, self.bg_timer,
-                              name=section,
+                              name=section+'/time_value_data',
                               borderwidth=2, relief='raised',
-                              font=(self.font_timer, self.f_s_timer)
+                              font=(self.font_timer, self.f_s_timer),
                               )
             # Data and index
             sec_lbl.grid(column=0, row=index+1, sticky=tk.NSEW)
             MyLabel(self.time_frame, self.saved_times.section['timer'][section]['value'],
                     self.fg_timer, self.bg_timer,
                     borderwidth=2, relief='raised',
-                    font=(self.font_timer, self.f_s_timer)
+                    font=(self.font_timer, self.f_s_timer),
+                    name='time_value_time'+str(index)
                     ).grid(column=1, row=index+1, sticky=tk.NSEW)
             # Time
             MyLabel(self.time_frame, self.saved_times.section['timer'][section]['description'],
                     self.fg_timer, self.bg_timer,
                     font=(self.font_timer, self.f_s_timer),
+                    name='time_value_description'+str(index),
                     borderwidth=2, relief='raised',
                     wraplength=100, justify=tk.LEFT
                     ).grid(column=2, row=index+1, sticky=tk.NSEW)
@@ -728,7 +732,8 @@ class Timer(tk.Frame):
                      self.fg_timer, self.bg_timer,
                      image=self.low_height_widgets,
                      font=(self.font_timer, self.f_s_timer),
-                     command=lambda sect_nam=sec_lbl.winfo_name(): self.pop_and_refresh(
+                     name='time_value_delete'+str(index),
+                     command=lambda sect_nam=sec_lbl.winfo_name().split("/")[0]: self.pop_and_refresh(
                          sect_nam)
                      ).grid(column=3, row=index+1, sticky=tk.E)
 
@@ -947,11 +952,12 @@ class Stopwatch(tk.Frame):
 
     def refresh_saved_times(self):
         for slave in self.time_frame.grid_slaves():
-            slave.destroy()
+            if "time_value" in slave.winfo_name():
+                slave.destroy()
         for index, section in enumerate(sorted(self.saved_times.section['stopwatch'], reverse=True)):
             sec_lbl = MyLabel(self.time_frame, str(index+1) + ". " + section,
                               self.fg_stopwatch, self.bg_stopwatch,
-                              name=section,
+                              name=section+'/time_value_data',
                               borderwidth=2, relief='raised',
                               font=(self.font_stopwatch, self.f_s_stopwatch)
                               )
@@ -960,13 +966,15 @@ class Stopwatch(tk.Frame):
             MyLabel(self.time_frame, self.saved_times.section['stopwatch'][section]['value'],
                     self.fg_stopwatch, self.bg_stopwatch,
                     borderwidth=2, relief='raised',
-                    font=(self.font_stopwatch, self.f_s_stopwatch)
+                    font=(self.font_stopwatch, self.f_s_stopwatch),
+                    name='time_value_time'+str(index)
                     ).grid(column=1, row=index+1, sticky=tk.NSEW)
             # Time
 
             MyLabel(self.time_frame, self.saved_times.section['stopwatch'][section]['description'],
                     self.fg_stopwatch, self.bg_stopwatch,
                     font=(self.font_stopwatch, self.f_s_stopwatch),
+                    name='time_value_description'+str(index),
                     borderwidth=2, relief='raised',
                     wraplength=100, justify=tk.LEFT
                     ).grid(column=2, row=index+1, sticky=tk.NSEW)
@@ -975,7 +983,8 @@ class Stopwatch(tk.Frame):
                      self.fg_stopwatch, self.bg_stopwatch,
                      image=self.low_height_widgets,
                      font=(self.font_stopwatch, self.f_s_stopwatch),
-                     command=lambda sect_nam=sec_lbl.winfo_name(): self.pop_and_refresh(
+                     name='time_value_delete'+str(index),
+                     command=lambda sect_nam=sec_lbl.winfo_name().split("/")[0]: self.pop_and_refresh(
                          sect_nam)
                      ).grid(column=3, row=index+1, sticky=tk.E)
 
