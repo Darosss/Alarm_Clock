@@ -814,8 +814,8 @@ class Timer(tk.Frame):
         self.saved_times_time.grid(column=1, row=0)
         self.saved_times_descript.grid(column=2, row=0)
 
-    def toggle_start_pause(self, btn, entry_timer, stop_btn, delay=0):
-        if btn['text'] == AppProperties.PAUSE_TXT or btn['text'] == AppProperties.RESUME_TXT:
+    def toggle_start_pause(self, btn, entry_timer, stop_btn, delay='0', stop=False):
+        if stop:
             self.countdown_time(entry_timer)
             btn.config(text=AppProperties.START_TXT)
             return
@@ -848,7 +848,7 @@ class Timer(tk.Frame):
             'timer', time_now, timer_value, entry_desc.get())
         entry_timer.delete(0, 'end')
         self.timer_time = [0] * len(self.timer_time)
-        self.toggle_start_pause(sp_btn, entry_timer, stop)
+        self.toggle_start_pause(sp_btn, entry_timer, stop, '0', True)
         entry_timer.insert(1, ':'.join(str(x) for x in self.timer_time))
         stop.pack_forget()
         self.refresh_saved_times()
@@ -887,11 +887,6 @@ class Timer(tk.Frame):
         check_condition(3, 59)
         check_condition(2, 59)
         check_condition(1, 23)
-        days = self.timer_time[0]
-        hours = self.timer_time[1]
-        minutes = self.timer_time[2]
-        seconds = self.timer_time[3]
-        ms = self.timer_time[4]
         text_to_show = ""
         found_more_0 = False
         for time_val in self.timer_time:
@@ -903,18 +898,13 @@ class Timer(tk.Frame):
         # text_to_show = f"{days}:{hours}:{minutes}:{seconds}:{ms}"
         return text_to_show[:-1]
 
-# Descripion?
-# TODO Every minute sound stopwatch
-# TODO Every minute sound timer
-# TODO Saved times in timer
-
-
 # FIXME delay bug start multiple
-# TODO Add delete time from saved_time
 # TODO Create default.json for default options?
 
 # TODO Volume of alarm(probbaly not with playsound )
 # TODO Random alarm from list? (could be done, not necessary for now)
+
+
 class Stopwatch(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
@@ -1054,7 +1044,7 @@ class Stopwatch(tk.Frame):
                                )
 
         start_pause.config(command=lambda lbl=stopwatch_lbl, btn=start_pause, stp=stop,
-                           delay=delay_entry: self.toggle_start_pause(btn, lbl, stp, delay))
+                           delay=delay_entry.get(): self.toggle_start_pause(btn, lbl, stp, delay))
         stop.config(command=lambda lbl=stopwatch_lbl, btn=stop, sp=start_pause,
                     entry=desc_entry: self.stop_stopwatch(btn, sp, lbl, entry))
         stopwatch_title_lbl.pack()
@@ -1063,8 +1053,8 @@ class Stopwatch(tk.Frame):
         delay_entry.pack(side=tk.RIGHT)
         start_pause.pack(side=tk.TOP, fill=tk.BOTH)
 
-    def toggle_start_pause(self, btn, watch_label, stop_btn, delay=0):
-        if btn['text'] == AppProperties.PAUSE_TXT or btn['text'] == AppProperties.RESUME_TXT:
+    def toggle_start_pause(self, btn, watch_label, stop_btn, delay='0', stop=False):
+        if stop:
             self.countdown_time(watch_label)
             btn.config(text=AppProperties.START_TXT)
             return
@@ -1073,7 +1063,7 @@ class Stopwatch(tk.Frame):
                 btn.config(text=AppProperties.PAUSE_TXT)
                 self.countdown_time(watch_label, True)
                 stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
-            if delay.get().isdigit() and int(delay.get()) > 0:
+            if delay.isdigit() and int(delay) > 0:
 
                 delay_int = int(delay.get())
                 timer = threading.Timer(float(delay_int), start_counting)
@@ -1093,7 +1083,8 @@ class Stopwatch(tk.Frame):
 
         self.saved_times.add_time('stopwatch', time_now, ':'.join(
             [str(time) for time in self.stopwatch_time if time > 0]), entry_desc.get())
-        self.toggle_start_pause(start_pause_button, watch_label, stop)
+        self.toggle_start_pause(
+            start_pause_button, watch_label, stop, '0', True)
         self.stopwatch_time = [0] * len(self.stopwatch_time)
         stop.pack_forget()
         self.refresh_saved_times()
@@ -1110,13 +1101,15 @@ class Stopwatch(tk.Frame):
         check_condition(3, 59)
         check_condition(2, 59)
         check_condition(1, 23)
-        days = self.stopwatch_time[0]
-        hours = self.stopwatch_time[1]
-        minutes = self.stopwatch_time[2]
-        seconds = self.stopwatch_time[3]
-        ms = self.stopwatch_time[4]
-        text_to_show = f"{days}:{hours}:{minutes}:{seconds}:{ms}"
-        return text_to_show
+        text_to_show = ""
+        found_more_0 = False
+        for time_val in self.stopwatch_time:
+            if time_val > 0:
+                found_more_0 = True
+                text_to_show += str(time_val) + ":"
+            elif found_more_0:
+                text_to_show += str(time_val) + ":"
+        return text_to_show[:-1]
 
     def countdown_time(self, time_lbl, start=False):
         if not start:
