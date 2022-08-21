@@ -667,6 +667,7 @@ class Timer(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
         self.config_timer = ConfigProperties.TIMER_OPTIONS
+        self.saved_times = ConfigProperties.SAVED_TIMES
         self.bg_timer = self.config_timer['bg_timer']["value"]
         self.fg_timer = self.config_timer['fg_timer']["value"]
         self.f_s_timer = self.config_timer['font_size_timer']["value"]
@@ -675,108 +676,192 @@ class Timer(tk.Frame):
         self.btn_default = PhotoImage(file=AppProperties.TIMER_IMG)
         self.low_height_widgets = self.btn_default.subsample(3, 2)
 
-        self.stopwatch_frame = None
-        self.timer_frame = None
-
-        self.str_start = AppProperties.START_TXT
-        self.str_resume = AppProperties.RESUME_TXT
-        self.str_pause = AppProperties.PAUSE_TXT
-        self.stop = AppProperties.STOP_TXT
-        self.is_counting = None
-        self.timer_time = [0, 0, 0, 0, 0]
-        self.count_saved_times = 1
-
-        self.create_timer_frame(self)
-
-    def create_timer_frame(self, append):
         self.timer_frame = tk.Frame(
-            append, borderwidth=1, background=self.bg_timer, relief='sunken')
-        self.timer_frame.pack(side='right', expand=True, fill=tk.BOTH)
+            self, borderwidth=1, background=self.bg_timer, relief='sunken')
 
         self.saved_frame = tk.Frame(
-            append, borderwidth=1, background=self.bg_timer, relief='sunken')
+            self, borderwidth=1, background=self.bg_timer, relief='sunken')
+
+        self.timer_frame.pack(side=tk.RIGHT, expand=True, fill=tk.BOTH)
         self.saved_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
-        saved_times_title_lbl = MyLabel(self.saved_frame, 'Saved times',
-                                        self.fg_timer, self.bg_timer,
-                                        image=self.btn_default,
-                                        font=(self.font_timer, self.f_s_timer)
-                                        )
+        self.is_counting = None
+        self.timer_time = [0, 0, 0, 0, 0]
+        self.timer_start_value = 0
 
-        saved_times_lbl = MyLabel(self.saved_frame, '',
+        self.time_frame = tk.Frame(
+            self.saved_frame, background=self.bg_timer)
+        for i in range(3):
+            self.time_frame.columnconfigure(i, weight=1)
+
+        self.create_savedtimes_widgets()
+        self.time_frame.pack(side=tk.TOP, fill='x', expand=True)
+        self.refresh_saved_times()
+        self.create_timer_widgets()
+
+    def refresh_saved_times(self):
+        for slave in self.time_frame.grid_slaves():
+            slave.destroy()
+        for index, section in enumerate(sorted(self.saved_times.section['timer'], reverse=True)):
+            sec_lbl = MyLabel(self.time_frame, str(index+1) + ". " + section,
+                              self.fg_timer, self.bg_timer,
+                              name=section,
+                              borderwidth=2, relief='raised',
+                              font=(self.font_timer, self.f_s_timer)
+                              )
+            # Data and index
+            sec_lbl.grid(column=0, row=index+1, sticky=tk.NSEW)
+            MyLabel(self.time_frame, self.saved_times.section['timer'][section]['value'],
+                    self.fg_timer, self.bg_timer,
+                    borderwidth=2, relief='raised',
+                    font=(self.font_timer, self.f_s_timer)
+                    ).grid(column=1, row=index+1, sticky=tk.NSEW)
+            # Time
+            MyLabel(self.time_frame, self.saved_times.section['timer'][section]['description'],
+                    self.fg_timer, self.bg_timer,
+                    font=(self.font_timer, self.f_s_timer),
+                    borderwidth=2, relief='raised',
+                    wraplength=100, justify=tk.LEFT
+                    ).grid(column=2, row=index+1, sticky=tk.NSEW)
+            # Description
+            MyButton(self.time_frame, 'x',
+                     self.fg_timer, self.bg_timer,
+                     image=self.low_height_widgets,
+                     font=(self.font_timer, self.f_s_timer),
+                     command=lambda sect_nam=sec_lbl.winfo_name(): self.pop_and_refresh(
+                         sect_nam)
+                     ).grid(column=3, row=index+1, sticky=tk.E)
+
+    def pop_and_refresh(self, sect_name):
+        self.saved_times.pop_section('timer', sect_name)
+        self.refresh_saved_times()
+
+    def create_timer_widgets(self):
+        timer_title_lbl = MyLabel(self.timer_frame, 'Timer',
                                   self.fg_timer, self.bg_timer,
-                                  font=(self.font_timer, self.f_s_timer)
+                                  image=self.btn_default,
+                                  font=(self.font_timer,
+                                        self.f_s_timer)
                                   )
 
-        timer_lbl = MyLabel(self.timer_frame, 'Timer',
-                            self.fg_timer, self.bg_timer,
-                            image=self.btn_default,
-                            font=(self.font_timer, self.f_s_timer)
-                            )
+        self.time_entry = tk.Entry(self.timer_frame, foreground=self.fg_timer,
+                                   background=self.bg_timer,  font=(self.font_timer, self.f_s_timer))
+        self.time_entry.insert(1, ':'.join(str(x) for x in self.timer_time))
 
-        time_entry = tk.Entry(self.timer_frame, foreground=self.fg_timer,
-                              background=self.bg_timer,  font=(self.font_timer, self.f_s_timer))
-        time_entry.insert(1, ':'.join(str(x) for x in self.timer_time))
-
-        stop = MyButton(self.timer_frame, self.stop,
-                        self.fg_timer,  self.bg_timer,
-                        image=self.low_height_widgets,
-                        name=self.stop.lower()
-                        )
-        start_pause = MyButton(self.timer_frame, self.str_start,
-                               self.fg_timer,  self.bg_timer,
-                               image=self.low_height_widgets,
-                               name=f"{self.str_start.lower()}/{self.str_pause.lower()}"
+        delay_entry = tk.Entry(self.timer_frame, width=30,
+                               font=(self.font_timer, self.f_s_timer),
+                               background=self.bg_timer,
+                               foreground=self.fg_timer,
                                )
+        self.desc_entry = tk.Entry(self.timer_frame, width=30,
+                                   font=(self.font_timer, self.f_s_timer),
+                                   background=self.bg_timer,
+                                   foreground=self.fg_timer,
+                                   )
+        self.desc_entry.insert(0, 'Description')
+        delay_entry.insert(0, 'Delay if 0 or null = no delay')
+        self.stop_btn = MyButton(self.timer_frame, AppProperties.STOP_TXT,
+                                 self.fg_timer,  self.bg_timer,
+                                 image=self.low_height_widgets,
+                                 name=AppProperties.STOP_TXT.lower()
+                                 )
 
-        start_pause.config(command=lambda tim_entr=time_entry, btn=start_pause,
-                           stp=stop: self.toggle_start_pause(btn, tim_entr, stp))
-        stop.config(command=lambda tim_entr=time_entry, btn=stop,
-                    sp=start_pause: self.stop_timer(btn, sp, tim_entr))
+        self.start_pause_btn = MyButton(self.timer_frame, AppProperties.START_TXT,
+                                        self.fg_timer,  self.bg_timer,
+                                        image=self.low_height_widgets,
+                                        name=f"{AppProperties.START_TXT.lower()}/{AppProperties.PAUSE_TXT.lower()}"
+                                        )
 
-        timer_lbl.pack(side=tk.TOP, fill=tk.BOTH)
-        time_entry.pack(expand=True)
-        start_pause.pack(side=tk.TOP, fill=tk.BOTH)
-        saved_times_title_lbl.pack(side=tk.TOP)
-        saved_times_lbl.pack(fill=tk.BOTH)
+        self.start_pause_btn.config(command=lambda entry_timer=self.time_entry, btn=self.start_pause_btn, stp=self.stop_btn,
+                                    delay=delay_entry: self.toggle_start_pause(btn, entry_timer, stp, delay))
+        self.stop_btn.config(command=lambda entry_timer=self.time_entry, btn=self.stop_btn, sp_btn=self.start_pause_btn,
+                             entry=self.desc_entry: self.stop_timer(btn, sp_btn, entry_timer, entry))
+        timer_title_lbl.pack()
+        self.time_entry.pack(expand=True)
+        self.desc_entry.pack(side=tk.LEFT)
+        delay_entry.pack(side=tk.RIGHT)
+        self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
-    def toggle_start_pause(self, btn, entry_timer, stop_btn, stop=False):
-        if stop:
+    def create_savedtimes_widgets(self):
+        MyLabel(self.saved_frame, 'Saved times',
+                self.fg_timer, self.bg_timer,
+                image=self.btn_default,
+                font=(self.font_timer,
+                      self.f_s_timer)
+                ).pack()
+        # FIXME headers data time desc doestn work in TIMER and STOPWATCH
+        self.saved_times_date = MyLabel(self.time_frame, 'Data',
+                                        self.fg_timer, self.bg_timer,
+                                        font=(self.font_timer,
+                                              self.f_s_timer)
+                                        )
+        self.saved_times_time = MyLabel(self.time_frame, 'Time',
+                                        self.fg_timer, self.bg_timer,
+                                        font=(self.font_timer,
+                                              self.f_s_timer)
+                                        )
+        self.saved_times_descript = MyLabel(self.time_frame, 'Description',
+                                            self.fg_timer, self.bg_timer,
+                                            font=(self.font_timer,
+                                                  self.f_s_timer)
+                                            )
+        self.saved_times_date.grid(column=0, row=0)
+        self.saved_times_time.grid(column=1, row=0)
+        self.saved_times_descript.grid(column=2, row=0)
+
+    def toggle_start_pause(self, btn, entry_timer, stop_btn, delay=0):
+        if btn['text'] == AppProperties.PAUSE_TXT or btn['text'] == AppProperties.RESUME_TXT:
             self.countdown_time(entry_timer)
-            btn.config(text=self.str_start)
+            btn.config(text=AppProperties.START_TXT)
             return
-        if btn['text'] == self.str_start:
+        if btn['text'] == AppProperties.START_TXT:
+            def start_counting():
+                self.timer_start_value = self.format_time_array()
+                btn.config(text=AppProperties.PAUSE_TXT)
+                self.countdown_time(entry_timer, True)
+                stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
             if sum(int(w) for w in entry_timer.get().split(":")) > 0:
                 self.timer_time = entry_timer.get().split(":")
                 self.timer_time = list(map(int, self.timer_time))
-
-                # change this later is a mess kappa
-                btn.config(text=self.str_pause)
-                self.countdown_time(entry_timer, True)
-                stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
-                return
-        elif btn['text'] == self.str_pause:
-            btn.config(text=self.str_resume)
+                if delay.get().isdigit() and int(delay.get()) > 0:
+                    delay_int = int(delay.get())
+                    timer = threading.Timer(float(delay_int), start_counting)
+                    timer.start()
+                else:
+                    start_counting()
+        elif btn['text'] == AppProperties.PAUSE_TXT:
+            btn.config(text=AppProperties.RESUME_TXT)
             self.countdown_time(entry_timer)
-        elif btn['text'] == self.str_resume:
-            btn.config(text=self.str_pause)
+        elif btn['text'] == AppProperties.RESUME_TXT:
+            btn.config(text=AppProperties.PAUSE_TXT)
             self.countdown_time(entry_timer, True)
 
-    def stop_timer(self, stop, sp, entry_timer):
+    def stop_timer(self, stop, sp_btn, entry_timer, entry_desc):
+        time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+        timer_value = f"{self.timer_start_value} {':'.join([str(time) for time in self.timer_time if time > 0])}"
+        self.saved_times.add_time(
+            'timer', time_now, timer_value, entry_desc.get())
         entry_timer.delete(0, 'end')
         self.timer_time = [0] * len(self.timer_time)
-        self.toggle_start_pause(sp, entry_timer, stop, True)
+        self.toggle_start_pause(sp_btn, entry_timer, stop)
         entry_timer.insert(1, ':'.join(str(x) for x in self.timer_time))
         stop.pack_forget()
+        self.refresh_saved_times()
 
     def countdown_time(self, time_entry, start=False):
+
         def time():
-            # print(self.format_time_array())
             time_entry.delete(0, 'end')
             time_entry.insert(1, self.format_time_array())
-            if sum(int(w) for w in time_entry.get().split(":")) > 0:
-                self.is_counting = time_entry.after(1, time)
-                self.timer_time[4] = self.timer_time[4] - 1
+            # FIXME for now its just with leng>2 dunno
+            if len(time_entry.get()) >= 2:
+                if sum(int(w) for w in time_entry.get().split(":")) > 0:
+                    self.is_counting = time_entry.after(1, time)
+                    self.timer_time[4] = self.timer_time[4] - 1
+                    return
+            else:
+                self.stop_timer(
+                    self.stop_btn, self.start_pause_btn, self.time_entry, self.desc_entry)
                 return
         if not start:
             time_entry.after_cancel(self.is_counting)
@@ -802,8 +887,16 @@ class Timer(tk.Frame):
         minutes = self.timer_time[2]
         seconds = self.timer_time[3]
         ms = self.timer_time[4]
-        text_to_show = f"{days}:{hours}:{minutes}:{seconds}:{ms}"
-        return text_to_show
+        text_to_show = ""
+        found_more_0 = False
+        for time_val in self.timer_time:
+            if time_val > 0:
+                found_more_0 = True
+                text_to_show += str(time_val) + ":"
+            elif found_more_0:
+                text_to_show += str(time_val) + ":"
+        # text_to_show = f"{days}:{hours}:{minutes}:{seconds}:{ms}"
+        return text_to_show[:-1]
 
 # Descripion?
 # TODO Every minute sound stopwatch
@@ -826,41 +919,30 @@ class Stopwatch(tk.Frame):
         self.fg_stopwatch = self.config_stpwch["fg_stopwatch"]["value"]
         self.f_s_stopwatch = self.config_stpwch['font_size_stopwatch']["value"]
         self.font_stopwatch = self.config_stpwch['font_stopwatch']["value"]
-        # FIXME dictionary config?
-
         tk.Frame.__init__(self, root, *args, **kwargs)
-
         self.btn_default = PhotoImage(file=AppProperties.STOPWATCH_IMG)
         self.low_height_widgets = self.btn_default.subsample(3, 2)
 
-        self.str_start = AppProperties.START_TXT
-        self.str_resume = AppProperties.RESUME_TXT
-        self.str_pause = AppProperties.PAUSE_TXT
-        self.stop = AppProperties.STOP_TXT
-
         self.counting_interval = None
         self.stopwatch_time = [0, 0, 0, 0, 0]
+
         self.stopwatch_frame = tk.Frame(
             self, borderwidth=1, background=self.bg_stopwatch, relief='sunken')
+
         self.saved_frame = tk.Frame(
             self, borderwidth=1, background=self.bg_stopwatch, relief='sunken')
 
-        self.saved_times_date = None
-        self.saved_times_time = None
-        self.saved_times_descript = None
-        self.timer = None
-
-        self.stopwatch_frame.pack(side='right', expand=True, fill=tk.BOTH)
+        self.stopwatch_frame.pack(side=tk.RIGHT, expand=True, fill=tk.BOTH)
         self.saved_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
         self.time_frame = tk.Frame(
             self.saved_frame, background=self.bg_stopwatch)
         for i in range(3):
             self.time_frame.columnconfigure(i, weight=1)
+
         self.create_savedtimes_widgets()
         self.time_frame.pack(side=tk.TOP, fill='x', expand=True)
         self.refresh_saved_times()
-
         self.create_stopwatch_widgets()
 
     def refresh_saved_times(self):
@@ -950,16 +1032,16 @@ class Stopwatch(tk.Frame):
                               )
         desc_entry.insert(0, 'Description')
         delay_entry.insert(0, 'Delay if 0 or null = no delay')
-        stop = MyButton(self.stopwatch_frame, self.stop,
+        stop = MyButton(self.stopwatch_frame, AppProperties.STOP_TXT,
                         self.fg_stopwatch,  self.bg_stopwatch,
                         image=self.low_height_widgets,
-                        name=self.stop.lower()
+                        name=AppProperties.STOP_TXT.lower()
                         )
 
-        start_pause = MyButton(self.stopwatch_frame, self.str_start,
+        start_pause = MyButton(self.stopwatch_frame, AppProperties.START_TXT,
                                self.fg_stopwatch,  self.bg_stopwatch,
                                image=self.low_height_widgets,
-                               name=f"{self.str_start.lower()}/{self.str_pause.lower()}"
+                               name=f"{AppProperties.START_TXT.lower()}/{AppProperties.PAUSE_TXT.lower()}"
                                )
 
         start_pause.config(command=lambda lbl=stopwatch_lbl, btn=start_pause, stp=stop,
@@ -972,37 +1054,37 @@ class Stopwatch(tk.Frame):
         delay_entry.pack(side=tk.RIGHT)
         start_pause.pack(side=tk.TOP, fill=tk.BOTH)
 
-    def toggle_start_pause(self, btn, watch_label, stop_btn, delay, stop=False):
-        if stop:
+    def toggle_start_pause(self, btn, watch_label, stop_btn, delay=0):
+        if btn['text'] == AppProperties.PAUSE_TXT or btn['text'] == AppProperties.RESUME_TXT:
             self.countdown_time(watch_label)
-            btn.config(text=self.str_start)
+            btn.config(text=AppProperties.START_TXT)
             return
-        if btn['text'] == self.str_start:
-            def thji():
-                btn.config(text=self.str_pause)
+        if btn['text'] == AppProperties.START_TXT:
+            def start_counting():
+                btn.config(text=AppProperties.PAUSE_TXT)
                 self.countdown_time(watch_label, True)
                 stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
-            if delay.get().isdigit():
-                dela = int(delay.get())
-                self.timer = threading.Timer(float(dela), thji)
-                self.timer.start()
+            if delay.get().isdigit() and int(delay.get()) > 0:
+
+                delay_int = int(delay.get())
+                timer = threading.Timer(float(delay_int), start_counting)
+                timer.start()
             else:
-                thji()
-
-            return
-        elif btn['text'] == self.str_pause:
-            btn.config(text=self.str_resume)
+                start_counting()
+        elif btn['text'] == AppProperties.PAUSE_TXT:
+            btn.config(text=AppProperties.RESUME_TXT)
             self.countdown_time(watch_label)
-        elif btn['text'] == self.str_resume:
+        elif btn['text'] == AppProperties.RESUME_TXT:
 
-            btn.config(text=self.str_pause)
+            btn.config(text=AppProperties.PAUSE_TXT)
             self.countdown_time(watch_label, True)
 
-    def stop_stopwatch(self, stop, start_pause_button, watch_label, entry_val):
+    def stop_stopwatch(self, stop, start_pause_button, watch_label, entry_desc):
         time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
+
         self.saved_times.add_time('stopwatch', time_now, ':'.join(
-            [str(time) for time in self.stopwatch_time if time > 0]), entry_val.get())
-        self.toggle_start_pause(start_pause_button, watch_label, stop, 0, True)
+            [str(time) for time in self.stopwatch_time if time > 0]), entry_desc.get())
+        self.toggle_start_pause(start_pause_button, watch_label, stop)
         self.stopwatch_time = [0] * len(self.stopwatch_time)
         stop.pack_forget()
         self.refresh_saved_times()
