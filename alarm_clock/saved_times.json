@@ -2,29 +2,49 @@
     "stopwatch": {
         "08-18-2022 14:00:20": {
             "value": "7:464",
-            "description": "desc fro mentry"
+            "description": "desc fro dgfdg"
         },
-        "08-18-2022 14:00:23": {
-            "value": "1:808",
-            "description": "desc fro mentry"
+        "08-20-2022 18:19:51": {
+            "value": "1:54",
+            "description": "fdgdfg"
         },
-        "08-18-2022 14:01:59": {
-            "value": "1:203",
-            "description": "desc fro mentry"
+        "08-21-2022 11:26:19": {
+            "value": "2:45",
+            "description": "Description"
         },
-        "08-18-2022 14:02:25": {
-            "value": "697",
-            "description": "desc fro mentry"
+        "08-21-2022 11:26:25": {
+            "value": "1:395",
+            "description": "Nowe desc"
         },
-        "08-18-2022 14:02:26": {
-            "value": "863",
-            "description": "desc fro mentry"
+        "08-21-2022 11:28:14": {
+            "value": "354",
+            "description": "Description"
+        },
+        "08-21-2022 11:28:30": {
+            "value": "371",
+            "description": "Description"
+        },
+        "08-21-2022 11:28:34": {
+            "value": "341",
+            "description": "DescriptionDescriptionDescriptionDescriptionDescription"
+        },
+        "08-21-2022 11:32:31": {
+            "value": "347",
+            "description": "Description"
+        },
+        "08-21-2022 11:56:14": {
+            "value": "597",
+            "description": "ada"
         }
     },
     "timer": {
-        "8-18-2022": {
-            "value": "12:21",
-            "description": "fdghdf"
+        "08-21-2022 11:28:34": {
+            "value": "1:10 11:38:34",
+            "description": "minuta dziesiec"
+        },
+        "08-21-2022 11:29:34": {
+            "value": "20 11:38:34",
+            "description": "20sec"
         }
     }
 }
