@@ -301,7 +301,7 @@ class Alarms(tk.Frame):
         self.snoozed_time = 1
         self.checked_days = []
         self.__create_alarm_boxes_frame()
-        self.debug_alarm_add(self.alarms_frame)
+        # self.debug_alarm_add(self.alarms_frame)
         self.refresh_alarms()
         self.set_alarms()
 
@@ -549,6 +549,87 @@ class Alarms(tk.Frame):
             self.check_days = None
             self.checked_days = None
 
+        def create_edit_entry(self, title, value):
+            entry_frame = tk.Frame(self, bg=self.bg_edit)
+            title = MyLabel(entry_frame, title, self.fg_edit, self.bg_edit,
+                            borderwidth=2, relief=tk.RAISED)
+            entry = tk.Entry(entry_frame, width=10,
+                             font=(self.font_edit, self.f_s_hours_entry),
+                             background=self.bg_edit, foreground=self.fg_edit
+                             )
+            title.pack(expand=True)
+            entry.pack(expand=True)
+            entry.insert(0, f"{value}")
+            return entry_frame
+
+        def create_sound_list_from_dir(self):
+            music_list = []
+            for file in glob.glob(f"{AppProperties.SOUND_DIR}/*{AppProperties.SOUNDS_EXT}"):
+                # FIXME sounds = const?
+                music_list.append(file)
+            return music_list
+
+        def create_sound_selection(self, sound):
+            s = ttk.Style()
+
+            s.configure('my.TMenubutton', font=(self.font_edit,
+                        self.f_s_select_snd), image=self.img_edit,
+                        background=self.bg_edit, foreground=self.fg_edit,
+                        compound=tk.CENTER,
+                        )
+            selected_snd = tk.StringVar()
+            selected_snd.set(AppProperties.SOUND_DIR+'\\'+sound)
+            choose_music = ttk.OptionMenu(
+                self, selected_snd, "", *self.create_sound_list_from_dir(), style='my.TMenubutton')
+            choose_music.grid(column=2, row=0, sticky=tk.NSEW)
+            choose_music.config()
+            return selected_snd
+
+        def save_alarm(self, alarm_json, alarm_box, hour, descr, snd_save):
+            new_hour = hour.get()
+            new_description = descr.get()
+            new_days = []
+            new_sound = snd_save.split('\\')[1]
+            for day_check in self.check_days:
+                if 'selected' in day_check.state():
+                    new_days.append(day_check['text'][0:3])
+                    # FIXME 0:3 changed to dyunamical
+            alarm_format = f"{new_hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound}"
+            alarm_box['text'] = alarm_format
+            self.alarms_list.modify_alarm(
+                alarm_json, new_hour, new_days, new_sound, new_description)
+
+        def create_checkbox_days(self, alarm_format):
+            day_names = self.config_edit['day_name']["value"].split(",")
+
+            checkbox_days_frame = tk.Frame(self, bg=self.bg_edit)
+            checkbox_days_frame.grid(
+                row=5, column=0, columnspan=len(day_names), sticky=tk.NSEW)
+
+            s_check_bx = ttk.Style()
+            s_check_bx.configure('my.TCheckbutton',
+                                 image=self.img_check_day,
+                                 background=self.bg_edit,
+                                 foreground=self.fg_edit
+                                 )
+
+            # save editing alarm button and add to grid
+            self.check_days.clear()
+            self.checked_days.clear()
+            for indx, day in enumerate(day_names):
+                check_button_day = ttk.Checkbutton(
+                    checkbox_days_frame, compound=tk.CENTER, text=day, style='my.TCheckbutton')
+                if day[0:3] in alarm_format[ConfigProperties.DAYS]:
+                    # FIXME should be first letter from config, but for now it is like this
+                    self.checked_days.append(tk.IntVar(value=1))
+                    check_button_day.config(
+                        variable=self.checked_days[indx])
+                else:
+                    self.checked_days.append(tk.IntVar(value=0))
+                check_button_day.grid(row=0, column=indx, sticky=tk.W)
+                self.check_days.append(check_button_day)
+            # this loop is creating each day of the week and add it to checkbutton in array and add to grid
+
         def edit(self, json_alarm, alarm_box):
             self.check_days = self._root.check_days
             self.checked_days = self._root.checked_days
@@ -558,113 +639,34 @@ class Alarms(tk.Frame):
             alarm_description = alarm_properties["description"]
             alarm_format_lbl = f" {alarm_format[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[ConfigProperties.DAYS]])} \n {alarm_format[ConfigProperties.SOUND]}"
 
-            def create_hours_entry(time):
-                hours = tk.Entry(self, width=10,
-                                 font=(self.font_edit, self.f_s_hours_entry),
-                                 background=self.bg_edit,
-                                 foreground=self.fg_edit
-                                 )
-                hours.insert(0, f"{time}")
+            hours_entry = self.create_edit_entry('Hour',
+                                                 alarm_format[ConfigProperties.TIME])
+            hours_entry.grid(column=1, row=2, sticky=tk.NSEW)
+            description_entry = self.create_edit_entry(
+                'Description', alarm_description)
+            description_entry.grid(column=1, row=1, sticky=tk.NSEW)
+            ''' ALARM TITLE  '''
+            MyLabel(self, alarm_format_lbl,
+                    self.fg_edit, self.bg_edit,
+                    image=self.img_edit
+                    ).grid(column=1, row=0, sticky=tk.NS)
+            ''' ALARM TITLE  '''
+            save_btn = MyButton(self, "Save", self.fg_edit, self.bg_edit,
+                                image=self.img_edit, name=f"save_alarm"
+                                )
 
-                return hours
+            selected_snd = self.create_sound_selection(
+                alarm_format[ConfigProperties.SOUND])
 
-            def create_sound_list_from_dir():
-                music_list = []
-                for file in glob.glob(f"{AppProperties.SOUND_DIR}/*{AppProperties.SOUNDS_EXT}"):
-                    # FIXME sounds = const?
-                    music_list.append(file)
-                return music_list
+            save_btn.config(command=lambda alarm_json=json_alarm, alarm_box=alarm_box, hour=hours_entry: self.save_alarm(
+                alarm_json, alarm_box, hour, description_entry, selected_snd.get()))
+            save_btn.grid(column=2, row=2, sticky=tk.NSEW)
 
-            def create_sound_selection(sound):
-                s = ttk.Style()
+            self.create_sound_list_from_dir()
 
-                s.configure('my.TMenubutton', font=(self.font_edit,
-                            self.f_s_select_snd), image=self.img_edit,
-                            background=self.bg_edit, foreground=self.fg_edit,
-                            compound=tk.CENTER,
-                            )
-                selected_snd = tk.StringVar()
-                selected_snd.set(AppProperties.SOUND_DIR+'\\'+sound)
-                choose_music = ttk.OptionMenu(
-                    self, selected_snd, "", *create_sound_list_from_dir(), style='my.TMenubutton')
-                choose_music.grid(column=2, row=0, sticky=tk.NSEW)
-                choose_music.config()
-                return selected_snd
+            self.create_checkbox_days(alarm_format)
 
-            def create_checkbox_days():
-                day_names = self.config_edit['day_name']["value"].split(",")
 
-                checkbox_days_frame = tk.Frame(self, bg=self.bg_edit)
-                checkbox_days_frame.grid(
-                    row=5, column=0, columnspan=len(day_names), sticky=tk.NSEW)
-
-                s_check_bx = ttk.Style()
-                s_check_bx.configure('my.TCheckbutton',
-                                     image=self.img_check_day,
-                                     background=self.bg_edit,
-                                     foreground=self.fg_edit
-                                     )
-
-                # save editing alarm button and add to grid
-                self.check_days.clear()
-                self.checked_days.clear()
-                for indx, day in enumerate(day_names):
-                    check_button_day = ttk.Checkbutton(
-                        checkbox_days_frame, compound=tk.CENTER, text=day, style='my.TCheckbutton')
-                    if day[0:3] in alarm_format[ConfigProperties.DAYS]:
-                        # FIXME should be first letter from config, but for now it is like this
-                        self.checked_days.append(tk.IntVar(value=1))
-                        check_button_day.config(
-                            variable=self.checked_days[indx])
-                    else:
-                        self.checked_days.append(tk.IntVar(value=0))
-                    check_button_day.grid(row=0, column=indx, sticky=tk.W)
-                    self.check_days.append(check_button_day)
-                # this loop is creating each day of the week and add it to checkbutton in array and add to grid
-
-            def save_alarm(alarm_json, alarm_box, hour, descr, snd_save):
-                new_hour = hour.get()
-                new_description = descr.get()
-                new_days = []
-                new_sound = snd_save.split('\\')[1]
-                for day_check in self.check_days:
-                    if 'selected' in day_check.state():
-                        new_days.append(day_check['text'][0:3])
-                        # FIXME 0:3 changed to dyunamical
-                alarm_format = f"{new_hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound}"
-                alarm_box['text'] = alarm_format
-                self.alarms_list.modify_alarm(
-                    alarm_json, new_hour, new_days, new_sound, new_description)
-
-                # add hours and days to editing alarm
-
-            def create_edit_appearance():
-                hours_entry = create_hours_entry(
-                    alarm_format[ConfigProperties.TIME])
-                hours_entry.grid(column=1, row=2, sticky=tk.NSEW)
-                description_entry = create_hours_entry(alarm_description)
-                description_entry.grid(column=1, row=1, sticky=tk.NSEW)
-                MyLabel(self, alarm_format_lbl,
-                        self.fg_edit, self.bg_edit,
-                        image=self.img_edit
-                        ).grid(column=1, row=0, sticky=tk.NS)
-
-                create_sound_list_from_dir()
-                selected_snd = create_sound_selection(
-                    alarm_format[ConfigProperties.SOUND])
-
-                save_btn = MyButton(self, "Save",
-                                    self.fg_edit, self.bg_edit,
-                                    image=self.img_edit,
-                                    name=f"save_alarm"
-                                    )
-                save_btn.config(command=lambda alarm_json=json_alarm, alarm_box=alarm_box, hour=hours_entry: save_alarm(
-                    alarm_json, alarm_box, hour, description_entry, selected_snd.get()))
-                save_btn.grid(column=2, row=2, sticky=tk.NSEW)
-                create_checkbox_days()
-                return
-            create_edit_appearance()
-# FIXME fix this  create_edit_appearance
 # TODO Timer description popup?
 # TODO My widgets = frame/entry and other that i used at least 2 times
 # TODO Image background for frames
