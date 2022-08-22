@@ -287,6 +287,7 @@ class Alarms(tk.Frame):
 
         self.edit_frame = self.EditAlarm(self)
         self.alarms_frame = tk.Frame(self, background=self.bg_alarms)
+
         self.alarms_frame.columnconfigure(0, weight=1)
         self.alarms_frame.columnconfigure(1, weight=1)
 
@@ -300,7 +301,7 @@ class Alarms(tk.Frame):
         self.snoozed_time = 1
         self.checked_days = []
         self.__create_alarm_boxes_frame()
-        # self.debug_alarm_add(self.alarms_frame)
+        self.debug_alarm_add(self.alarms_frame)
         self.refresh_alarms()
         self.set_alarms()
 
@@ -398,7 +399,7 @@ class Alarms(tk.Frame):
         # FIXME for now its only day in engluish to need to change that
         row_alarm_box = frame.grid_size()[1]
         self.alarms_list.add_alarm(f"{AppProperties.ALARM_PREFIX}{row_alarm_box}", dt_string, [
-                                   today_name], '3.mp3', 1, '')
+                                   today_name], '3.mp3', 1, 'Opis')
         self.refresh_alarms()
 
     def check_alarms(self):
@@ -438,20 +439,24 @@ class Alarms(tk.Frame):
             tk.Toplevel.__init__(
                 self, borderwidth=2, relief='raised', background=self.bg, *args, **kwargs)
             self._root = root
-            self.overrideredirect(True)
             self.eval(f'tk::PlaceWindow {str(self)} center')
             self.sound_process = None
             self.geometry(config_prop["alarm_popup_resolution"]["value"])
-            self.title('Settings')
+            self.protocol("WM_DELETE_WINDOW", self.minimalize)
+            self.title(
+                f"{self.alarm_popup[ConfigProperties.TIME]} - {self.alarm_popup[ConfigProperties.DESCR]}")
             self.mute_sound_txt = 'Mute sound'
             self.play_sound_txt = 'Play sound'
             self.img = PhotoImage(file=AppProperties.ALARMS_IMG)
-            self.img_button = self.img.subsample(3, 2)
+            self.img_button = self.img.subsample(2, 2)
             self.relief_r = ['sunken', 'raised', 'flat', 'ridge', 'groove']
             self.create_popup_widgets()
 
             if config_prop["animation"]["value"]:
                 self.change_relief()
+
+        def minimalize(self):
+            self.iconify()
 
         def create_popup_widgets(self):
 
@@ -461,9 +466,10 @@ class Alarms(tk.Frame):
                                 [str(day) for day in self.alarm_popup[ConfigProperties.DAYS]]),
                             self.alarm_popup[ConfigProperties.SOUND],
                             self.alarm_popup[ConfigProperties.DESCR]]
-            for alarm_part in alarm_format:
+            for index, alarm_part in enumerate(alarm_format):
+
                 MyLabel(self, alarm_part, self.fg, self.bg, image=self.img
-                        ).pack(side=tk.TOP)
+                        ).grid(row=index, column=0)
             mute_sound_btn = MyButton(self, self.mute_sound_txt,
                                       self.fg, self.bg,
                                       image=self.img_button,
@@ -471,7 +477,7 @@ class Alarms(tk.Frame):
                                       )
             MyButton(self, 'Stop alarm', self.fg, self.bg, image=self.img_button,
                      name=f"stop_alarm", command=lambda: self.stop_alarm()
-                     ).pack(side=tk.TOP)
+                     ).grid(row=0, column=1)
 
             self.snooze_btn = MyButton(self, 'Snooze alarm', self.fg, self.bg, image=self.img_button,
                                        name=f"snooze_alarm"
@@ -479,11 +485,11 @@ class Alarms(tk.Frame):
 
             self.snooze_btn.config(command=lambda snooze_btn=self.snooze_btn, time=self.snooze_time,
                                    snd=music_to_play: self.snooze_alarm(snooze_btn, time, snd))
-            self.snooze_btn.pack(side=tk.TOP)
+            self.snooze_btn.grid(row=0, column=2)
             if self.start_sound(music_to_play):
                 mute_sound_btn.config(command=lambda mute_sound_btn=mute_sound_btn,
                                       music_to_play=music_to_play: self.mute_sound(mute_sound_btn, music_to_play))
-                mute_sound_btn.pack(side=tk.TOP)
+                mute_sound_btn.grid(row=0, column=3)
             # if sounds != none  toggle music button and play music threading
 
         def change_relief(self):
@@ -512,6 +518,7 @@ class Alarms(tk.Frame):
             self.snooze_btn['state'] = 'disabled'
             time_ms = time * 60000
 
+            self.minimalize()
             self.after(time_ms, self.start_sound, snd)
 
         def start_sound(self, snd_to_play):
@@ -657,10 +664,12 @@ class Alarms(tk.Frame):
                 create_checkbox_days()
                 return
             create_edit_appearance()
-        # FIXME fix this lul create_edit_appearance
-
+# FIXME fix this  create_edit_appearance
 # TODO Timer description popup?
-# FIXME coundown time = end? remove pause add restart etc
+# TODO My widgets = frame/entry and other that i used at least 2 times
+# TODO Image background for frames
+# TODO Mimimalize piopup to start menu? or sth like this
+# TODO playsound change for other function with volume down? if can
 
 
 class Timer(tk.Frame):
