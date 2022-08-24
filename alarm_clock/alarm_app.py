@@ -349,6 +349,7 @@ class Alarms(tk.Frame):
         alarm_text = self.alarms_list.section[alarm_json]
 
         alarm_format = f"{alarm_text[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_text[ConfigProperties.DAYS]])} \n {alarm_text[ConfigProperties.SOUND]} \n {alarm_text[ConfigProperties.SNOOZE_TIME]}"
+        print(alarm_format)
         alarm_box = MyButton(append, alarm_format,
                              self.fg_alarms, self.bg_alarms,
                              image=self.btn_default,
@@ -579,7 +580,7 @@ class Alarms(tk.Frame):
                 if 'selected' in day_check.state():
                     new_days.append(day_check['text'][0:3])
                     # FIXME 0:3 changed to dyunamical
-            alarm_format = f"{hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound}"
+            alarm_format = f"{hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound} \n {snooze_time}"
             alarm_box['text'] = alarm_format
             self.alarms_list.modify_alarm(
                 alarm_json, hour, new_days, new_sound, snooze_time, descr)
