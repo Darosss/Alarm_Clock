@@ -1,6 +1,6 @@
 from re import M
 import tkinter as tk
-from tkinter import PhotoImage, ttk
+from tkinter import PhotoImage, ttk, colorchooser
 from datetime import datetime, timedelta
 from config import ConfigJSON
 from my_widgets import MyButton, MyLabel, MyEntry
@@ -102,8 +102,8 @@ class SettingsWindow(tk.Tk):
         self.all_config = ConfigProperties.CONFIG
         self.all_sections = self.all_config.section
         self.config_sett = ConfigProperties.APP_SETTINGS
-        self.fg = self.config_sett["fg_settings"]["value"]
-        self.bg = self.config_sett["bg_settings"]["value"]
+        self.fg = self.config_sett["fg_color_settings"]["value"]
+        self.bg = self.config_sett["bg_color_settings"]["value"]
         self.resolution = self.config_sett["resolution_settings"]["value"]
         self.font_size = self.config_sett["font_size_settings"]["value"]
         self.settings_font = self.config_sett["font_family_settings"]["value"]
@@ -114,6 +114,7 @@ class SettingsWindow(tk.Tk):
         tk.Toplevel.__init__(self, background=self.bg,  *args, **kwargs)
         self.geometry(self.resolution)
         self.title('Settings')
+        self.attributes('-topmost', 'true')
         self.create_settings_widgets()
         self.create_save_btn()
 
@@ -145,6 +146,14 @@ class SettingsWindow(tk.Tk):
                          secFram)
                      ).grid(column=self.grid_size()[0]+1, row=1, sticky=tk.W)
 
+    def choose_color(self, entry):
+        color_code = colorchooser.askcolor(
+            title="Choose color", parent=self)
+
+        if color_code[1]:
+            entry.delete(0, 'end')
+            entry.insert(0, color_code[1])
+
     def add_setting(self, append, sett_descr, section_name, option_name, value, row_grid, width=20):
         MyLabel(append, sett_descr,
                 self.fg, self.bg,
@@ -159,6 +168,11 @@ class SettingsWindow(tk.Tk):
                              )
         res_entry.insert(0, value)
         res_entry.grid(column=1, row=row_grid, sticky=tk.NSEW)
+        if 'color' in option_name:
+            button = MyButton(append, "Select color", self.fg,
+                              self.bg, image=self.img_section,
+                              command=lambda: self.choose_color(res_entry))
+            button.grid(column=2, row=row_grid, sticky=tk.NSEW)
 
     def show_settings(self, show):
         for s in self.grid_slaves():
@@ -214,8 +228,8 @@ class MenuFrame(tk.Frame):
         self._root = root
         self.img_menu = PhotoImage(file=AppProperties.MENU_IMG)
         self.config_menu = ConfigProperties.MENU_OPTIONS
-        self.bg = self.config_menu['menu_bg']["value"]
-        self.fg = self.config_menu['menu_fg']["value"]
+        self.bg = self.config_menu['menu_color_bg']["value"]
+        self.fg = self.config_menu['menu_color_fg']["value"]
         tk.Frame.__init__(self, root, background=self.bg,
                           borderwidth=1, relief='raised', *args, **kwargs)
         menu_btn_alarms = MyButton(self, 'Alarms', self.fg, self.bg,
@@ -250,11 +264,11 @@ class FooterFrame(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
         self.config_footer = ConfigProperties.FOOTER_OPTIONS
-        self.bg_footer = self.config_footer["footer_bg"]["value"]
-        self.fg_footer = self.config_footer["footer_fg"]["value"]
+        self.bg_footer = self.config_footer["footer_color_bg"]["value"]
+        self.fg_footer = self.config_footer["footer_color_fg"]["value"]
         self.f_s_timer = self.config_footer["font_size_label"]["value"]
         self.font_timer = self.config_footer["font_label"]["value"]
-        self.img_timer = PhotoImage(file=AppProperties.TIMER_IMG)
+        self.img_timer = PhotoImage(file=AppProperties.FOOTER_TIMER_IMG)
 
         tk.Frame.__init__(self, root, background=self.bg_footer,
                           borderwidth=1, relief='sunken', *args, **kwargs)
@@ -280,8 +294,8 @@ class Alarms(tk.Frame):
 
         tk.Frame.__init__(self, root, *args, **kwargs)
 
-        self.bg_alarms = self.config_alarm["bg_alarms"]["value"]
-        self.fg_alarms = self.config_alarm["fg_buttons"]["value"]
+        self.bg_alarms = self.config_alarm["bg_color_alarms"]["value"]
+        self.fg_alarms = self.config_alarm["fg_color_alarms"]["value"]
         self.snooze_time = self.config_alarm["snooze_time"]["value"]
 
         self.edit_frame = self.EditAlarm(self)
@@ -349,7 +363,6 @@ class Alarms(tk.Frame):
         alarm_text = self.alarms_list.section[alarm_json]
 
         alarm_format = f"{alarm_text[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_text[ConfigProperties.DAYS]])} \n {alarm_text[ConfigProperties.SOUND]} \n {alarm_text[ConfigProperties.SNOOZE_TIME]}"
-        print(alarm_format)
         alarm_box = MyButton(append, alarm_format,
                              self.fg_alarms, self.bg_alarms,
                              image=self.btn_default,
@@ -432,8 +445,8 @@ class Alarms(tk.Frame):
 
     class AlarmPopup(tk.Tk):
         def __init__(self, root, config_prop, alarm_popup, *args, **kwargs):
-            self.bg = config_prop["bg_alarm_popup"]["value"]
-            self.fg = config_prop["fg_alarm_popup"]["value"]
+            self.bg = config_prop["bg_color_alarm_popup"]["value"]
+            self.fg = config_prop["fg_color_alarm_popup"]["value"]
             self.alarm_popup = alarm_popup
             self.snooze_time = alarm_popup['snooze_time']
             tk.Toplevel.__init__(
@@ -539,8 +552,8 @@ class Alarms(tk.Frame):
             self.btn_title = PhotoImage(file=AppProperties.TITLE_IMG)
             self.config_edit = ConfigProperties.ALARMS_OPTIONS
             self.alarms_list = ConfigProperties.ALARMS
-            self.fg_edit = self.config_edit['fg_edit']["value"]
-            self.bg_edit = self.config_edit['bg_edit']["value"]
+            self.fg_edit = self.config_edit['fg_color_edit']["value"]
+            self.bg_edit = self.config_edit['bg_color_edit']["value"]
             self.f_s_hours_entry = self.config_edit['hours_entry_font_size']["value"]
             self.f_s_select_snd = self.config_edit['select_sound_font_size']["value"]
             self.font_edit = self.config_edit['font_family_edit']["value"]
@@ -672,13 +685,14 @@ class Alarms(tk.Frame):
 # TODO playsound change for other function with volume down? if can
 # TODO settings color picker? if can
 # TODO my widgets = fe. Entry(title(if no title no label), value for fe. lbl,entry itd)
+# TODO colorpicker for settings
 class Timer(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
         self.config_timer = ConfigProperties.TIMER_OPTIONS
         self.saved_times = ConfigProperties.SAVED_TIMES
-        self.bg_timer = self.config_timer['bg_timer']["value"]
-        self.fg_timer = self.config_timer['fg_timer']["value"]
+        self.bg_timer = self.config_timer['bg_color_timer']["value"]
+        self.fg_timer = self.config_timer['fg_color_timer']["value"]
         self.f_s_timer = self.config_timer['font_size_timer']["value"]
         self.font_timer = self.config_timer['font_timer']["value"]
         tk.Frame.__init__(self, root, *args, **kwargs)
@@ -916,8 +930,8 @@ class Stopwatch(tk.Frame):
         self._root = root
         self.config_stpwch = ConfigProperties.STOPWATCH_OPTIONS
         self.saved_times = ConfigProperties.SAVED_TIMES
-        self.bg_stopwatch = self.config_stpwch["bg_stopwatch"]["value"]
-        self.fg_stopwatch = self.config_stpwch["fg_stopwatch"]["value"]
+        self.bg_stopwatch = self.config_stpwch["bg_color_stopwatch"]["value"]
+        self.fg_stopwatch = self.config_stpwch["fg_color_stopwatch"]["value"]
         self.f_s_stopwatch = self.config_stpwch['font_size_stopwatch']["value"]
         self.font_stopwatch = self.config_stpwch['font_stopwatch']["value"]
         tk.Frame.__init__(self, root, *args, **kwargs)
