@@ -572,19 +572,17 @@ class Alarms(tk.Frame):
             choose_music.config()
             return selected_snd
 
-        def save_alarm(self, alarm_json, alarm_box, hour, descr, snd_save):
-            new_hour = hour.get()
-            new_description = descr.get()
+        def save_alarm(self, alarm_json, alarm_box, hour, descr, snd_save, snooze_time):
             new_days = []
             new_sound = snd_save.split('\\')[1]
             for day_check in self.check_days:
                 if 'selected' in day_check.state():
                     new_days.append(day_check['text'][0:3])
                     # FIXME 0:3 changed to dyunamical
-            alarm_format = f"{new_hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound}"
+            alarm_format = f"{hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound}"
             alarm_box['text'] = alarm_format
             self.alarms_list.modify_alarm(
-                alarm_json, new_hour, new_days, new_sound, new_description)
+                alarm_json, hour, new_days, new_sound, snooze_time, descr)
 
         def create_checkbox_days(self, alarm_format):
             day_names = self.config_edit['day_name']["value"].split(",")
@@ -624,6 +622,7 @@ class Alarms(tk.Frame):
             alarm_properties = self.alarms_list.section[json_alarm]
             alarm_format = alarm_properties
             alarm_description = alarm_properties["description"]
+            alarm_snooze = alarm_properties["snooze_time"]
             alarm_format_lbl = f" {alarm_format[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[ConfigProperties.DAYS]])} \n {alarm_format[ConfigProperties.SOUND]}"
 
             hours_entry = MyEntry(self, self.fg_edit, self.bg_edit,
@@ -635,8 +634,14 @@ class Alarms(tk.Frame):
                                         'Description', self.btn_title, alarm_description,
                                         font=(self.font_edit, self.f_s_hours_entry))
 
+            snooze_time_entry = MyEntry(self, self.fg_edit, self.bg_edit,
+                                        'Snooze Time', self.btn_title, alarm_snooze,
+                                        width=10,
+                                        font=(self.font_edit, self.f_s_hours_entry))
+
             hours_entry.grid(column=1, row=2, sticky=tk.NSEW)
             description_entry.grid(column=1, row=1, sticky=tk.NSEW)
+            snooze_time_entry.grid(column=1, row=3, sticky=tk.NSEW)
             ''' ALARM TITLE  '''
             MyLabel(self, alarm_format_lbl,
                     self.fg_edit, self.bg_edit,
@@ -650,8 +655,8 @@ class Alarms(tk.Frame):
             selected_snd = self.create_sound_selection(
                 alarm_format[ConfigProperties.SOUND])
 
-            save_btn.config(command=lambda alarm_json=json_alarm, alarm_box=alarm_box, hour=hours_entry.entry: self.save_alarm(
-                alarm_json, alarm_box, hour, description_entry.entry, selected_snd.get()))
+            save_btn.config(command=lambda: self.save_alarm(
+                json_alarm, alarm_box, hours_entry.entry.get(), description_entry.entry.get(), selected_snd.get(), snooze_time_entry.entry.get()))
             save_btn.grid(column=2, row=2, sticky=tk.NSEW)
 
             self.create_sound_list_from_dir()
