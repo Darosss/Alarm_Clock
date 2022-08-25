@@ -301,13 +301,11 @@ class Alarms(tk.Frame):
         self.fg_alarms = self.config_alarm["fg_color_alarms"]["value"]
         self.snooze_time = self.config_alarm["snooze_time"]["value"]
 
-        # self.edit_frame = EditAlarm(self)
         self.alarms_frame = tk.Frame(self, background=self.bg_alarms)
         self.edit_alarm_obj = None
         self.alarms_frame.columnconfigure(0, weight=1)
         self.alarms_frame.columnconfigure(1, weight=1)
 
-        # this should be in class Alarms -> alarmslist
         self.btn_default = PhotoImage(file=AppProperties.ALARMS_IMG)
         self.btn_subsampl52 = self.btn_default.subsample(5, 2)
         self.small_widgets = self.btn_default.subsample(3, 2)
@@ -317,12 +315,10 @@ class Alarms(tk.Frame):
         self.refresh_alarms()
         self.set_alarms()
 
-        # this should be in class Alarms -> alarmslist
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.alarms_frame.grid(row=0, column=0, sticky=tk.NSEW)
-        # self.edit_frame.grid(row=0, column=1, sticky=tk.NSEW)
         self.config(background=self.bg_alarms)
 
     def __create_alarm_boxes_frame(self):
@@ -699,9 +695,7 @@ class EditAlarm(tk.Tk):
         self.destroy()
 
 # TODO Timer description popup?
-# TODO My widgets = frame/entry and other that i used at least 2 times
-# TODO Image background for frames
-# TODO Mimimalize piopup to start menu? or sth like this
+# TODO My widgets = checkbox, opiotnmenu?
 # TODO playsound change for other function with volume down? if can
 
 
@@ -817,8 +811,8 @@ class Timer(tk.Frame):
 
         self.start_pause_btn.config(command=lambda entry_timer=self.time_entry.entry, btn=self.start_pause_btn, stp=self.stop_btn,
                                     delay=delay_entry.entry: self.toggle_start_pause(btn, entry_timer, stp, delay))
-        self.stop_btn.config(command=lambda entry_timer=self.time_entry.entry, btn=self.stop_btn, sp_btn=self.start_pause_btn,
-                             entry=self.desc_entry.entry: self.stop_timer(btn, sp_btn, entry_timer, entry))
+        self.stop_btn.config(command=lambda entry_timer=self.time_entry.entry, btn=self.stop_btn,
+                             sp_btn=self.start_pause_btn: self.stop_timer(btn, sp_btn, entry_timer, self.desc_entry))
 
         timer_title_lbl.pack(side=tk.TOP)
         self.time_entry.pack(expand=True)
@@ -833,7 +827,6 @@ class Timer(tk.Frame):
                 font=(self.font_timer,
                       self.f_s_timer)
                 ).pack()
-        # FIXME headers data time desc doestn work in TIMER and STOPWATCH
         self.saved_times_date = MyLabel(self.time_frame, 'Data',
                                         self.fg_timer, self.bg_timer,
                                         font=(self.font_timer,
@@ -893,19 +886,18 @@ class Timer(tk.Frame):
         self.refresh_saved_times()
 
     def countdown_time(self, time_entry, start=False):
-
         def time():
             time_entry.delete(0, 'end')
             time_entry.insert(1, self.format_time_array())
-            # FIXME for now its just with leng>2 dunno
-            if len(time_entry.get()) >= 2:
-                if sum(int(w) for w in time_entry.get().split(":")) > 0:
-                    self.is_counting = time_entry.after(1, time)
-                    self.timer_time[4] = self.timer_time[4] - 1
-                    return
+
+            if sum(t for t in self.timer_time) > 0:
+                print(self.format_time_array())
+                self.is_counting = time_entry.after(1, time)
+                self.timer_time[4] = self.timer_time[4] - 1
+                return
             else:
                 self.stop_timer(
-                    self.stop_btn, self.start_pause_btn, self.time_entry.entry, self.desc_entry)
+                    self.stop_btn, self.start_pause_btn, self.time_entry.entry, self.desc_entry.entry)
                 return
         if not start:
             time_entry.after_cancel(self.is_counting)
