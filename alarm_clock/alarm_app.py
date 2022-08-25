@@ -694,10 +694,6 @@ class EditAlarm(tk.Tk):
     def edit_quit(self):
         self.destroy()
 
-# TODO Timer description popup?
-# TODO My widgets = checkbox, opiotnmenu?
-# TODO playsound change for other function with volume down? if can
-
 
 class Timer(tk.Frame):
     def __init__(self, root, *args, **kwargs):
@@ -896,8 +892,12 @@ class Timer(tk.Frame):
                 self.timer_time[4] = self.timer_time[4] - 1
                 return
             else:
+                TimerPopup(self,
+                           self.desc_entry.entry.get(),
+                           self.timer_start_value)
                 self.stop_timer(
                     self.stop_btn, self.start_pause_btn, self.time_entry.entry, self.desc_entry.entry)
+
                 return
         if not start:
             time_entry.after_cancel(self.is_counting)
@@ -926,14 +926,52 @@ class Timer(tk.Frame):
                 text_to_show += str(time_val) + ":"
             elif found_more_0:
                 text_to_show += str(time_val) + ":"
-        # text_to_show = f"{days}:{hours}:{minutes}:{seconds}:{ms}"
         return text_to_show[:-1]
 
-# FIXME delay bug start multiple
+# FIXME delay bug start multiple(disable start button and create stop delay button)
+
 # TODO Create default.json for default options?
 
 # TODO Volume of alarm(probbaly not with playsound )
 # TODO Random alarm from list? (could be done, not necessary for now)
+
+# TODO Validation for Hours edit, time in stopwatch/timer, delay stopwatch/timer, config
+# TODO My widgets = checkbox, opiotnmenu?
+
+# TODO timer popup (sound, animation like in alarmpopup)
+
+
+class TimerPopup(tk.Tk):
+    def __init__(self, root, description, start_time, *args, **kwargs):
+        self.config_alarm = ConfigProperties.TIMER_OPTIONS
+        self.bg = self.config_alarm["bg_color_timer"]["value"]
+        self.fg = self.config_alarm["fg_color_timer"]["value"]
+        self.res = self.config_alarm["timer_popup_resolution"]["value"]
+        self.btn_default = PhotoImage(file=AppProperties.ALARMS_IMG)
+        self.btn_small = self.btn_default.subsample(3, 2)
+
+        tk.Toplevel.__init__(
+            self, borderwidth=2, relief='raised', background=self.bg, *args, **kwargs)
+        self._root = root
+        self.eval(f'tk::PlaceWindow {str(self)} center')
+        self.sound_process = None
+        self.geometry(self.res)
+        self.title(description)
+        self.start_time = start_time
+
+        self.create_popup_widgets(description)
+
+    def create_popup_widgets(self, desc):
+        txt_format = f"Description: \n{desc}\nStarter timer: \n {self.start_time}"
+        MyLabel(self, txt_format, self.fg, self.bg, image=self.btn_default
+                ).grid(row=0, column=0)
+
+        MyButton(self, 'Stop timer', self.fg, self.bg, image=self.btn_small,
+                 name=f"stop_timer", command=lambda: self.stop_timer()
+                 ).grid(row=0, column=1)
+
+    def stop_timer(self):
+        self.destroy()
 
 
 class Stopwatch(tk.Frame):
