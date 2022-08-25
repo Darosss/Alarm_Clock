@@ -52,6 +52,8 @@ class AppProperties:
     TITLE_IMG = f'{IMAGES_DIR}/title.png'
     DELETE_STRING = 'X'
     ALARM_PREFIX = "alarm_box"
+    STOPWATCH_PREFIX = 'stopwatch'
+    TIMER_PREFIX = 'timer'
 
 
 class AlarmApp(tk.Tk):
@@ -122,9 +124,9 @@ class SettingsWindow(tk.Tk):
         save_btn = MyButton(self, 'Save',
                             self.fg, self.bg, image=self.btn_default,
                             name='save_sett_btn')
-        save_btn.grid(column=0, row=0)
+        save_btn.grid(column=0, row=0, sticky=tk.W)
         save_btn.config(
-            command=lambda sett_frame=self: self.save_settings(sett_frame))
+            command=lambda: self.save_settings())
 
     def create_settings_widgets(self):
         for index, section in enumerate(self.all_sections):
@@ -173,6 +175,7 @@ class SettingsWindow(tk.Tk):
                               self.bg, image=self.img_section,
                               command=lambda: self.choose_color(res_entry))
             button.grid(column=2, row=row_grid, sticky=tk.NSEW)
+        # if color font = create color picker near
 
     def show_settings(self, show):
         for s in self.grid_slaves():
@@ -180,7 +183,7 @@ class SettingsWindow(tk.Tk):
                 s.grid_forget()
         show.grid(column=0, row=3)
 
-    def save_settings(self, sett_frame):
+    def save_settings(self):
         for s in self.winfo_children():
             if 'section_frame' in s.winfo_name():
                 for option in s.grid_slaves():
@@ -298,9 +301,9 @@ class Alarms(tk.Frame):
         self.fg_alarms = self.config_alarm["fg_color_alarms"]["value"]
         self.snooze_time = self.config_alarm["snooze_time"]["value"]
 
-        self.edit_frame = self.EditAlarm(self)
+        # self.edit_frame = EditAlarm(self)
         self.alarms_frame = tk.Frame(self, background=self.bg_alarms)
-
+        self.edit_alarm_obj = None
         self.alarms_frame.columnconfigure(0, weight=1)
         self.alarms_frame.columnconfigure(1, weight=1)
 
@@ -309,10 +312,6 @@ class Alarms(tk.Frame):
         self.btn_subsampl52 = self.btn_default.subsample(5, 2)
         self.small_widgets = self.btn_default.subsample(3, 2)
 
-        self.check_days = []
-        self.snoozed_alarms = []
-        self.snoozed_time = 1
-        self.checked_days = []
         self.__create_alarm_boxes_frame()
         # self.debug_alarm_add(self.alarms_frame)
         self.refresh_alarms()
@@ -323,7 +322,7 @@ class Alarms(tk.Frame):
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
         self.alarms_frame.grid(row=0, column=0, sticky=tk.NSEW)
-        self.edit_frame.grid(row=0, column=1, sticky=tk.NSEW)
+        # self.edit_frame.grid(row=0, column=1, sticky=tk.NSEW)
         self.config(background=self.bg_alarms)
 
     def __create_alarm_boxes_frame(self):
@@ -339,7 +338,7 @@ class Alarms(tk.Frame):
                               )
 
         add_button.config(
-            command=lambda f=self.alarms_frame: self.add_alarm(f))
+            command=lambda: self.add_alarm())
         alarm_title_lbl.grid(column=0, row=0, sticky=tk.NSEW)
         add_button.grid(column=1, row=0, padx=5, pady=1, sticky=tk.W)
 
@@ -374,8 +373,9 @@ class Alarms(tk.Frame):
                                 name=f"delete_{AppProperties.ALARM_PREFIX}{row_alarm}"
                                 )
 
-        alarm_box.config(state=alarm_text[ConfigProperties.STATE], command=lambda alarm_json=alarm_json,
-                         alarm_box=alarm_box: self.edit_frame.edit(alarm_json, alarm_box))
+        alarm_box.config(state=alarm_text[ConfigProperties.STATE],
+                         command=lambda alarm_json=alarm_json,
+                         alarm_box=alarm_box: self.edit_alarm(alarm_json, alarm_box))
         delete_alarm.config(command=lambda alarm_json=alarm_json: [
                             self.remove_alarm_box(alarm_json), alarm_box.destroy(), delete_alarm.destroy()])
 
@@ -387,21 +387,26 @@ class Alarms(tk.Frame):
                           padx=5, pady=1, sticky=tk.W)
         return alarm_box
 
-    def clear_edit_frame(self):
-        for widgets in self.edit_frame.winfo_children():
-            widgets.destroy()
+    def destroy_edit_alarm(self):
+        if self.edit_alarm_obj:
+            self.edit_alarm_obj.destroy()
+
+    def edit_alarm(self, alarm, btn):
+        self.destroy_edit_alarm()
+        self.edit_alarm_obj = EditAlarm(self, alarm, btn)
 
     def remove_alarm_box(self, json_alarm):
         self.alarms_list.pop_section(json_alarm)
-        self.clear_edit_frame()
+        self.destroy_edit_alarm()
+        self.refresh_alarms()
 
-    def add_alarm(self, frame):
+    def add_alarm(self):
         now = datetime.now()
         dt_string = now.strftime("%H:%M:%S")
         today_name = now.strftime("%a")
         # FIXME for now its only day in engluish to need to change that
-        row_alarm_box = frame.grid_size()[1]
-        self.alarms_list.add_alarm(f"{AppProperties.ALARM_PREFIX}{row_alarm_box}", dt_string, [
+        row_alarm_box = self.alarms_frame.grid_size()[1]
+        self.alarms_list.add_alarm(f"{AppProperties.ALARM_PREFIX}_{row_alarm_box}_{random.randint(0,100)}", dt_string, [
                                    today_name], 'none', self.snooze_time, '')
         self.refresh_alarms()
 
@@ -440,252 +445,266 @@ class Alarms(tk.Frame):
                 if today[0:3] in alarm_prop['days']:
 
                     if dt_string in alarm_prop['time']:
-                        self.AlarmPopup(self, self.config_alarm, alarm_prop)
+                        AlarmPopup(self, self.config_alarm, alarm_prop)
         self.alarms_frame.after(1000, self.set_alarms)
 
-    class AlarmPopup(tk.Tk):
-        def __init__(self, root, config_prop, alarm_popup, *args, **kwargs):
-            self.bg = config_prop["bg_color_alarm_popup"]["value"]
-            self.fg = config_prop["fg_color_alarm_popup"]["value"]
-            self.alarm_popup = alarm_popup
-            self.snooze_time = alarm_popup['snooze_time']
-            tk.Toplevel.__init__(
-                self, borderwidth=2, relief='raised', background=self.bg, *args, **kwargs)
-            self._root = root
-            self.eval(f'tk::PlaceWindow {str(self)} center')
-            self.sound_process = None
-            self.geometry(config_prop["alarm_popup_resolution"]["value"])
-            self.protocol("WM_DELETE_WINDOW", self.minimalize)
-            self.title(
-                f"{self.alarm_popup[ConfigProperties.TIME]} - {self.alarm_popup[ConfigProperties.DESCR]}")
-            self.mute_sound_txt = 'Mute sound'
-            self.play_sound_txt = 'Play sound'
-            self.img = PhotoImage(file=AppProperties.ALARMS_IMG)
-            self.img_button = self.img.subsample(2, 2)
-            self.relief_r = ['sunken', 'raised', 'flat', 'ridge', 'groove']
-            self.create_popup_widgets()
 
-            if config_prop["animation"]["value"]:
-                self.change_relief()
+class AlarmPopup(tk.Tk):
+    def __init__(self, root, config_prop, alarm_popup, *args, **kwargs):
+        self.bg = config_prop["bg_color_alarm_popup"]["value"]
+        self.fg = config_prop["fg_color_alarm_popup"]["value"]
+        self.alarm_popup = alarm_popup
+        self.snooze_time = alarm_popup['snooze_time']
+        tk.Toplevel.__init__(
+            self, borderwidth=2, relief='raised', background=self.bg, *args, **kwargs)
+        self._root = root
+        self.eval(f'tk::PlaceWindow {str(self)} center')
+        self.sound_process = None
+        self.geometry(config_prop["alarm_popup_resolution"]["value"])
+        self.protocol("WM_DELETE_WINDOW", self.minimalize)
+        self.title(
+            f"{self.alarm_popup[ConfigProperties.TIME]} - {self.alarm_popup[ConfigProperties.DESCR]}")
+        self.mute_sound_txt = 'Mute sound'
+        self.play_sound_txt = 'Play sound'
+        self.img = PhotoImage(file=AppProperties.ALARMS_IMG)
+        self.img_button = self.img.subsample(2, 2)
+        self.relief_r = ['sunken', 'raised', 'flat', 'ridge', 'groove']
+        self.create_popup_widgets()
 
-        def minimalize(self):
-            self.iconify()
+        if config_prop["animation"]["value"]:
+            self.change_relief()
 
-        def create_popup_widgets(self):
+    def minimalize(self):
+        self.iconify()
 
-            music_to_play = f"{AppProperties.SOUND_DIR}/{self.alarm_popup[ConfigProperties.SOUND]}"
-            alarm_format = [self.alarm_popup[ConfigProperties.TIME],
-                            ' '.join(
-                                [str(day) for day in self.alarm_popup[ConfigProperties.DAYS]]),
-                            self.alarm_popup[ConfigProperties.SOUND],
-                            self.alarm_popup[ConfigProperties.DESCR]]
-            for index, alarm_part in enumerate(alarm_format):
+    def create_popup_widgets(self):
 
-                MyLabel(self, alarm_part, self.fg, self.bg, image=self.img
-                        ).grid(row=index, column=0)
-            mute_sound_btn = MyButton(self, self.mute_sound_txt,
-                                      self.fg, self.bg,
-                                      image=self.img_button,
-                                      name=f"mute_alarm",
-                                      )
-            MyButton(self, 'Stop alarm', self.fg, self.bg, image=self.img_button,
-                     name=f"stop_alarm", command=lambda: self.stop_alarm()
-                     ).grid(row=0, column=1)
+        music_to_play = f"{AppProperties.SOUND_DIR}/{self.alarm_popup[ConfigProperties.SOUND]}"
+        alarm_format = [self.alarm_popup[ConfigProperties.TIME],
+                        ' '.join(
+            [str(day) for day in self.alarm_popup[ConfigProperties.DAYS]]),
+            self.alarm_popup[ConfigProperties.SOUND],
+            self.alarm_popup[ConfigProperties.DESCR]]
+        for index, alarm_part in enumerate(alarm_format):
 
-            self.snooze_btn = MyButton(self, 'Snooze alarm', self.fg, self.bg, image=self.img_button,
-                                       name=f"snooze_alarm"
-                                       )
+            MyLabel(self, alarm_part, self.fg, self.bg, image=self.img
+                    ).grid(row=index, column=0)
+        mute_sound_btn = MyButton(self, self.mute_sound_txt,
+                                  self.fg, self.bg,
+                                  image=self.img_button,
+                                  name=f"mute_alarm",
+                                  )
+        MyButton(self, 'Stop alarm', self.fg, self.bg, image=self.img_button,
+                 name=f"stop_alarm", command=lambda: self.stop_alarm()
+                 ).grid(row=0, column=1)
 
-            self.snooze_btn.config(command=lambda snooze_btn=self.snooze_btn, time=self.snooze_time,
-                                   snd=music_to_play: self.snooze_alarm(snooze_btn, time, snd))
-            self.snooze_btn.grid(row=0, column=2)
-            if self.start_sound(music_to_play):
-                mute_sound_btn.config(command=lambda mute_sound_btn=mute_sound_btn,
-                                      music_to_play=music_to_play: self.mute_sound(mute_sound_btn, music_to_play))
-                mute_sound_btn.grid(row=0, column=3)
-            # if sounds != none  toggle music button and play music threading
+        self.snooze_btn = MyButton(self, 'Snooze alarm', self.fg, self.bg, image=self.img_button,
+                                   name=f"snooze_alarm"
+                                   )
 
-        def change_relief(self):
+        self.snooze_btn.config(command=lambda snooze_btn=self.snooze_btn, time=self.snooze_time,
+                               snd=music_to_play: self.snooze_alarm(snooze_btn, time, snd))
+        self.snooze_btn.grid(row=0, column=2)
+        if self.start_sound(music_to_play):
+            mute_sound_btn.config(command=lambda mute_sound_btn=mute_sound_btn,
+                                  music_to_play=music_to_play: self.mute_sound(mute_sound_btn, music_to_play))
+            mute_sound_btn.grid(row=0, column=3)
+        # if sounds != none  toggle music button and play music threading
 
-            self.config(relief=random.choice(self.relief_r))
-            self.after(1000, self.change_relief)
+    def change_relief(self):
 
-        def stop_alarm(self):
-            self.destroy()
-            if self.sound_process != None:
-                self.sound_process.kill()
+        self.config(relief=random.choice(self.relief_r))
+        self.after(1000, self.change_relief)
 
-        def mute_sound(self, btn, music_to_play):
+    def stop_alarm(self):
+        self.destroy()
+        if self.sound_process != None:
             self.sound_process.kill()
-            if btn['text'] == self.mute_sound_txt:
-                btn['text'] = self.play_sound_txt
-                return
-            self.start_sound(music_to_play)
-            btn['text'] = self.mute_sound_txt
 
-        def snooze_alarm(self, sn_btn, time, snd):
-            snooze_time_now = datetime.now() + timedelta(minutes=time)
-            time_string = snooze_time_now.strftime("%H:%M:%S")
-            sn_btn['text'] = f'Snooze alarm\n {time_string}'
-            self.sound_process.kill()
-            self.snooze_btn['state'] = 'disabled'
-            time_ms = time * 60000
+    def mute_sound(self, btn, music_to_play):
+        self.sound_process.kill()
+        if btn['text'] == self.mute_sound_txt:
+            btn['text'] = self.play_sound_txt
+            return
+        self.start_sound(music_to_play)
+        btn['text'] = self.mute_sound_txt
 
-            self.minimalize()
-            self.after(time_ms, self.start_sound, snd)
+    def snooze_alarm(self, sn_btn, time, snd):
+        snooze_time_now = datetime.now() + timedelta(minutes=time)
+        time_string = snooze_time_now.strftime("%H:%M:%S")
+        sn_btn['text'] = f'Snooze alarm\n {time_string}'
+        self.sound_process.kill()
+        self.snooze_btn['state'] = 'disabled'
+        time_ms = time * 60000
 
-        def start_sound(self, snd_to_play):
-            self.snooze_btn['state'] = 'normal'
-            if AppProperties.SOUNDS_EXT in snd_to_play:
+        self.minimalize()
+        self.after(time_ms, self.start_sound, snd)
 
-                self.sound_process = multiprocessing.Process(
-                    target=playsound, args=(snd_to_play,))
-                self.sound_process.start()
-                return True
-            return False
+    def start_sound(self, snd_to_play):
+        self.snooze_btn['state'] = 'normal'
+        if AppProperties.SOUNDS_EXT in snd_to_play:
 
-    class EditAlarm(tk.Frame):
-        def __init__(self, root, *args, **kwargs):
-            self._root = root
-            self.img_edit = PhotoImage(file=AppProperties.ALARMS_IMG)
-            self.img_check_day = self.img_edit.subsample(5, 4)
-            self.btn_title = PhotoImage(file=AppProperties.TITLE_IMG)
-            self.config_edit = ConfigProperties.ALARMS_OPTIONS
-            self.alarms_list = ConfigProperties.ALARMS
-            self.fg_edit = self.config_edit['fg_color_edit']["value"]
-            self.bg_edit = self.config_edit['bg_color_edit']["value"]
-            self.f_s_hours_entry = self.config_edit['hours_entry_font_size']["value"]
-            self.f_s_select_snd = self.config_edit['select_sound_font_size']["value"]
-            self.font_edit = self.config_edit['font_family_edit']["value"]
-            tk.Frame.__init__(
-                self, root, background=self.bg_edit, *args, **kwargs)
+            self.sound_process = multiprocessing.Process(
+                target=playsound, args=(snd_to_play,))
+            self.sound_process.start()
+            return True
+        return False
 
-            self.check_days = None
-            self.checked_days = None
 
-        def create_sound_list_from_dir(self):
-            music_list = []
-            for file in glob.glob(f"{AppProperties.SOUND_DIR}/*{AppProperties.SOUNDS_EXT}"):
-                # FIXME sounds = const?
-                music_list.append(file)
-            return music_list
+class EditAlarm(tk.Tk):
+    def __init__(self, root, alarm, alarm_btn, *args, **kwargs):
+        self.img_edit = PhotoImage(file=AppProperties.ALARMS_IMG)
+        self.img_check_day = self.img_edit.subsample(5, 4)
+        self.btn_title = PhotoImage(file=AppProperties.TITLE_IMG)
+        self.config_edit = ConfigProperties.ALARMS_OPTIONS
+        self.alarms_list = ConfigProperties.ALARMS
+        self.fg_edit = self.config_edit['fg_color_edit']["value"]
+        self.bg_edit = self.config_edit['bg_color_edit']["value"]
+        self.f_s_hours_entry = self.config_edit['hours_entry_font_size']["value"]
+        self.f_s_select_snd = self.config_edit['select_sound_font_size']["value"]
+        self.font_edit = self.config_edit['font_family_edit']["value"]
+        self.day_names = self.config_edit['day_name']["value"].split(",")
 
-        def create_sound_selection(self, sound):
-            s = ttk.Style()
+        tk.Toplevel.__init__(
+            self, borderwidth=2, relief='raised', background=self.bg_edit, *args, **kwargs)
+        self.eval(f'tk::PlaceWindow {str(self)} right')
+        self.geometry('500x500')
+        self.overrideredirect(True)
+        self.checkbox_days = None
+        self.checked_days = None
+        self.selected_snd = tk.StringVar()
+        self.edit(alarm, alarm_btn)
 
-            s.configure('my.TMenubutton', font=(self.font_edit,
-                        self.f_s_select_snd), image=self.img_edit,
-                        background=self.bg_edit, foreground=self.fg_edit,
-                        compound=tk.CENTER,
-                        )
-            selected_snd = tk.StringVar()
-            selected_snd.set(AppProperties.SOUND_DIR+'\\'+sound)
-            choose_music = ttk.OptionMenu(
-                self, selected_snd, "", *self.create_sound_list_from_dir(), style='my.TMenubutton')
-            choose_music.grid(column=2, row=0, sticky=tk.NSEW)
-            choose_music.config()
-            return selected_snd
+    def edit(self, json_alarm, alarm_box):
 
-        def save_alarm(self, alarm_json, alarm_box, hour, descr, snd_save, snooze_time):
-            new_days = []
-            new_sound = snd_save.split('\\')[1]
-            for day_check in self.check_days:
-                if 'selected' in day_check.state():
-                    new_days.append(day_check['text'][0:3])
-                    # FIXME 0:3 changed to dyunamical
-            alarm_format = f"{hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound} \n {snooze_time}"
-            alarm_box['text'] = alarm_format
-            self.alarms_list.modify_alarm(
-                alarm_json, hour, new_days, new_sound, snooze_time, descr)
+        self.checkbox_days = []
+        self.checked_days = []
 
-        def create_checkbox_days(self, alarm_format):
-            day_names = self.config_edit['day_name']["value"].split(",")
+        alarm_properties = self.alarms_list.section[json_alarm]
+        alarm_format = alarm_properties
+        alarm_description = alarm_properties["description"]
+        alarm_snooze = alarm_properties["snooze_time"]
+        alarm_format_lbl = f" {alarm_format[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[ConfigProperties.DAYS]])} \n {alarm_format[ConfigProperties.SOUND]}"
 
-            checkbox_days_frame = tk.Frame(self, bg=self.bg_edit)
-            checkbox_days_frame.grid(
-                row=5, column=0, columnspan=len(day_names), sticky=tk.NSEW)
+        hours_entry = MyEntry(self, self.fg_edit, self.bg_edit,
+                              "Alarm's hours", self.btn_title,
+                              alarm_format[ConfigProperties.TIME],
+                              font=(self.font_edit, self.f_s_hours_entry))
 
-            s_check_bx = ttk.Style()
-            s_check_bx.configure('my.TCheckbutton',
-                                 image=self.img_check_day,
-                                 background=self.bg_edit,
-                                 foreground=self.fg_edit
-                                 )
+        description_entry = MyEntry(self, self.fg_edit, self.bg_edit,
+                                    'Description', self.btn_title, alarm_description,
+                                    font=(self.font_edit, self.f_s_hours_entry))
 
-            # save editing alarm button and add to grid
-            self.check_days.clear()
-            self.checked_days.clear()
-            for indx, day in enumerate(day_names):
-                check_button_day = ttk.Checkbutton(
-                    checkbox_days_frame, compound=tk.CENTER, text=day, style='my.TCheckbutton')
-                if day[0:3] in alarm_format[ConfigProperties.DAYS]:
-                    # FIXME should be first letter from config, but for now it is like this
-                    self.checked_days.append(tk.IntVar(value=1))
-                    check_button_day.config(
-                        variable=self.checked_days[indx])
-                else:
-                    self.checked_days.append(tk.IntVar(value=0))
-                check_button_day.grid(row=0, column=indx, sticky=tk.W)
-                self.check_days.append(check_button_day)
-            # this loop is creating each day of the week and add it to checkbutton in array and add to grid
+        snooze_time_entry = MyEntry(self, self.fg_edit, self.bg_edit,
+                                    'Snooze Time', self.btn_title, alarm_snooze,
+                                    width=10,
+                                    font=(self.font_edit, self.f_s_hours_entry))
 
-        def edit(self, json_alarm, alarm_box):
-            self.check_days = self._root.check_days
-            self.checked_days = self._root.checked_days
+        ''' ALARM TITLE  '''
+        MyLabel(self, alarm_format_lbl,
+                self.fg_edit, self.bg_edit,
+                image=self.img_edit
+                ).grid(column=0, row=0, columnspan=3, sticky=tk.NSEW)
+        ''' ALARM TITLE  '''
+        save_btn = MyButton(self, "Save", self.fg_edit, self.bg_edit,
+                            image=self.img_edit, name=f"save_alarm"
+                            )
+        cancel_btn = MyButton(self, "Cancel", self.fg_edit, self.bg_edit,
+                              image=self.img_edit, name=f"cancel_btn"
+                              )
+        choose_music = self.create_sound_selection(
+            alarm_format[ConfigProperties.SOUND])
 
-            alarm_properties = self.alarms_list.section[json_alarm]
-            alarm_format = alarm_properties
-            alarm_description = alarm_properties["description"]
-            alarm_snooze = alarm_properties["snooze_time"]
-            alarm_format_lbl = f" {alarm_format[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[ConfigProperties.DAYS]])} \n {alarm_format[ConfigProperties.SOUND]}"
+        cancel_btn.config(command=lambda: self.edit_quit())
+        save_btn.config(command=lambda: self.save_alarm(
+            json_alarm, alarm_box, hours_entry.entry.get(),
+            description_entry.entry.get(), self.selected_snd.get(),
+            snooze_time_entry.entry.get())
+        )
+        checkbox_days_frame = self.create_checkbox_days(alarm_format)
 
-            hours_entry = MyEntry(self, self.fg_edit, self.bg_edit,
-                                  "Alarm's hours", self.btn_title,
-                                  alarm_format[ConfigProperties.TIME],
-                                  font=(self.font_edit, self.f_s_hours_entry))
+        description_entry.grid(column=1, row=1, sticky=tk.NSEW)
+        hours_entry.grid(column=1, row=2, sticky=tk.NSEW)
+        snooze_time_entry.grid(column=1, row=3, sticky=tk.NSEW)
+        cancel_btn.grid(column=0, row=5, sticky=tk.NSEW)
+        save_btn.grid(column=1, row=5, sticky=tk.NSEW)
+        choose_music.grid(column=0, row=1, rowspan=3, sticky=tk.NSEW)
 
-            description_entry = MyEntry(self, self.fg_edit, self.bg_edit,
-                                        'Description', self.btn_title, alarm_description,
-                                        font=(self.font_edit, self.f_s_hours_entry))
+        checkbox_days_frame.grid(
+            row=4, column=0, columnspan=len(self.day_names), sticky=tk.NSEW)
 
-            snooze_time_entry = MyEntry(self, self.fg_edit, self.bg_edit,
-                                        'Snooze Time', self.btn_title, alarm_snooze,
-                                        width=10,
-                                        font=(self.font_edit, self.f_s_hours_entry))
+    def create_sound_list_from_dir(self):
+        music_list = []
+        for file in glob.glob(f"{AppProperties.SOUND_DIR}/*{AppProperties.SOUNDS_EXT}"):
+            music_list.append(file)
+        return music_list
 
-            hours_entry.grid(column=1, row=2, sticky=tk.NSEW)
-            description_entry.grid(column=1, row=1, sticky=tk.NSEW)
-            snooze_time_entry.grid(column=1, row=3, sticky=tk.NSEW)
-            ''' ALARM TITLE  '''
-            MyLabel(self, alarm_format_lbl,
-                    self.fg_edit, self.bg_edit,
-                    image=self.img_edit
-                    ).grid(column=1, row=0, sticky=tk.NS)
-            ''' ALARM TITLE  '''
-            save_btn = MyButton(self, "Save", self.fg_edit, self.bg_edit,
-                                image=self.img_edit, name=f"save_alarm"
-                                )
+    def create_sound_selection(self, sound):
+        s = ttk.Style()
+        s.configure('my.TMenubutton', font=(self.font_edit,
+                    self.f_s_select_snd), image=self.img_edit,
+                    background=self.bg_edit, foreground=self.fg_edit,
+                    compound=tk.CENTER,
+                    )
 
-            selected_snd = self.create_sound_selection(
-                alarm_format[ConfigProperties.SOUND])
+        self.selected_snd.set(AppProperties.SOUND_DIR+'\\'+sound)
+        choose_music = ttk.OptionMenu(
+            self, self.selected_snd, "", *self.create_sound_list_from_dir(), style='my.TMenubutton')
+        return choose_music
 
-            save_btn.config(command=lambda: self.save_alarm(
-                json_alarm, alarm_box, hours_entry.entry.get(), description_entry.entry.get(), selected_snd.get(), snooze_time_entry.entry.get()))
-            save_btn.grid(column=2, row=2, sticky=tk.NSEW)
+    def save_alarm(self, alarm_json, alarm_box, hour, descr, snd_save, snooze_time):
+        new_days = []
+        new_sound = snd_save.split('\\')[1]
+        for day_check in self.checkbox_days:
+            if 'selected' in day_check.state():
+                new_days.append(day_check['text'][0:3])
+                # FIXME 0:3 changed to dyunamical
+        alarm_format = f"{hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound} \n {snooze_time}"
+        alarm_box['text'] = alarm_format
+        self.alarms_list.modify_alarm(
+            alarm_json, hour, new_days, new_sound, snooze_time, descr)
 
-            self.create_sound_list_from_dir()
+        self.edit_quit()
 
-            self.create_checkbox_days(alarm_format)
+    def create_checkbox_days(self, alarm_format):
 
+        checkbox_days_frame = tk.Frame(self, bg=self.bg_edit)
+
+        s_check_bx = ttk.Style()
+        s_check_bx.configure('my.TCheckbutton',
+                             image=self.img_check_day,
+                             background=self.bg_edit,
+                             foreground=self.fg_edit
+                             )
+
+        # save editing alarm button and add to grid
+        self.checkbox_days.clear()
+        self.checked_days.clear()
+        for indx, day in enumerate(self.day_names):
+            check_button_day = ttk.Checkbutton(
+                checkbox_days_frame, compound=tk.CENTER, text=day, style='my.TCheckbutton')
+            if day[0:3] in alarm_format[ConfigProperties.DAYS]:
+                # FIXME should be first letter from config, but for now it is like this
+                self.checked_days.append(tk.IntVar(value=1))
+                check_button_day.config(
+                    variable=self.checked_days[indx])
+            else:
+                self.checked_days.append(tk.IntVar(value=0))
+            check_button_day.grid(row=0, column=indx, sticky=tk.W)
+            self.checkbox_days.append(check_button_day)
+        return checkbox_days_frame
+        # this loop is creating each day of the week and add it to checkbutton in array and add to grid
+
+    def edit_quit(self):
+        self.destroy()
 
 # TODO Timer description popup?
 # TODO My widgets = frame/entry and other that i used at least 2 times
 # TODO Image background for frames
 # TODO Mimimalize piopup to start menu? or sth like this
 # TODO playsound change for other function with volume down? if can
-# TODO settings color picker? if can
-# TODO my widgets = fe. Entry(title(if no title no label), value for fe. lbl,entry itd)
-# TODO colorpicker for settings
+
+
 class Timer(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
@@ -728,7 +747,7 @@ class Timer(tk.Frame):
             if "time_value" in slave.winfo_name():
                 slave.destroy()
 
-        for index, section in enumerate(sorted(self.saved_times.section['timer'], reverse=True)):
+        for index, section in enumerate(sorted(self.saved_times.section[AppProperties.TIMER_PREFIX], reverse=True)):
             sec_lbl = MyLabel(self.time_frame, str(index+1) + ". " + section,
                               self.fg_timer, self.bg_timer,
                               name=section+'/time_value_data',
@@ -737,14 +756,14 @@ class Timer(tk.Frame):
                               )
             # Data and index
             sec_lbl.grid(column=0, row=index+1, sticky=tk.NSEW)
-            MyLabel(self.time_frame, self.saved_times.section['timer'][section]['value'],
+            MyLabel(self.time_frame, self.saved_times.section[AppProperties.TIMER_PREFIX][section]['value'],
                     self.fg_timer, self.bg_timer,
                     borderwidth=2, relief='raised',
                     font=(self.font_timer, self.f_s_timer),
                     name='time_value_time'+str(index)
                     ).grid(column=1, row=index+1, sticky=tk.NSEW)
             # Time
-            MyLabel(self.time_frame, self.saved_times.section['timer'][section]['description'],
+            MyLabel(self.time_frame, self.saved_times.section[AppProperties.TIMER_PREFIX][section]['description'],
                     self.fg_timer, self.bg_timer,
                     font=(self.font_timer, self.f_s_timer),
                     name='time_value_description'+str(index),
@@ -762,7 +781,7 @@ class Timer(tk.Frame):
                      ).grid(column=3, row=index+1, sticky=tk.E)
 
     def pop_and_refresh(self, sect_name):
-        self.saved_times.pop_section('timer', sect_name)
+        self.saved_times.pop_section(AppProperties.TIMER_PREFIX, sect_name)
         self.refresh_saved_times()
 
     def create_timer_widgets(self):
@@ -865,7 +884,7 @@ class Timer(tk.Frame):
         time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
         timer_value = f"{self.timer_start_value} {':'.join([str(time) for time in self.timer_time if time > 0])}"
         self.saved_times.add_time(
-            'timer', time_now, timer_value, entry_desc.get())
+            AppProperties.TIMER_PREFIX, time_now, timer_value, entry_desc.get())
         entry_timer.delete(0, 'end')
         self.timer_time = [0] * len(self.timer_time)
         self.toggle_start_pause(sp_btn, entry_timer, stop, '0', True)
@@ -965,7 +984,7 @@ class Stopwatch(tk.Frame):
         for slave in self.time_frame.grid_slaves():
             if "time_value" in slave.winfo_name():
                 slave.destroy()
-        for index, section in enumerate(sorted(self.saved_times.section['stopwatch'], reverse=True)):
+        for index, section in enumerate(sorted(self.saved_times.section[AppProperties.STOPWATCH_PREFIX], reverse=True)):
             sec_lbl = MyLabel(self.time_frame, str(index+1) + ". " + section,
                               self.fg_stopwatch, self.bg_stopwatch,
                               name=section+'/time_value_data',
@@ -974,7 +993,7 @@ class Stopwatch(tk.Frame):
                               )
             # Data and index
             sec_lbl.grid(column=0, row=index+1, sticky=tk.NSEW)
-            MyLabel(self.time_frame, self.saved_times.section['stopwatch'][section]['value'],
+            MyLabel(self.time_frame, self.saved_times.section[AppProperties.STOPWATCH_PREFIX][section]['value'],
                     self.fg_stopwatch, self.bg_stopwatch,
                     borderwidth=2, relief='raised',
                     font=(self.font_stopwatch, self.f_s_stopwatch),
@@ -982,7 +1001,7 @@ class Stopwatch(tk.Frame):
                     ).grid(column=1, row=index+1, sticky=tk.NSEW)
             # Time
 
-            MyLabel(self.time_frame, self.saved_times.section['stopwatch'][section]['description'],
+            MyLabel(self.time_frame, self.saved_times.section[AppProperties.STOPWATCH_PREFIX][section]['description'],
                     self.fg_stopwatch, self.bg_stopwatch,
                     font=(self.font_stopwatch, self.f_s_stopwatch),
                     name='time_value_description'+str(index),
@@ -1000,7 +1019,7 @@ class Stopwatch(tk.Frame):
                      ).grid(column=3, row=index+1, sticky=tk.E)
 
     def pop_and_refresh(self, sect_name):
-        self.saved_times.pop_section('stopwatch', sect_name)
+        self.saved_times.pop_section(AppProperties.STOPWATCH_PREFIX, sect_name)
         self.refresh_saved_times()
 
     def create_savedtimes_widgets(self):
@@ -1059,10 +1078,12 @@ class Stopwatch(tk.Frame):
                                name=f"{AppProperties.START_TXT.lower()}/{AppProperties.PAUSE_TXT.lower()}"
                                )
 
-        start_pause.config(command=lambda lbl=stopwatch_lbl, btn=start_pause, stp=stop,
-                           delay=delay_entry.entry.get(): self.toggle_start_pause(btn, lbl, stp, delay))
-        stop.config(command=lambda lbl=stopwatch_lbl, btn=stop, sp=start_pause,
-                    entry=desc_entry.entry: self.stop_stopwatch(btn, sp, lbl, entry))
+        start_pause.config(command=lambda: self.toggle_start_pause(
+            start_pause, stopwatch_lbl, stop, delay_entry.entry.get()))
+
+        stop.config(command=lambda: self.stop_stopwatch(
+            stop, start_pause, stopwatch_lbl, desc_entry.entry.get()))
+
         stopwatch_title_lbl.pack()
         stopwatch_lbl.pack(expand=True)
         desc_entry.pack(side=tk.LEFT)
@@ -1074,14 +1095,14 @@ class Stopwatch(tk.Frame):
             self.countdown_time(watch_label)
             btn.config(text=AppProperties.START_TXT)
             return
+        print(delay)
         if btn['text'] == AppProperties.START_TXT:
             def start_counting():
                 btn.config(text=AppProperties.PAUSE_TXT)
                 self.countdown_time(watch_label, True)
                 stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
             if delay.isdigit() and int(delay) > 0:
-
-                delay_int = int(delay.get())
+                delay_int = int(delay)
                 timer = threading.Timer(float(delay_int), start_counting)
                 timer.start()
             else:
@@ -1097,8 +1118,8 @@ class Stopwatch(tk.Frame):
     def stop_stopwatch(self, stop, start_pause_button, watch_label, entry_desc):
         time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 
-        self.saved_times.add_time('stopwatch', time_now, ':'.join(
-            [str(time) for time in self.stopwatch_time if time > 0]), entry_desc.get())
+        self.saved_times.add_time(AppProperties.STOPWATCH_PREFIX, time_now, ':'.join(
+            [str(time) for time in self.stopwatch_time if time > 0]), entry_desc)
         self.toggle_start_pause(
             start_pause_button, watch_label, stop, '0', True)
         self.stopwatch_time = [0] * len(self.stopwatch_time)
