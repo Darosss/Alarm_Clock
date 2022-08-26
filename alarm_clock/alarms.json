@@ -1,59 +1,46 @@
 {
-    "alarm_box1": {
-        "time": "20:09:02",
+    "alarm_box_5_77": {
+        "time": "21:52:30",
         "days": [
             "Mon",
-            "Fri",
-            "Sat",
-            "Sun"
+            "Thu",
+            "Pi",
+            "Sob",
+            "N"
         ],
-        "sound": "2.mp3",
+        "sound": "3.mp3",
         "state": "normal",
-        "description": "ZJ32 mrowki"
+        "snooze_time": 2,
+        "description": ""
     },
-    "alarm_box3": {
-        "time": "21:10:22",
+    "alarm_box_3_63": {
+        "time": "18:30:33",
         "days": [
             "Fri"
         ],
         "sound": "none",
         "state": "normal",
-        "description": "sader"
+        "snooze_time": 10,
+        "description": ""
     },
-    "alarm_box4": {
-        "time": "11:11:44",
+    "alarm_box_4_90": {
+        "time": "18:30:34",
         "days": [
             "Fri"
         ],
-        "sound": "1.mp3",
+        "sound": "none",
         "state": "normal",
-        "description": "dziwki w dupie"
+        "snooze_time": 10,
+        "description": ""
     },
-    "alarm_box5": {
-        "time": "14:12:10",
+    "alarm_box_5_3": {
+        "time": "18:31:15",
         "days": [
-            "Sun"
+            "Fri"
         ],
         "sound": "none",
         "state": "normal",
-        "description": "disabled"
-    },
-    "alarm_box6": {
-        "time": "14:14:48",
-        "days": [
-            "Sun"
-        ],
-        "sound": "4.mp3",
-        "state": "normal",
-        "description": "321312"
-    },
-    "alarm_box7": {
-        "time": "14:02:25",
-        "days": [
-            "Mon"
-        ],
-        "sound": "none",
-        "state": "normal",
+        "snooze_time": 10,
         "description": ""
     }
 }

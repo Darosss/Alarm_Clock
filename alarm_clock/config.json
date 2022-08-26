@@ -9,7 +9,7 @@
       "description": "Background color app"
     },
     "resolution_settings": {
-      "value": "1400x500",
+      "value": "1500x500",
       "description": "Settings resolution"
     },
     "fg_color_settings": {
@@ -115,7 +115,7 @@
       "description": "Alarm window popup foreground"
     },
     "day_name": {
-      "value": "Mon,Wed,Tue,Thu,Fri,Sat,Sun",
+      "value": "Mon,Tue,Wed,Thu,Fri,Sat,Sun",
       "description": "Names of days separated by [,](always take 3 first for now)"
     },
     "bg_color_edit": {
@@ -170,6 +170,10 @@
     }
   },
   "timer_options": {
+    "timer_popup_resolution": {
+      "value": "400x500",
+      "description": "Alarm popup resolution"
+    },
     "bg_color_timer": {
       "value": "blue",
       "description": "Alarm labels font isze"
