@@ -844,8 +844,7 @@ class EditAlarm(tk.Tk):
                 text=day,
                 style="my.TCheckbutton",
             )
-            if day[0:3] in alarm_format[ConfigProperties.DAYS]:
-                # FIXME should be first letter from config, but for now it is like this
+            if day in alarm_format[ConfigProperties.DAYS]:
                 self.checked_days.append(tk.IntVar(value=1))
                 check_button_day.config(variable=self.checked_days[indx])
             else:
