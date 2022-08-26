@@ -813,8 +813,7 @@ class EditAlarm(tk.Tk):
         new_sound = snd_save.split("\\")[1]
         for day_check in self.checkbox_days:
             if "selected" in day_check.state():
-                new_days.append(day_check["text"][0:3])
-                # FIXME 0:3 changed to dyunamical
+                new_days.append(day_check["text"])
         alarm_format = f"{hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound} \n {snooze_time}"
         alarm_box["text"] = alarm_format
         self.alarms_list.modify_alarm(
