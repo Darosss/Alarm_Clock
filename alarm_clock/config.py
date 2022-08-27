@@ -1,3 +1,4 @@
+import copy
 import json
 
 
@@ -79,3 +80,8 @@ class ConfigJSON:
             config_json.seek(0)
             json.dump(self.json_conf, config_json, indent=4)
             config_json.truncate()
+
+    def restore_defaults(self, default):
+        with open(default, "r") as default:
+            with open(self.config, "w") as config:
+                config.write(default.read())

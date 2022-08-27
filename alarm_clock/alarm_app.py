@@ -1,6 +1,5 @@
-from re import M
 import tkinter as tk
-from tkinter import PhotoImage, ttk, colorchooser
+from tkinter import PhotoImage, colorchooser, messagebox
 from datetime import datetime, timedelta
 from config import ConfigJSON
 from my_widgets import MyButton, MyLabel, MyEntry
@@ -21,6 +20,7 @@ class ConfigProperties:
     CONFIG = ConfigJSON("config.json")
     ALARMS = ConfigJSON("alarms.json")
     SAVED_TIMES = ConfigJSON("saved_times.json")
+    DEFAULT_CONFIG = "default_config.json"
     TIME = "time"
     DAYS = "days"
     SOUND = "sound"
@@ -119,6 +119,7 @@ class SettingsWindow(tk.Tk):
         self.attributes("-topmost", "true")
         self.create_settings_widgets()
         self.create_save_btn()
+        self.create_default_button()
 
     def create_save_btn(self):
         save_btn = MyButton(
@@ -127,7 +128,15 @@ class SettingsWindow(tk.Tk):
         save_btn.grid(column=0, row=0, sticky=tk.W)
         save_btn.config(command=lambda: self.save_settings())
 
+    def create_default_button(self):
+        default_btn = MyButton(
+            self, "Default", self.fg, self.bg, image=self.btn_default, name="default_btn"
+        )
+        default_btn.grid(column=0, row=1, sticky=tk.W)
+        default_btn.config(command=lambda: self.restore_default())
+
     def create_settings_widgets(self):
+
         for index, section in enumerate(self.all_sections):
 
             sectionFrame = tk.Frame(
@@ -214,6 +223,14 @@ class SettingsWindow(tk.Tk):
                             sect_and_key[0], sect_and_key[1], option_value
                         )
 
+    def restore_default(self):
+        MsgBox = messagebox.askquestion(
+            'Default settings', 'Are you sure you want to set the settings to default?', icon='warning', parent=self)
+        if MsgBox == 'yes':
+            self.all_config.restore_defaults(ConfigProperties.DEFAULT_CONFIG)
+            messagebox.showinfo(
+                'Default settings', 'Settings set to default. Restart application to update', parent=self)
+
     def add_button_section(self, section_name):
         row_grid = self.grid_size()[1] + 1
         return MyButton(
@@ -227,7 +244,7 @@ class SettingsWindow(tk.Tk):
 
 
 class MainMenu(tk.Menu):
-    @property
+    @ property
     def root(self):
         return self._root
 
@@ -690,7 +707,7 @@ class EditAlarm(tk.Tk):
             **kwargs,
         )
         self.eval(f"tk::PlaceWindow {str(self)} right")
-        self.geometry("500x500")
+        self.geometry(self.config_edit["alarm_edit_resolution"]["value"])
         self.overrideredirect(True)
         self.checkbox_days = None
         self.checked_days = None
@@ -1129,7 +1146,6 @@ class Timer(tk.Frame):
             self.time_entry.entry.insert(1, self.format_time_array())
 
             if sum(t for t in self.timer_time) > 0:
-                print(self.format_time_array())
                 self.is_counting = self.time_entry.entry.after(1, time)
                 self.timer_time[4] = self.timer_time[4] - 1
                 return
@@ -1169,14 +1185,13 @@ class Timer(tk.Frame):
         return text_to_show[:-1]
 
 
-# FIXME delay bug start multiple(disable start button and create stop delay button)
 # TODO Create default.json for default options?
 # TODO Volume of alarm(probbaly not with playsound )
 # TODO Random alarm from list? (could be done, not necessary for now)
 # TODO Validation for Hours edit, time in stopwatch/timer, delay stopwatch/timer, config
 # TODO My widgets = checkbox, opiotnmenu?
 # TODO timer popup (sound, animation like in alarmpopup)
-
+# TODO scrollable settings
 
 class TimerPopup(tk.Tk):
     def __init__(self, root, description, start_time, *args, **kwargs):
