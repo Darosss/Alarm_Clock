@@ -1,4 +1,5 @@
 import multiprocessing
+import random
 from my_widgets import *
 from app_properties import *
 import tkinter as tk
@@ -18,7 +19,7 @@ class Timer(tk.Frame):
         self.f_s_timer = self.config_timer["font_size_timer"]["value"]
         self.font_timer = self.config_timer["font_timer"]["value"]
         self.sound_timer = self.config_timer["sound_timer"]["value"]
-        tk.Frame.__init__(self, root, *args, **kwargs)
+        tk.Frame.__init__(self, root, borderwidth=2, *args, **kwargs)
         self.btn_default = PhotoImage(file=AppProperties.TIMER_IMG)
         self.low_height_widgets = self.btn_default.subsample(3, 2)
         self.btn_title = PhotoImage(file=AppProperties.TITLE_IMG)
@@ -317,10 +318,10 @@ class Timer(tk.Frame):
 
 class TimerPopup(tk.Tk):
     def __init__(self, root, description, start_time, *args, **kwargs):
-        self.config_alarm = ConfigProperties.TIMER_OPTIONS
-        self.bg = self.config_alarm["bg_color_timer"]["value"]
-        self.fg = self.config_alarm["fg_color_timer"]["value"]
-        self.res = self.config_alarm["timer_popup_resolution"]["value"]
+        self.config_timer = ConfigProperties.TIMER_OPTIONS
+        self.bg = self.config_timer["bg_color_timer"]["value"]
+        self.fg = self.config_timer["fg_color_timer"]["value"]
+        self.res = self.config_timer["timer_popup_resolution"]["value"]
         self.btn_default = PhotoImage(file=AppProperties.ALARMS_IMG)
         self.btn_small = self.btn_default.subsample(3, 2)
 
@@ -340,6 +341,13 @@ class TimerPopup(tk.Tk):
 
         self.create_popup_widgets(description)
         self.start_sound()
+        self.relief_r = ["sunken", "raised", "flat", "ridge", "groove"]
+        if self.config_timer["animation"]["value"]:
+            self.change_relief()
+
+    def change_relief(self):
+        self.config(relief=random.choice(self.relief_r))
+        self.after(1000, self.change_relief)
 
     def create_popup_widgets(self, desc):
         txt_format = f"Description: \n{desc}\nStarter timer: \n {self.start_time}"
