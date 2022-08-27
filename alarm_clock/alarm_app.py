@@ -151,7 +151,8 @@ class SettingsWindow(tk.Tk):
                 image=self.img_section,
                 font=(self.settings_font, int(self.font_size**1.2)),
                 name=section + "_btn",
-                command=lambda secFram=sectionFrame: self.show_settings(secFram),
+                command=lambda secFram=sectionFrame: self.show_settings(
+                    secFram),
             ).grid(column=self.grid_size()[0] + 1, row=1, sticky=tk.W)
 
     def choose_color(self, entry):
@@ -305,7 +306,8 @@ class MenuFrame(tk.Frame):
         for slave in self._root.grid_slaves(row=1, column=0):
             slave.grid_forget()
             slave.grid_remove()
-        what.grid(column=col_grid, row=row_grid, columnspan=colspan, sticky=tk.NSEW)
+        what.grid(column=col_grid, row=row_grid,
+                  columnspan=colspan, sticky=tk.NSEW)
 
 
 class FooterFrame(tk.Frame):
@@ -413,7 +415,8 @@ class Alarms(tk.Frame):
             state_now = "disabled"
         alarm_box[ConfigProperties.STATE] = state_now
         alarm_text[ConfigProperties.STATE] = state_now
-        self.alarms_list.modify_section(alarm_json, ConfigProperties.STATE, state_now)
+        self.alarms_list.modify_section(
+            alarm_json, ConfigProperties.STATE, state_now)
 
     def create_alarm(self, append, alarm_json, row_alarm):
         alarm_text = self.alarms_list.section[alarm_json]
@@ -458,7 +461,8 @@ class Alarms(tk.Frame):
         )
 
         alarm_box.grid(column=0, row=row_alarm + 2)
-        delete_alarm.grid(column=1, row=row_alarm + 2, padx=5, pady=1, sticky=tk.W)
+        delete_alarm.grid(column=1, row=row_alarm + 2,
+                          padx=5, pady=1, sticky=tk.W)
         return alarm_box
 
     def destroy_edit_alarm(self):
@@ -570,7 +574,8 @@ class AlarmPopup(tk.Tk):
         )
         alarm_format = [
             self.alarm_popup[ConfigProperties.TIME],
-            " ".join([str(day) for day in self.alarm_popup[ConfigProperties.DAYS]]),
+            " ".join([str(day)
+                     for day in self.alarm_popup[ConfigProperties.DAYS]]),
             self.alarm_popup[ConfigProperties.SOUND],
             self.alarm_popup[ConfigProperties.DESCR],
         ]
@@ -755,7 +760,8 @@ class EditAlarm(tk.Tk):
             image=self.img_edit,
             name=f"cancel_btn",
         )
-        choose_music = self.create_sound_selection(alarm_format[ConfigProperties.SOUND])
+        choose_music = self.create_sound_selection(
+            alarm_format[ConfigProperties.SOUND])
 
         cancel_btn.config(command=lambda: self.edit_quit())
         save_btn.config(
@@ -875,6 +881,12 @@ class Timer(tk.Frame):
         self.timer_frame = tk.Frame(
             self, borderwidth=1, background=self.bg_timer, relief="sunken"
         )
+        self.start_pause_btn = None
+        self.stop_btn = None
+        self.entry_desc = None
+        self.delay_entry = None
+        self.time_entry = None
+        self.timer_delay = None
 
         self.saved_frame = tk.Frame(
             self, borderwidth=1, background=self.bg_timer, relief="sunken"
@@ -902,7 +914,8 @@ class Timer(tk.Frame):
                 slave.destroy()
 
         for index, section in enumerate(
-            sorted(self.saved_times.section[AppProperties.TIMER_PREFIX], reverse=True)
+            sorted(
+                self.saved_times.section[AppProperties.TIMER_PREFIX], reverse=True)
         ):
             sec_lbl = MyLabel(
                 self.time_frame,
@@ -978,11 +991,11 @@ class Timer(tk.Frame):
             ":".join(str(x) for x in self.timer_time),
         )
 
-        delay_entry = MyEntry(
+        self.delay_entry = MyEntry(
             self.timer_frame, self.fg_timer, self.bg_timer, "Delay", self.btn_title
         )
 
-        self.desc_entry = MyEntry(
+        self.entry_desc = MyEntry(
             self.timer_frame,
             self.fg_timer,
             self.bg_timer,
@@ -1007,22 +1020,21 @@ class Timer(tk.Frame):
             image=self.low_height_widgets,
             name=f"{AppProperties.START_TXT.lower()}/{AppProperties.PAUSE_TXT.lower()}",
         )
-
-        self.start_pause_btn.config(
-            command=lambda entry_timer=self.time_entry.entry, btn=self.start_pause_btn, stp=self.stop_btn, delay=delay_entry.entry: self.toggle_start_pause(
-                btn, entry_timer, stp, delay
-            )
+        self.btn_stop_delay = MyButton(
+            self.timer_frame,
+            AppProperties.STOP_TXT + " delay",
+            self.fg_timer,
+            self.bg_timer,
+            image=self.low_height_widgets,
+            name='stop_delay',
         )
-        self.stop_btn.config(
-            command=lambda entry_timer=self.time_entry.entry, btn=self.stop_btn, sp_btn=self.start_pause_btn: self.stop_timer(
-                btn, sp_btn, entry_timer, self.desc_entry
-            )
-        )
-
+        self.start_pause_btn.config(command=lambda: self.toggle_start_pause())
+        self.stop_btn.config(command=lambda: self.stop_timer())
+        self.btn_stop_delay.config(command=lambda: self.stop_delay())
         timer_title_lbl.pack(side=tk.TOP)
         self.time_entry.pack(expand=True)
-        self.desc_entry.pack(side=tk.LEFT)
-        delay_entry.pack(side=tk.RIGHT)
+        self.entry_desc.pack(side=tk.LEFT)
+        self.delay_entry.pack(side=tk.RIGHT)
         self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
     def create_savedtimes_widgets(self):
@@ -1059,71 +1071,76 @@ class Timer(tk.Frame):
         self.saved_times_time.grid(column=1, row=0)
         self.saved_times_descript.grid(column=2, row=0)
 
-    def toggle_start_pause(self, btn, entry_timer, stop_btn, delay="0", stop=False):
-        if stop:
-            self.countdown_time(entry_timer)
-            btn.config(text=AppProperties.START_TXT)
-            return
-        if btn["text"] == AppProperties.START_TXT:
+    def stop_delay(self):
+        self.timer_delay.cancel()
+        self.start_pause_btn['state'] = 'normal'
+        self.start_pause_btn['text'] = AppProperties.START_TXT
+        self.btn_stop_delay.pack_forget()
+
+    def toggle_start_pause(self):
+        if self.start_pause_btn["text"] == AppProperties.START_TXT:
 
             def start_counting():
+                self.btn_stop_delay.pack_forget()
+                self.start_pause_btn["state"] = "normal"
                 self.timer_start_value = self.format_time_array()
-                btn.config(text=AppProperties.PAUSE_TXT)
-                self.countdown_time(entry_timer, True)
-                stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
+                self.start_pause_btn.config(text=AppProperties.PAUSE_TXT)
+                self.countdown_time(True)
+                self.stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
-            if sum(int(w) for w in entry_timer.get().split(":")) > 0:
-                self.timer_time = entry_timer.get().split(":")
+            if sum(int(w) for w in self.time_entry.entry.get().split(":")) > 0:
+                self.btn_stop_delay.pack(side=tk.TOP, fill=tk.BOTH)
+                self.start_pause_btn["state"] = "disabled"
+                self.start_pause_btn["text"] = AppProperties.START_TXT + " delay"
+                self.timer_time = self.time_entry.entry.get().split(":")
                 self.timer_time = list(map(int, self.timer_time))
-                if delay.get().isdigit() and int(delay.get()) > 0:
-                    delay_int = int(delay.get())
-                    timer = threading.Timer(float(delay_int), start_counting)
-                    timer.start()
+                if self.delay_entry.entry.get().isdigit() and int(self.delay_entry.entry.get()) > 0:
+                    delay_int = int(self.delay_entry.entry.get())
+                    self.timer_delay = threading.Timer(
+                        float(delay_int), start_counting)
+                    self.timer_delay.start()
                 else:
                     start_counting()
-        elif btn["text"] == AppProperties.PAUSE_TXT:
-            btn.config(text=AppProperties.RESUME_TXT)
-            self.countdown_time(entry_timer)
-        elif btn["text"] == AppProperties.RESUME_TXT:
-            btn.config(text=AppProperties.PAUSE_TXT)
-            self.countdown_time(entry_timer, True)
+        elif self.start_pause_btn["text"] == AppProperties.PAUSE_TXT:
+            self.start_pause_btn.config(text=AppProperties.RESUME_TXT)
+            self.countdown_time(self.time_entry)
+        elif self.start_pause_btn["text"] == AppProperties.RESUME_TXT:
+            self.start_pause_btn.config(text=AppProperties.PAUSE_TXT)
+            self.countdown_time(self.time_entry, True)
 
-    def stop_timer(self, stop, sp_btn, entry_timer, entry_desc):
+    def stop_timer(self):
         time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
         timer_value = f"{self.timer_start_value} {':'.join([str(time) for time in self.timer_time if time > 0])}"
         self.saved_times.add_time(
-            AppProperties.TIMER_PREFIX, time_now, timer_value, entry_desc.get()
+            AppProperties.TIMER_PREFIX, time_now, timer_value, self.entry_desc.entry.get()
         )
-        entry_timer.delete(0, "end")
+        self.countdown_time()
+        self.start_pause_btn.config(text=AppProperties.START_TXT)
+        self.time_entry.entry.delete(0, "end")
         self.timer_time = [0] * len(self.timer_time)
-        self.toggle_start_pause(sp_btn, entry_timer, stop, "0", True)
-        entry_timer.insert(1, ":".join(str(x) for x in self.timer_time))
-        stop.pack_forget()
+        self.time_entry.entry.insert(1, ":".join(str(x)
+                                     for x in self.timer_time))
+        self.stop_btn.pack_forget()
         self.refresh_saved_times()
 
-    def countdown_time(self, time_entry, start=False):
+    def countdown_time(self, start=False):
         def time():
-            time_entry.delete(0, "end")
-            time_entry.insert(1, self.format_time_array())
+            self.time_entry.entry.delete(0, "end")
+            self.time_entry.entry.insert(1, self.format_time_array())
 
             if sum(t for t in self.timer_time) > 0:
                 print(self.format_time_array())
-                self.is_counting = time_entry.after(1, time)
+                self.is_counting = self.time_entry.entry.after(1, time)
                 self.timer_time[4] = self.timer_time[4] - 1
                 return
             else:
-                TimerPopup(self, self.desc_entry.entry.get(), self.timer_start_value)
-                self.stop_timer(
-                    self.stop_btn,
-                    self.start_pause_btn,
-                    self.time_entry.entry,
-                    self.desc_entry.entry,
-                )
-
+                TimerPopup(self, self.entry_desc.entry.get(),
+                           self.timer_start_value)
+                self.stop_timer()
                 return
 
         if not start:
-            time_entry.after_cancel(self.is_counting)
+            self.time_entry.after_cancel(self.is_counting)
             return
 
         time()
@@ -1222,6 +1239,12 @@ class Stopwatch(tk.Frame):
         self.stopwatch_frame = tk.Frame(
             self, borderwidth=1, background=self.bg_stopwatch, relief="sunken"
         )
+        self.stopwatch_lbl = None
+        self.start_pause_btn = None
+        self.btn_stop_delay = None
+        self.timer_delay = None
+        self.entry_desc = None
+        self.delay_entry = None
 
         self.saved_frame = tk.Frame(
             self, borderwidth=1, background=self.bg_stopwatch, relief="sunken"
@@ -1230,7 +1253,8 @@ class Stopwatch(tk.Frame):
         self.stopwatch_frame.pack(side=tk.RIGHT, expand=True, fill=tk.BOTH)
         self.saved_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
-        self.time_frame = tk.Frame(self.saved_frame, background=self.bg_stopwatch)
+        self.time_frame = tk.Frame(
+            self.saved_frame, background=self.bg_stopwatch)
         for i in range(3):
             self.time_frame.columnconfigure(i, weight=1)
 
@@ -1349,7 +1373,7 @@ class Stopwatch(tk.Frame):
             image=self.btn_default,
             font=(self.font_stopwatch, self.f_s_stopwatch),
         )
-        stopwatch_lbl = MyLabel(
+        self.stopwatch_lbl = MyLabel(
             self.stopwatch_frame,
             "",
             self.fg_stopwatch,
@@ -1357,7 +1381,7 @@ class Stopwatch(tk.Frame):
             font=(self.font_stopwatch, self.f_s_stopwatch),
         )
 
-        delay_entry = MyEntry(
+        self.delay_entry = MyEntry(
             self.stopwatch_frame,
             self.fg_stopwatch,
             self.bg_stopwatch,
@@ -1365,7 +1389,7 @@ class Stopwatch(tk.Frame):
             self.btn_title,
         )
 
-        desc_entry = MyEntry(
+        self.entry_desc = MyEntry(
             self.stopwatch_frame,
             self.fg_stopwatch,
             self.bg_stopwatch,
@@ -1373,7 +1397,7 @@ class Stopwatch(tk.Frame):
             self.btn_title,
         )
 
-        stop = MyButton(
+        self.stop_btn = MyButton(
             self.stopwatch_frame,
             AppProperties.STOP_TXT,
             self.fg_stopwatch,
@@ -1382,7 +1406,7 @@ class Stopwatch(tk.Frame):
             name=AppProperties.STOP_TXT.lower(),
         )
 
-        start_pause = MyButton(
+        self.start_pause_btn = MyButton(
             self.stopwatch_frame,
             AppProperties.START_TXT,
             self.fg_stopwatch,
@@ -1390,64 +1414,78 @@ class Stopwatch(tk.Frame):
             image=self.low_height_widgets,
             name=f"{AppProperties.START_TXT.lower()}/{AppProperties.PAUSE_TXT.lower()}",
         )
-
-        start_pause.config(
-            command=lambda: self.toggle_start_pause(
-                start_pause, stopwatch_lbl, stop, delay_entry.entry.get()
-            )
+        self.btn_stop_delay = MyButton(
+            self.stopwatch_frame,
+            AppProperties.STOP_TXT + " delay",
+            self.fg_stopwatch,
+            self.bg_stopwatch,
+            image=self.low_height_widgets,
+            name='stop_delay',
+        )
+        self.start_pause_btn.config(
+            command=lambda: self.toggle_start_pause()
         )
 
-        stop.config(
-            command=lambda: self.stop_stopwatch(
-                stop, start_pause, stopwatch_lbl, desc_entry.entry.get()
-            )
+        self.stop_btn.config(
+            command=lambda: self.stop_stopwatch()
         )
-
+        self.btn_stop_delay.config(command=lambda: self.stop_delay())
         stopwatch_title_lbl.pack()
-        stopwatch_lbl.pack(expand=True)
-        desc_entry.pack(side=tk.LEFT)
-        delay_entry.pack(side=tk.RIGHT)
-        start_pause.pack(side=tk.TOP, fill=tk.BOTH)
+        self.stopwatch_lbl.pack(expand=True)
+        self.entry_desc.pack(side=tk.LEFT)
+        self.delay_entry.pack(side=tk.RIGHT)
+        self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
-    def toggle_start_pause(self, btn, watch_label, stop_btn, delay="0", stop=False):
-        if stop:
-            self.countdown_time(watch_label)
-            btn.config(text=AppProperties.START_TXT)
-            return
-        print(delay)
-        if btn["text"] == AppProperties.START_TXT:
+    def stop_delay(self):
+        self.timer_delay.cancel()
+        self.start_pause_btn['state'] = 'normal'
+        self.start_pause_btn['text'] = AppProperties.START_TXT
+        self.btn_stop_delay.pack_forget()
 
+    def toggle_start_pause(self):
+        if self.start_pause_btn["text"] == AppProperties.START_TXT:
             def start_counting():
-                btn.config(text=AppProperties.PAUSE_TXT)
-                self.countdown_time(watch_label, True)
-                stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
+                self.btn_stop_delay.pack_forget()
+                self.start_pause_btn["state"] = "normal"
+                self.start_pause_btn.config(text=AppProperties.PAUSE_TXT)
+                self.countdown_time(self.stopwatch_lbl, True)
+                self.stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
-            if delay.isdigit() and int(delay) > 0:
-                delay_int = int(delay)
-                timer = threading.Timer(float(delay_int), start_counting)
-                timer.start()
+            # if delay stop delay
+            if self.delay_entry.entry.get().isdigit() and int(self.delay_entry.entry.get()) > 0:
+
+                self.btn_stop_delay.pack(side=tk.TOP, fill=tk.BOTH)
+                self.start_pause_btn["state"] = "disabled"
+                self.start_pause_btn["text"] = AppProperties.START_TXT + " delay"
+                delay_int = int(self.delay_entry.entry.get())
+                self.timer_delay = threading.Timer(
+                    float(delay_int), start_counting)
+                self.timer_delay.start()
             else:
                 start_counting()
-        elif btn["text"] == AppProperties.PAUSE_TXT:
-            btn.config(text=AppProperties.RESUME_TXT)
-            self.countdown_time(watch_label)
-        elif btn["text"] == AppProperties.RESUME_TXT:
 
-            btn.config(text=AppProperties.PAUSE_TXT)
-            self.countdown_time(watch_label, True)
+        elif self.start_pause_btn["text"] == AppProperties.PAUSE_TXT:
+            self.start_pause_btn.config(text=AppProperties.RESUME_TXT)
+            self.countdown_time(self.stopwatch_lbl)
+        elif self.start_pause_btn["text"] == AppProperties.RESUME_TXT:
 
-    def stop_stopwatch(self, stop, start_pause_button, watch_label, entry_desc):
+            self.start_pause_btn.config(text=AppProperties.PAUSE_TXT)
+            self.countdown_time(self.stopwatch_lbl, True)
+
+    def stop_stopwatch(self):
         time_now = datetime.now().strftime("%m-%d-%Y %H:%M:%S")
 
         self.saved_times.add_time(
             AppProperties.STOPWATCH_PREFIX,
             time_now,
             ":".join([str(time) for time in self.stopwatch_time if time > 0]),
-            entry_desc,
+            self.entry_desc.entry.get(),
         )
-        self.toggle_start_pause(start_pause_button, watch_label, stop, "0", True)
+
+        self.start_pause_btn['text'] = AppProperties.START_TXT
+        self.countdown_time(self.stopwatch_lbl)
         self.stopwatch_time = [0] * len(self.stopwatch_time)
-        stop.pack_forget()
+        self.stop_btn.pack_forget()
         self.refresh_saved_times()
 
     def format_time_array(self):
