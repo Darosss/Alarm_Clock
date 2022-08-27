@@ -1,8 +1,8 @@
 import tkinter as tk
-from tkinter import PhotoImage, colorchooser, messagebox
+from tkinter import PhotoImage, colorchooser, messagebox, ttk
 from datetime import datetime, timedelta
 from config import ConfigJSON
-from my_widgets import MyButton, MyLabel, MyEntry
+from my_widgets import MyButton, MyLabel, MyEntry, MyOptionMenu
 from playsound import playsound
 import multiprocessing
 import glob2 as glob
@@ -14,6 +14,13 @@ pkg_resources.require("playsound==1.2.2")
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
 # It's first interract with tkinter
+
+# TODO Volume of alarm(probbaly not with playsound )
+# TODO Random alarm from list? (could be done, not necessary for now)
+# TODO Validation for Hours edit, time in stopwatch/timer, delay stopwatch/timer, config
+# TODO My widgets = checkbox, opiotnmenu?
+# TODO timer popup (sound, animation like in alarmpopup)
+# TODO scrollable settings
 
 
 class ConfigProperties:
@@ -39,6 +46,7 @@ class AppProperties:
     IMAGES_DIR = ConfigProperties.APP_SETTINGS["images_dir"]["value"]
     SOUND_DIR = ConfigProperties.APP_SETTINGS["sounds_dir"]["value"]
     SOUNDS_EXT = f".{ConfigProperties.APP_SETTINGS['sounds_ext']['value']}"
+    TIMER_SND = f"timer{SOUNDS_EXT}"
     START_TXT = ConfigProperties.APP_SETTINGS["start_txt"]["value"]
     STOP_TXT = ConfigProperties.APP_SETTINGS["stop_txt"]["value"]
     PAUSE_TXT = ConfigProperties.APP_SETTINGS["pause_txt"]["value"]
@@ -689,6 +697,7 @@ class EditAlarm(tk.Tk):
         self.img_edit = PhotoImage(file=AppProperties.ALARMS_IMG)
         self.img_check_day = self.img_edit.subsample(5, 4)
         self.btn_title = PhotoImage(file=AppProperties.TITLE_IMG)
+
         self.config_edit = ConfigProperties.ALARMS_OPTIONS
         self.alarms_list = ConfigProperties.ALARMS
         self.fg_edit = self.config_edit["fg_color_edit"]["value"]
@@ -759,7 +768,7 @@ class EditAlarm(tk.Tk):
         """ ALARM TITLE  """
         MyLabel(
             self, alarm_format_lbl, self.fg_edit, self.bg_edit, image=self.img_edit
-        ).grid(column=0, row=0, columnspan=3, sticky=tk.NSEW)
+        ).grid(column=1, row=0, columnspan=2, sticky=tk.NSEW)
         """ ALARM TITLE  """
         save_btn = MyButton(
             self,
@@ -798,7 +807,7 @@ class EditAlarm(tk.Tk):
         snooze_time_entry.grid(column=1, row=3, sticky=tk.NSEW)
         cancel_btn.grid(column=0, row=5, sticky=tk.NSEW)
         save_btn.grid(column=1, row=5, sticky=tk.NSEW)
-        choose_music.grid(column=0, row=1, rowspan=3, sticky=tk.NSEW)
+        choose_music.grid(column=0, row=0)
 
         checkbox_days_frame.grid(
             row=4, column=0, columnspan=len(self.day_names), sticky=tk.NSEW
@@ -811,24 +820,11 @@ class EditAlarm(tk.Tk):
         return music_list
 
     def create_sound_selection(self, sound):
-        s = ttk.Style()
-        s.configure(
-            "my.TMenubutton",
-            font=(self.font_edit, self.f_s_select_snd),
-            image=self.img_edit,
-            background=self.bg_edit,
-            foreground=self.fg_edit,
-            compound=tk.CENTER,
-        )
-
         self.selected_snd.set(AppProperties.SOUND_DIR + "\\" + sound)
-        choose_music = ttk.OptionMenu(
-            self,
-            self.selected_snd,
-            "",
-            *self.create_sound_list_from_dir(),
-            style="my.TMenubutton",
-        )
+        choose_music = MyOptionMenu(self, self.fg_edit, self.bg_edit, 'Select sound',
+                                    self.btn_title, self.font_edit, self.f_s_select_snd,
+                                    self.img_edit, self.selected_snd,
+                                    *self.create_sound_list_from_dir())
         return choose_music
 
     def save_alarm(self, alarm_json, alarm_box, hour, descr, snd_save, snooze_time):
@@ -890,6 +886,7 @@ class Timer(tk.Frame):
         self.fg_timer = self.config_timer["fg_color_timer"]["value"]
         self.f_s_timer = self.config_timer["font_size_timer"]["value"]
         self.font_timer = self.config_timer["font_timer"]["value"]
+        self.sound_timer = self.config_timer["sound_timer"]["value"]
         tk.Frame.__init__(self, root, *args, **kwargs)
         self.btn_default = PhotoImage(file=AppProperties.TIMER_IMG)
         self.low_height_widgets = self.btn_default.subsample(3, 2)
@@ -904,7 +901,7 @@ class Timer(tk.Frame):
         self.delay_entry = None
         self.time_entry = None
         self.timer_delay = None
-
+        self.selected_snd = tk.StringVar()
         self.saved_frame = tk.Frame(
             self, borderwidth=1, background=self.bg_timer, relief="sunken"
         )
@@ -1045,6 +1042,7 @@ class Timer(tk.Frame):
             image=self.low_height_widgets,
             name='stop_delay',
         )
+
         self.start_pause_btn.config(command=lambda: self.toggle_start_pause())
         self.stop_btn.config(command=lambda: self.stop_timer())
         self.btn_stop_delay.config(command=lambda: self.stop_delay())
@@ -1052,6 +1050,7 @@ class Timer(tk.Frame):
         self.time_entry.pack(expand=True)
         self.entry_desc.pack(side=tk.LEFT)
         self.delay_entry.pack(side=tk.RIGHT)
+
         self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
     def create_savedtimes_widgets(self):
@@ -1185,14 +1184,6 @@ class Timer(tk.Frame):
         return text_to_show[:-1]
 
 
-# TODO Create default.json for default options?
-# TODO Volume of alarm(probbaly not with playsound )
-# TODO Random alarm from list? (could be done, not necessary for now)
-# TODO Validation for Hours edit, time in stopwatch/timer, delay stopwatch/timer, config
-# TODO My widgets = checkbox, opiotnmenu?
-# TODO timer popup (sound, animation like in alarmpopup)
-# TODO scrollable settings
-
 class TimerPopup(tk.Tk):
     def __init__(self, root, description, start_time, *args, **kwargs):
         self.config_alarm = ConfigProperties.TIMER_OPTIONS
@@ -1211,8 +1202,13 @@ class TimerPopup(tk.Tk):
         self.geometry(self.res)
         self.title(description)
         self.start_time = start_time
+        self.sound_process = None
+        self.music_to_play = (
+            f"{AppProperties.SOUND_DIR}/{AppProperties.TIMER_SND}"
+        )
 
         self.create_popup_widgets(description)
+        self.start_sound()
 
     def create_popup_widgets(self, desc):
         txt_format = f"Description: \n{desc}\nStarter timer: \n {self.start_time}"
@@ -1231,7 +1227,16 @@ class TimerPopup(tk.Tk):
         ).grid(row=0, column=1)
 
     def stop_timer(self):
+        if self.sound_process != None:
+            self.sound_process.kill()
         self.destroy()
+
+    def start_sound(self):
+        if AppProperties.SOUNDS_EXT in self.music_to_play:
+            self.sound_process = multiprocessing.Process(
+                target=playsound, args=(self.music_to_play,)
+            )
+            self.sound_process.start()
 
 
 class Stopwatch(tk.Frame):

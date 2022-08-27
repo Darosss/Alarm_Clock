@@ -178,6 +178,10 @@
       "value": "400x500",
       "description": "Alarm popup resolution"
     },
+    "sound_timer": {
+      "value": "timer",
+      "description": "Alarm popup resolution"
+    },
     "bg_color_timer": {
       "value": "blue",
       "description": "Alarm labels font isze"
