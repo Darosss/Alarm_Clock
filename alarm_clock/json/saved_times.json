@@ -1,0 +1,114 @@
+{
+    "stopwatch": {
+        "08-18-2022 14:00:20": {
+            "value": "7:464",
+            "description": "desc fro dgfdg"
+        },
+        "08-20-2022 18:19:51": {
+            "value": "1:54",
+            "description": "fdgdfg"
+        },
+        "08-21-2022 11:26:25": {
+            "value": "1:395",
+            "description": "Nowe desc"
+        },
+        "08-21-2022 11:28:14": {
+            "value": "354",
+            "description": "Description"
+        },
+        "08-21-2022 11:28:30": {
+            "value": "371",
+            "description": "Description"
+        },
+        "08-21-2022 11:28:34": {
+            "value": "341",
+            "description": "DescriptionDescriptionDescriptionDescriptionDescription"
+        },
+        "08-27-2022 16:55:07": {
+            "value": "903",
+            "description": ""
+        },
+        "08-27-2022 20:33:18": {
+            "value": "643",
+            "description": ""
+        },
+        "08-27-2022 20:34:16": {
+            "value": "750",
+            "description": ""
+        },
+        "08-27-2022 20:34:21": {
+            "value": "778",
+            "description": "3131"
+        }
+    },
+    "timer": {
+        "08-21-2022 11:28:34": {
+            "value": "1:10 11:38:34",
+            "description": "minuta dziesiec"
+        },
+        "08-21-2022 11:29:34": {
+            "value": "20 11:38:34",
+            "description": "20sec"
+        },
+        "08-27-2022 16:51:52": {
+            "value": "432 ",
+            "description": ""
+        },
+        "08-27-2022 16:52:23": {
+            "value": "432 ",
+            "description": ""
+        },
+        "08-27-2022 17:01:13": {
+            "value": "1:0 ",
+            "description": ""
+        },
+        "08-27-2022 17:01:22": {
+            "value": "3:0 1:614",
+            "description": ""
+        },
+        "08-27-2022 17:01:47": {
+            "value": "4:0 ",
+            "description": "4da"
+        },
+        "08-27-2022 17:35:54": {
+            "value": "2:0 ",
+            "description": ""
+        },
+        "08-27-2022 18:49:37": {
+            "value": "411 ",
+            "description": ""
+        },
+        "08-27-2022 18:50:00": {
+            "value": "411 ",
+            "description": ""
+        },
+        "08-27-2022 19:31:11": {
+            "value": "411 ",
+            "description": ""
+        },
+        "08-27-2022 19:44:36": {
+            "value": "1:0 ",
+            "description": ""
+        },
+        "08-27-2022 20:30:47": {
+            "value": "31:0 30:460",
+            "description": ""
+        },
+        "08-27-2022 20:30:55": {
+            "value": "31:0 30:65",
+            "description": ""
+        },
+        "08-27-2022 20:31:04": {
+            "value": "1:0 160",
+            "description": ""
+        },
+        "08-27-2022 20:31:11": {
+            "value": "1:0 573",
+            "description": "addad"
+        },
+        "08-27-2022 20:31:41": {
+            "value": "411 ",
+            "description": ""
+        }
+    }
+}
