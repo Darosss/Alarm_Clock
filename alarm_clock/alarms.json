@@ -1,14 +1,14 @@
 {
     "alarm_box_5_77": {
-        "time": "21:52:30",
+        "time": "18:42:41",
         "days": [
             "Mon",
+            "Tue",
             "Thu",
-            "Pi",
-            "Sob",
-            "N"
+            "Friday",
+            "Sat"
         ],
-        "sound": "3.mp3",
+        "sound": "1.mp3",
         "state": "normal",
         "snooze_time": 2,
         "description": ""
@@ -16,6 +16,7 @@
     "alarm_box_3_63": {
         "time": "18:30:33",
         "days": [
+            "Wed",
             "Fri"
         ],
         "sound": "none",
