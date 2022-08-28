@@ -1,17 +1,13 @@
 
 import datetime
 import glob
-import multiprocessing
 import random
 import re
 import tkinter as tk
 from tkinter import PhotoImage
-from playsound import playsound
 import vlc
 from my_widgets import *
 from app_properties import *
-import pkg_resources
-pkg_resources.require("playsound==1.2.2")
 
 # TODO Volume of alarm(probbaly not with playsound )
 # TODO Random alarm from list? (could be done, not necessary for now)
