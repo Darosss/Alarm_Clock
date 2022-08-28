@@ -1,4 +1,6 @@
 
+from re import A
+import re
 import tkinter as tk
 from tkinter import PhotoImage
 from app_properties import *
@@ -55,10 +57,10 @@ class Stopwatch(tk.Frame):
         for slave in self.time_frame.grid_slaves():
             if "time_value" in slave.winfo_name():
                 slave.destroy()
+
         for index, section in enumerate(
             sorted(
-                self.saved_times.section[AppProperties.STOPWATCH_PREFIX], reverse=True
-            )
+                self.saved_times.section[AppProperties.STOPWATCH_PREFIX], reverse=True)
         ):
             sec_lbl = MyLabel(
                 self.time_frame,
@@ -118,98 +120,53 @@ class Stopwatch(tk.Frame):
         self.saved_times.pop_section(AppProperties.STOPWATCH_PREFIX, sect_name)
         self.refresh_saved_times()
 
-    def create_savedtimes_widgets(self):
-        MyLabel(
-            self.saved_frame,
-            "Saved times",
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            image=self.btn_default,
-            font=(self.font_stopwatch, self.f_s_stopwatch),
-        ).pack()
-        self.saved_times_date = MyLabel(
-            self.time_frame,
-            "Data",
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            font=(self.font_stopwatch, self.f_s_stopwatch),
+    def create_entry(self, title, value="", **options):
+        entry = MyEntry(
+            self.stopwatch_frame,
+            self.fg_stopwatch, self.bg_stopwatch,
+            title, self.btn_title,
+            value,
+            **options
         )
-        self.saved_times_time = MyLabel(
-            self.time_frame,
-            "Time",
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            font=(self.font_stopwatch, self.f_s_stopwatch),
+        return entry
+
+    def int_validation(self, value):
+        pattern = r'^[-+]?[0-9]+$'
+        if re.fullmatch(pattern, value) is None:
+            return False
+        return True
+
+    def create_stopwatch_btn(self, text, name):
+        button = MyButton(
+            self.stopwatch_frame, text,
+            self.fg_stopwatch, self.bg_stopwatch,
+            image=self.low_height_widgets,
+            name=name,
         )
-        self.saved_times_descript = MyLabel(
-            self.time_frame,
-            "Description",
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            font=(self.font_stopwatch, self.f_s_stopwatch),
-        )
-        self.saved_times_date.grid(column=0, row=0)
-        self.saved_times_time.grid(column=1, row=0)
-        self.saved_times_descript.grid(column=2, row=0)
+        return button
 
     def create_stopwatch_widgets(self):
         stopwatch_title_lbl = MyLabel(
-            self.stopwatch_frame,
-            "Stopwatch",
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            image=self.btn_default,
+            self.stopwatch_frame, "Stopwatch",
+            self.fg_stopwatch, self.bg_stopwatch, image=self.btn_default,
             font=(self.font_stopwatch, self.f_s_stopwatch),
         )
         self.stopwatch_lbl = MyLabel(
-            self.stopwatch_frame,
-            "",
-            self.fg_stopwatch,
-            self.bg_stopwatch,
+            self.stopwatch_frame, "", self.fg_stopwatch, self.bg_stopwatch,
             font=(self.font_stopwatch, self.f_s_stopwatch),
         )
 
-        self.delay_entry = MyEntry(
-            self.stopwatch_frame,
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            "Delay",
-            self.btn_title,
-        )
+        int_valid = (self.register(self.int_validation), '%S')
+        self.delay_entry = self.create_entry(
+            "Delay", "0", validate='key', validatecommand=int_valid)
+        self.entry_desc = self.create_entry("Description")
+        self.stop_btn = self.create_stopwatch_btn(
+            AppProperties.STOP_TXT, AppProperties.STOP_TXT.lower())
+        self.start_pause_btn = self.create_stopwatch_btn(AppProperties.START_TXT,
+                                                         f"{AppProperties.START_TXT.lower()}/{AppProperties.PAUSE_TXT.lower()}")
+        self.btn_stop_delay = self.create_stopwatch_btn(
+            AppProperties.STOP_TXT + " delay", name=f"{AppProperties.STOP_TXT.lower()}_delay")
 
-        self.entry_desc = MyEntry(
-            self.stopwatch_frame,
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            "Description",
-            self.btn_title,
-        )
-
-        self.stop_btn = MyButton(
-            self.stopwatch_frame,
-            AppProperties.STOP_TXT,
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            image=self.low_height_widgets,
-            name=AppProperties.STOP_TXT.lower(),
-        )
-
-        self.start_pause_btn = MyButton(
-            self.stopwatch_frame,
-            AppProperties.START_TXT,
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            image=self.low_height_widgets,
-            name=f"{AppProperties.START_TXT.lower()}/{AppProperties.PAUSE_TXT.lower()}",
-        )
-        self.btn_stop_delay = MyButton(
-            self.stopwatch_frame,
-            AppProperties.STOP_TXT + " delay",
-            self.fg_stopwatch,
-            self.bg_stopwatch,
-            image=self.low_height_widgets,
-            name='stop_delay',
-        )
         self.start_pause_btn.config(
             command=lambda: self.toggle_start_pause()
         )
@@ -224,11 +181,53 @@ class Stopwatch(tk.Frame):
         self.delay_entry.pack(side=tk.RIGHT)
         self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
+    def create_label(self, text):
+        label = MyLabel(
+            self.time_frame,
+            text,
+            self.fg_stopwatch,
+            self.bg_stopwatch,
+            font=(self.font_stopwatch, self.f_s_stopwatch),
+        )
+        return label
+
+    def create_savedtimes_widgets(self):
+        MyLabel(
+            self.saved_frame,
+            "Saved times",
+            self.fg_stopwatch,
+            self.bg_stopwatch,
+            image=self.btn_default,
+            font=(self.font_stopwatch, self.f_s_stopwatch),
+        ).pack()
+        self.saved_times_date = self.create_label("Data")
+        self.saved_times_time = self.create_label("Time")
+        self.saved_times_descript = self.create_label("Description")
+
+        self.saved_times_date.grid(column=0, row=0)
+        self.saved_times_time.grid(column=1, row=0)
+        self.saved_times_descript.grid(column=2, row=0)
+
     def stop_delay(self):
         self.timer_delay.cancel()
         self.start_pause_btn['state'] = 'normal'
         self.start_pause_btn['text'] = AppProperties.START_TXT
         self.btn_stop_delay.pack_forget()
+
+    def start_counting(self):
+        self.delay_condition()
+        self.start_pause_btn.config(text=AppProperties.PAUSE_TXT)
+        self.countdown_time(self.stopwatch_lbl, True)
+        self.stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
+
+    def delay_condition(self, no_delay=True):
+        if no_delay:
+            self.btn_stop_delay.pack_forget()
+            self.start_pause_btn["state"] = "normal"
+        else:
+            self.btn_stop_delay.pack(side=tk.TOP, fill=tk.BOTH)
+            self.start_pause_btn["state"] = "disabled"
+            self.start_pause_btn["text"] = AppProperties.START_TXT + " delay"
 
     def toggle_start_pause(self):
         if self.start_pause_btn["text"] == AppProperties.START_TXT:
@@ -241,10 +240,8 @@ class Stopwatch(tk.Frame):
 
             # if delay stop delay
             if self.delay_entry.entry.get().isdigit() and int(self.delay_entry.entry.get()) > 0:
+                self.delay_condition(False)
 
-                self.btn_stop_delay.pack(side=tk.TOP, fill=tk.BOTH)
-                self.start_pause_btn["state"] = "disabled"
-                self.start_pause_btn["text"] = AppProperties.START_TXT + " delay"
                 delay_int = int(self.delay_entry.entry.get())
                 self.timer_delay = threading.Timer(
                     float(delay_int), start_counting)
@@ -276,6 +273,18 @@ class Stopwatch(tk.Frame):
         self.stop_btn.pack_forget()
         self.refresh_saved_times()
 
+    def countdown_time(self, time_lbl, start=False):
+        if not start:
+            time_lbl.after_cancel(self.counting_interval)
+            return
+
+        def time():
+            time_lbl.config(text=self.format_time_array())
+            self.counting_interval = time_lbl.after(1, time)
+            self.stopwatch_time[4] = self.stopwatch_time[4] + 1
+
+        time()
+
     def format_time_array(self):
         # 0 - days, 1 - hours, 2 - minutes, 3 - seconds, 4 miliseconds
         # its just for now, for look how it;ll look and maybe i'll change this
@@ -297,15 +306,3 @@ class Stopwatch(tk.Frame):
             elif found_more_0:
                 text_to_show += str(time_val) + ":"
         return text_to_show[:-1]
-
-    def countdown_time(self, time_lbl, start=False):
-        if not start:
-            time_lbl.after_cancel(self.counting_interval)
-            return
-
-        def time():
-            time_lbl.config(text=self.format_time_array())
-            self.counting_interval = time_lbl.after(1, time)
-            self.stopwatch_time[4] = self.stopwatch_time[4] + 1
-
-        time()
