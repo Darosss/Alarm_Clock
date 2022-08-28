@@ -1,15 +1,13 @@
-import multiprocessing
+
 import random
 import re
 from my_widgets import *
 from app_properties import *
 import tkinter as tk
 from tkinter import PhotoImage
-from playsound import playsound
 import datetime
 import threading
-
-# FIXME Bug iwth timer and validation
+import vlc
 
 
 class Timer(tk.Frame):
@@ -157,7 +155,7 @@ class Timer(tk.Frame):
         int_valid = (self.register(self.int_validation), '%S')
         sec_min_valid = (self.register(self.sec_min_validation), '%S')
         hours_valid = (self.register(self.hours_validation), '%S')
-        ms_valid = (self.register(self.ms_validation), '%P')
+        ms_valid = (self.register(self.ms_validation), '%S')
         self.time_entry.append(self.create_entry(
             'Days', '00',
             validate="focusout", validatecommand=int_valid)
@@ -199,10 +197,10 @@ class Timer(tk.Frame):
         self.btn_stop_delay.config(command=lambda: self.stop_delay())
         timer_title_lbl.pack(side=tk.TOP)
         for entry in self.time_entry:
-            entry.pack(side=tk.TOP)
+            entry.pack(side=tk.TOP, expand=True)
+        self.start_pause_btn.pack(side=tk.TOP)
         self.entry_desc.pack(side=tk.LEFT)
         self.delay_entry.pack(side=tk.RIGHT)
-        self.start_pause_btn.pack(side=tk.BOTTOM)
 
     def create_label(self, append, text='', **options):
         label = MyLabel(
@@ -242,7 +240,7 @@ class Timer(tk.Frame):
         self.timer_start_value = self.format_time_array()
         self.start_pause_btn['text'] = AppProperties.PAUSE_TXT
         self.countdown_time(True)
-        self.stop_btn.pack(side=tk.BOTTOM, fill=tk.BOTH)
+        self.stop_btn.pack(side=tk.TOP)
 
     def delay_condition(self, no_delay=True):
         if no_delay:
@@ -288,10 +286,7 @@ class Timer(tk.Frame):
         )
         self.countdown_time()
         self.start_pause_btn.config(text=AppProperties.START_TXT)
-        # self.time_entry.entry.delete(0, "end")
         self.timer_time = [0] * len(self.timer_time)
-        # self.time_entry.entry.insert(1, ":".join(str(x)
-        #  for x in self.timer_time))
         self.stop_btn.pack_forget()
         self.refresh_saved_times()
 
@@ -306,11 +301,9 @@ class Timer(tk.Frame):
 
         def time():
             self.insert_to_entries()
-            # self.time_entry.entry.delete(0, "end")
-            # self.time_entry.entry.insert(1, self.format_time_array())
-
-            if sum(t for t in self.timer_time) > 0:
+            if sum(t for t in self.timer_time) >= 0:
                 self.is_counting = ms_entry.entry.after(1, time)
+                self.format_time_array()
                 self.timer_time[4] = self.timer_time[4] - 1
                 return
             else:
@@ -363,14 +356,14 @@ class TimerPopup(tk.Tk):
         )
         self._root = root
         self.eval(f"tk::PlaceWindow {str(self)} center")
-        self.sound_process = None
         self.geometry(self.res)
         self.title(description)
         self.start_time = start_time
-        self.sound_process = None
         self.music_to_play = (
             f"{AppProperties.SOUND_DIR}/{AppProperties.TIMER_SND}"
         )
+        self.sound_play = None
+        self.volume_alarm = 100
 
         self.create_popup_widgets(description)
         self.start_sound()
@@ -399,13 +392,12 @@ class TimerPopup(tk.Tk):
         ).grid(row=0, column=1)
 
     def stop_timer(self):
-        if self.sound_process != None:
-            self.sound_process.kill()
+        if self.sound_play != None:
+            self.sound_play.stop()
         self.destroy()
 
     def start_sound(self):
         if AppProperties.SOUNDS_EXT in self.music_to_play:
-            self.sound_process = multiprocessing.Process(
-                target=playsound, args=(self.music_to_play,)
-            )
-            self.sound_process.start()
+            self.sound_play = vlc.MediaPlayer(self.music_to_play)
+            self.sound_play.audio_set_volume(self.volume_alarm)
+            self.sound_play.play()
