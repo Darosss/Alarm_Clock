@@ -29,12 +29,13 @@ class ConfigJSON:
             json.dump(self.json_conf, config_json, indent=4)
             config_json.truncate()
 
-    def modify_alarm(self, alarm, time, days, sound, snooze_time, description):
+    def modify_alarm(self, alarm, time, days, sound, snooze_time, volume, description):
         with open(self.config, 'r+') as config_json:
             self.json_conf[alarm]["time"] = time
             self.json_conf[alarm]["days"] = days
             self.json_conf[alarm]["sound"] = sound
             self.json_conf[alarm]["snooze_time"] = int(snooze_time)
+            self.json_conf[alarm]["volume_alarm"] = int(volume)
             self.json_conf[alarm]["description"] = description
 
             config_json.seek(0)

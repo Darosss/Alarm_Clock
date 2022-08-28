@@ -9,6 +9,8 @@ from playsound import playsound
 import datetime
 import threading
 
+# FIXME Bug iwth timer and validation
+
 
 class Timer(tk.Frame):
     def __init__(self, root, *args, **kwargs):
@@ -76,7 +78,7 @@ class Timer(tk.Frame):
             self.create_label(self.time_frame,
                               self.saved_times.section[AppProperties.TIMER_PREFIX][section]["description"],
                               name="time_value_description" + str(index), borderwidth=2, relief="raised",
-                              wraplength=100, justify=tk.LEFT,
+                              justify=tk.LEFT,
                               ).grid(column=2, row=index + 1, sticky=tk.NSEW)
             # Description
             MyButton(
@@ -200,12 +202,12 @@ class Timer(tk.Frame):
             entry.pack(side=tk.TOP)
         self.entry_desc.pack(side=tk.LEFT)
         self.delay_entry.pack(side=tk.RIGHT)
-        self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
+        self.start_pause_btn.pack(side=tk.BOTTOM)
 
     def create_label(self, append, text='', **options):
         label = MyLabel(
             append, text,
-            self.fg_timer, self.bg_timer,
+            self.fg_timer, self.bg_timer, 100,
             font=(self.font_timer, self.f_s_timer),
             **options
         )
@@ -240,7 +242,7 @@ class Timer(tk.Frame):
         self.timer_start_value = self.format_time_array()
         self.start_pause_btn['text'] = AppProperties.PAUSE_TXT
         self.countdown_time(True)
-        self.stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
+        self.stop_btn.pack(side=tk.BOTTOM, fill=tk.BOTH)
 
     def delay_condition(self, no_delay=True):
         if no_delay:

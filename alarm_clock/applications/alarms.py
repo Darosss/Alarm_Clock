@@ -7,6 +7,7 @@ import re
 import tkinter as tk
 from tkinter import PhotoImage
 from playsound import playsound
+import vlc
 from my_widgets import *
 from app_properties import *
 import pkg_resources
@@ -14,6 +15,7 @@ pkg_resources.require("playsound==1.2.2")
 
 # TODO Volume of alarm(probbaly not with playsound )
 # TODO Random alarm from list? (could be done, not necessary for now)
+# TODO scrollable alarms
 
 
 class Alarms(tk.Frame):
@@ -89,7 +91,12 @@ class Alarms(tk.Frame):
     def create_alarm(self, append, alarm_json, row_alarm):
         alarm_text = self.alarms_list.section[alarm_json]
 
-        alarm_format = f"{alarm_text[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_text[ConfigProperties.DAYS]])} \n {alarm_text[ConfigProperties.SOUND]} \n {alarm_text[ConfigProperties.SNOOZE_TIME]}"
+        alarm_format = f'''{alarm_text[ConfigProperties.TIME]}
+{' '.join([str(elem) for elem in alarm_text[ConfigProperties.DAYS]])}
+{alarm_text[ConfigProperties.SOUND]}
+Snooze: {alarm_text[ConfigProperties.SNOOZE_TIME]}
+V:{alarm_text[ConfigProperties.VOLUME_ALARM]}
+'''
         alarm_box = MyButton(
             append,
             alarm_format,
@@ -211,12 +218,13 @@ class AlarmPopup(tk.Tk):
         self.fg = self.config_alarm["fg_color_alarm_popup"]["value"]
         self.alarm_popup = alarm_popup
         self.snooze_time = alarm_popup["snooze_time"]
+        self.volume_alarm = alarm_popup['volume_alarm']
         tk.Toplevel.__init__(
             self, borderwidth=2, relief="raised", background=self.bg, *args, **kwargs
         )
         self._root = root
         self.eval(f"tk::PlaceWindow {str(self)} center")
-        self.sound_process = None
+        self.sound_play = None
         self.geometry(self.config_alarm["alarm_popup_resolution"]["value"])
         self.protocol("WM_DELETE_WINDOW", self.minimalize)
         self.title(
@@ -288,35 +296,34 @@ class AlarmPopup(tk.Tk):
         if self.start_sound(music_to_play):
             mute_sound_btn.config(
                 command=lambda mute_sound_btn=mute_sound_btn, music_to_play=music_to_play: self.mute_sound(
-                    mute_sound_btn, music_to_play
+                    mute_sound_btn
                 )
             )
             mute_sound_btn.grid(row=0, column=3)
         # if sounds != none  toggle music button and play music threading
 
     def change_relief(self):
-
         self.config(relief=random.choice(self.relief_r))
         self.after(1000, self.change_relief)
 
     def stop_alarm(self):
         self.destroy()
-        if self.sound_process != None:
-            self.sound_process.kill()
+        if self.sound_play != None:
+            self.sound_play.stop()
 
-    def mute_sound(self, btn, music_to_play):
-        self.sound_process.kill()
+    def mute_sound(self, btn):
+        self.sound_play.set_pause(1)
         if btn["text"] == self.mute_sound_txt:
             btn["text"] = self.play_sound_txt
             return
-        self.start_sound(music_to_play)
+        self.sound_play.set_pause(0)
         btn["text"] = self.mute_sound_txt
 
     def snooze_alarm(self, sn_btn, time, snd):
         snooze_time_now = datetime.datetime.now() + datetime.timedelta(minutes=time)
         time_string = snooze_time_now.strftime("%H:%M:%S")
         sn_btn["text"] = f"Snooze alarm\n {time_string}"
-        self.sound_process.kill()
+        self.sound_play.stop()
         self.snooze_btn["state"] = "disabled"
         time_ms = time * 60000
 
@@ -326,10 +333,9 @@ class AlarmPopup(tk.Tk):
     def start_sound(self, snd_to_play):
         self.snooze_btn["state"] = "normal"
         if AppProperties.SOUNDS_EXT in snd_to_play:
-            self.sound_process = multiprocessing.Process(
-                target=playsound, args=(snd_to_play,)
-            )
-            self.sound_process.start()
+            self.sound_play = vlc.MediaPlayer(snd_to_play)
+            self.sound_play.audio_set_volume(self.volume_alarm)
+            self.sound_play.play()
             return True
         return False
 
@@ -397,6 +403,7 @@ class EditAlarm(tk.Tk):
         alarm_format = alarm_properties
         alarm_description = alarm_properties["description"]
         alarm_snooze = alarm_properties["snooze_time"]
+        volume = alarm_properties['volume_alarm']
         alarm_format_lbl = f" {alarm_format[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[ConfigProperties.DAYS]])} \n {alarm_format[ConfigProperties.SOUND]}"
         time_frame = tk.Frame(self)
         sec_min_valid = (self.register(self.sec_min_validation), '%P')
@@ -433,6 +440,9 @@ class EditAlarm(tk.Tk):
         snooze_time_entry = self.create_edit_entries(self,
                                                      "Snooze Time", alarm_snooze, width=3)
 
+        volume_entry = self.create_edit_entries(self,
+                                                "Volume", volume, width=3)
+
         """ ALARM TITLE  """
         MyLabel(
             self, alarm_format_lbl, self.fg_edit, self.bg_edit, image=self.img_edit
@@ -464,6 +474,7 @@ class EditAlarm(tk.Tk):
                 alarm_box,
                 description_entry.entry.get(),
                 self.selected_snd.get(),
+                volume_entry.entry.get(),
                 snooze_time_entry.entry.get(),
             )
         )
@@ -474,6 +485,7 @@ class EditAlarm(tk.Tk):
             entr.pack(side=tk.LEFT)
         time_frame.grid(column=0, row=2, sticky=tk.NSEW)
         snooze_time_entry.grid(column=0, row=3, sticky=tk.NSEW)
+        volume_entry.grid(column=1, row=2, sticky=tk.NSEW)
         cancel_btn.grid(column=0, row=5, sticky=tk.NSEW)
         save_btn.grid(column=1, row=5, sticky=tk.NSEW)
         choose_music.grid(column=1, row=0)
@@ -502,17 +514,24 @@ class EditAlarm(tk.Tk):
             alarm_format += entr.entry.get()+":"
         return alarm_format[:-1]
 
-    def save_alarm(self, alarm_json, alarm_box, descr, snd_save, snooze_time):
+    def save_alarm(self, alarm_json, alarm_box, descr, snd_save, volume, snooze_time):
         new_days = []
         hour = self.from_entries_to_hour()
         new_sound = snd_save.split("\\")[1]
         for day_check in self.checkbox_days:
             if "selected" in day_check.state():
                 new_days.append(day_check["text"])
-        alarm_format = f"{hour} \n{' '.join([str(elem) for elem in new_days])}\n {new_sound} \n {snooze_time}"
+        alarm_format = f'''{hour}
+{' '.join([str(elem) for elem in new_days])}
+{new_sound}
+Snooze: {snooze_time}
+V:{volume}
+'''
+
         alarm_box["text"] = alarm_format
+
         self.alarms_list.modify_alarm(
-            alarm_json, hour, new_days, new_sound, snooze_time, descr
+            alarm_json, hour, new_days, new_sound, snooze_time, volume, descr
         )
 
         self.edit_quit()

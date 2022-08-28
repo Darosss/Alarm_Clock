@@ -1,5 +1,7 @@
+from textwrap import wrap
 import tkinter as tk
 from tkinter import ttk
+# TODO My widgets = checkbox
 
 
 class MyButton(tk.Button):
@@ -13,18 +15,20 @@ class MyButton(tk.Button):
             background=bg,
             activebackground=bg,
             compound='center',
+            wraplength=200,
             **options
         )
 
 
 class MyLabel(tk.Label):
-    def __init__(self, master, text, fg='black', bg='white', **options):
+    def __init__(self, master, text, fg='black', bg='white', wraplength=200, **options):
         tk.Label.__init__(
             self, master,
             text=text,
             foreground=fg,
             background=bg,
             compound='center',
+            wraplength=wraplength,
             **options
         )
 
@@ -72,6 +76,7 @@ class MyOptionMenu(tk.Frame):
             background=bg,
             foreground=fg,
             compound=tk.CENTER,
+            wraplength=200
         )
         self.option_menu = ttk.OptionMenu(
             self,

@@ -1,21 +1,20 @@
 import tkinter as tk
 from tkinter import PhotoImage, colorchooser, messagebox
+from tkinter.filedialog import askopenfilenames
 from datetime import datetime
 from my_widgets import MyButton, MyLabel
 from app_properties import *
 from applications.alarms import Alarms
 from applications.timer import Timer
 from applications.stopwatch import Stopwatch
+import shutil
+
 
 # Alarm clock that I wanted to create based on android alam clock but for windows
 # Prototype ver 1.0 Kappa
 # It's first interract with tkinter
 
-# TODO Volume of alarm(probbaly not with playsound )
-# TODO Random alarm from list? (could be done, not necessary for now)
-# TODO Validation for Hours edit, time in stopwatch/timer, delay stopwatch/timer, config
-# TODO My widgets = checkbox, opiotnmenu?
-# TODO timer popup (sound, animation like in alarmpopup)
+
 # TODO scrollable settings
 
 
@@ -27,7 +26,7 @@ class AlarmApp(tk.Tk):
         self._alarm_app_frame = Alarms(self)
         self._stopwatch_app_frame = Stopwatch(self)
         self._timer_app_frame = Timer(self)
-
+        self.title("Alarm clock")
         self._menu = MainMenu(self)
         self._footer_frame = FooterFrame(self)
         self._menu_frame = MenuFrame(
@@ -52,14 +51,27 @@ class AlarmApp(tk.Tk):
     def show_frame(self, show_what):
         show_what.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)
 
-    def upload_file(self):
-        print("upload")
+    def upload_sounds(self):
+        file_path = self.open_file()
+        if file_path:
+            for path in file_path:
+                shutil.copy(path, AppProperties.SOUND_DIR)
 
     def menu_settings(self):
         SettingsWindow()
 
     def quit_app(self):
         self.quit()
+
+    def show_info(self):
+        messagebox.showinfo(
+            'Info', 'Author: Darosss\nhttps://github.com/Darosss', parent=self)
+
+    def open_file(self):
+        file_path = askopenfilenames(filetypes=[
+            ('Audio files', f'*{AppProperties.SOUNDS_EXT[1:]}')])
+        if file_path is not None:
+            return file_path
 
 
 class SettingsWindow(tk.Tk):
@@ -214,18 +226,27 @@ class MainMenu(tk.Menu):
     def __init__(self, root, *args, **kwargs):
         tk.Menu.__init__(self, root, *args, **kwargs)
         self._root = root
-        window_menu = WindowMenu(self, tearoff=0)
+        window_menu = OptionsMenu(self, tearoff=0)
         self.add_cascade(label="Options", menu=window_menu)
+        help_menu = HelpMenu(self, tearoff=0)
+        self.add_cascade(label="Help", menu=help_menu)
         root.config(menu=self)
 
 
-class WindowMenu(tk.Menu):
+class OptionsMenu(tk.Menu):
     def __init__(self, parent, *args, **kwargs):
         tk.Menu.__init__(self, parent, *args, **kwargs)
 
-        self.add_command(label="Upload", command=parent.root.upload_file)
+        self.add_command(label="Upload sounds",
+                         command=parent.root.upload_sounds)
         self.add_command(label="Settings", command=parent.root.menu_settings)
         self.add_command(label="Exit", command=parent.root.quit_app)
+
+
+class HelpMenu(tk.Menu):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Menu.__init__(self, parent, *args, **kwargs)
+        self.add_command(label="Info", command=parent.root.show_info)
 
 
 class MenuFrame(tk.Frame):

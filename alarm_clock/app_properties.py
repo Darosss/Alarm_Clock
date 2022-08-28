@@ -12,6 +12,7 @@ class ConfigProperties:
     SOUND = "sound"
     STATE = "state"
     SNOOZE_TIME = "snooze_time"
+    VOLUME_ALARM = "volume_alarm"
     DESCR = "description"
     APP_SETTINGS = CONFIG.section["app_settings"]
     MENU_OPTIONS = CONFIG.section["menu_options"]

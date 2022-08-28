@@ -1,28 +1,29 @@
 {
     "alarm_box_5_77": {
-        "time": "20:23:14",
+        "time": "13:47:44",
         "days": [
             "Mon",
             "Tue",
-            "Wed",
-            "Thu",
             "Friday",
             "Sat",
             "Sun"
         ],
-        "sound": "1.mp3",
+        "sound": "brave-happy-ever-after-official-video.mp3",
         "state": "normal",
-        "snooze_time": 2,
-        "description": "3131"
+        "snooze_time": 1,
+        "volume_alarm": 100,
+        "description": "kuku"
     },
     "alarm_box_3_63": {
-        "time": "18:30:33",
+        "time": "13:21:13",
         "days": [
-            "Wed"
+            "Wed",
+            "Sun"
         ],
-        "sound": "3.mp3",
+        "sound": "timer.mp3",
         "state": "normal",
         "snooze_time": 10,
+        "volume_alarm": 50,
         "description": ""
     },
     "alarm_box_4_90": {
@@ -33,6 +34,7 @@
         "sound": "none",
         "state": "normal",
         "snooze_time": 10,
+        "volume_alarm": 50,
         "description": ""
     },
     "alarm_box_5_3": {
@@ -43,6 +45,7 @@
         "sound": "none",
         "state": "normal",
         "snooze_time": 10,
+        "volume_alarm": 50,
         "description": ""
     }
 }
