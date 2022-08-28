@@ -182,6 +182,10 @@
       "value": "timer",
       "description": "Alarm popup resolution"
     },
+    "animation": {
+      "value": "True",
+      "description": "Timer popup animation"
+    },
     "bg_color_timer": {
       "value": "blue",
       "description": "Alarm labels font isze"
