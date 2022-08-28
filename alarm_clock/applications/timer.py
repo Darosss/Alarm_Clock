@@ -181,23 +181,23 @@ class Timer(tk.Frame):
         ms_valid = (self.register(self.ms_validation), '%P')
         self.time_entry.append(self.create_entry(
             'Days', '00',
-            validate="key", validatecommand=int_valid)
+            validate="focusout", validatecommand=int_valid)
         )
         self.time_entry.append(self.create_entry(
             'Hours', '00',
-            validate="key", validatecommand=hours_valid)
+            validate="focusout", validatecommand=hours_valid)
         )
         self.time_entry.append(self.create_entry(
             'Minutes', '00',
-            validate="key", validatecommand=sec_min_valid)
+            validate="focusout", validatecommand=sec_min_valid)
         )
         self.time_entry.append(self.create_entry(
             'Seconds', '00',
-            validate="key", validatecommand=sec_min_valid)
+            validate="focusout", validatecommand=sec_min_valid)
         )
         self.time_entry.append(self.create_entry(
             'Miliseconds', '00',
-            validate="key", validatecommand=ms_valid)
+            validate="focusout", validatecommand=ms_valid)
         )
 
         self.delay_entry = self.create_entry(
@@ -317,7 +317,6 @@ class Timer(tk.Frame):
     def insert_to_entries(self):
         for index, entr in enumerate(self.time_entry):
             entr.entry.delete(0, "end")
-            print(self.format_time_array().split(":"))
             entr.entry.insert(1, self.timer_time[index])
 
     def countdown_time(self, start=False):
