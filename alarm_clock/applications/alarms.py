@@ -3,6 +3,7 @@ import datetime
 import glob
 import multiprocessing
 import random
+import re
 import tkinter as tk
 from tkinter import PhotoImage
 from playsound import playsound
@@ -10,6 +11,9 @@ from my_widgets import *
 from app_properties import *
 import pkg_resources
 pkg_resources.require("playsound==1.2.2")
+
+# TODO Volume of alarm(probbaly not with playsound )
+# TODO Random alarm from list? (could be done, not necessary for now)
 
 
 class Alarms(tk.Frame):
@@ -309,7 +313,7 @@ class AlarmPopup(tk.Tk):
         btn["text"] = self.mute_sound_txt
 
     def snooze_alarm(self, sn_btn, time, snd):
-        snooze_time_now = datetime.now() + datetime.timedelta(minutes=time)
+        snooze_time_now = datetime.datetime.now() + datetime.timedelta(minutes=time)
         time_string = snooze_time_now.strftime("%H:%M:%S")
         sn_btn["text"] = f"Snooze alarm\n {time_string}"
         self.sound_process.kill()
@@ -346,12 +350,9 @@ class EditAlarm(tk.Tk):
         self.day_names = self.config_edit["day_name"]["value"].split(",")
 
         tk.Toplevel.__init__(
-            self,
-            borderwidth=2,
-            relief="raised",
+            self, borderwidth=2, relief="raised",
             background=self.bg_edit,
-            *args,
-            **kwargs,
+            *args, **kwargs,
         )
         self.eval(f"tk::PlaceWindow {str(self)} right")
         self.geometry(self.config_edit["alarm_edit_resolution"]["value"])
@@ -359,7 +360,33 @@ class EditAlarm(tk.Tk):
         self.checkbox_days = None
         self.checked_days = None
         self.selected_snd = tk.StringVar()
+        self.format_title_time = ["Hour", "Minutes", "Seconds"]
+        self.hours_entry = []
         self.edit(alarm, alarm_btn)
+
+    def create_edit_entries(self, append, title='', value='', **options):
+        entry = MyEntry(
+            append, self.fg_edit, self.bg_edit,
+            title, self.btn_title,
+            value, font=(self.font_edit, self.f_s_hours_entry),
+            **options
+        )
+        return entry
+
+    def sec_min_validation(self, value):
+        pattern = r'(0?[0-9]|[1-5][0-9])'
+        if re.fullmatch(pattern, value) is None:
+            return False
+        return True
+
+    def hours_validation(self, value):
+        pattern = r'(0?[0-9]|1[0-9]|2[0-3])'
+        if re.fullmatch(pattern, value) is None:
+            return False
+        return True
+
+    def on_invalid(self, entr):
+        entr.entry.delete(0, 'end')
 
     def edit(self, json_alarm, alarm_box):
 
@@ -371,42 +398,45 @@ class EditAlarm(tk.Tk):
         alarm_description = alarm_properties["description"]
         alarm_snooze = alarm_properties["snooze_time"]
         alarm_format_lbl = f" {alarm_format[ConfigProperties.TIME]} \n {' '.join([str(elem) for elem in alarm_format[ConfigProperties.DAYS]])} \n {alarm_format[ConfigProperties.SOUND]}"
+        time_frame = tk.Frame(self)
+        sec_min_valid = (self.register(self.sec_min_validation), '%P')
+        hours_valid = (self.register(self.hours_validation), '%P')
 
-        hours_entry = MyEntry(
-            self,
-            self.fg_edit,
-            self.bg_edit,
-            "Alarm's hours",
-            self.btn_title,
-            alarm_format[ConfigProperties.TIME],
-            font=(self.font_edit, self.f_s_hours_entry),
+        hours_split = alarm_format[ConfigProperties.TIME].split(":")
+        self.hours_entry.append(
+            self.create_edit_entries(time_frame,
+                                     self.format_title_time[0],
+                                     hours_split[0], width=8,
+                                     validate="focusout", validatecommand=hours_valid))
+        self.hours_entry[0].entry.config(
+            invalidcommand=lambda: self.on_invalid(self.hours_entry[0]))
+        self.hours_entry.append(
+            self.create_edit_entries(time_frame,
+                                     self.format_title_time[1],
+                                     hours_split[1], width=8,
+                                     validate="focusout", validatecommand=sec_min_valid)
         )
+        self.hours_entry[1].entry.config(
+            invalidcommand=lambda: self.on_invalid(self.hours_entry[1]))
+        self.hours_entry.append(
+            self.create_edit_entries(time_frame,
+                                     self.format_title_time[2],
+                                     hours_split[2], width=8,
+                                     validate="focusout", validatecommand=sec_min_valid)
+        )
+        self.hours_entry[2].entry.config(
+            invalidcommand=lambda: self.on_invalid(self.hours_entry[2]))
 
-        description_entry = MyEntry(
-            self,
-            self.fg_edit,
-            self.bg_edit,
-            "Description",
-            self.btn_title,
-            alarm_description,
-            font=(self.font_edit, self.f_s_hours_entry),
-        )
+        description_entry = self.create_edit_entries(self,
+                                                     "Description", alarm_description)
 
-        snooze_time_entry = MyEntry(
-            self,
-            self.fg_edit,
-            self.bg_edit,
-            "Snooze Time",
-            self.btn_title,
-            alarm_snooze,
-            width=10,
-            font=(self.font_edit, self.f_s_hours_entry),
-        )
+        snooze_time_entry = self.create_edit_entries(self,
+                                                     "Snooze Time", alarm_snooze, width=3)
 
         """ ALARM TITLE  """
         MyLabel(
             self, alarm_format_lbl, self.fg_edit, self.bg_edit, image=self.img_edit
-        ).grid(column=1, row=0, columnspan=2, sticky=tk.NSEW)
+        ).grid(column=0, row=0, sticky=tk.NSEW)
         """ ALARM TITLE  """
         save_btn = MyButton(
             self,
@@ -432,7 +462,6 @@ class EditAlarm(tk.Tk):
             command=lambda: self.save_alarm(
                 json_alarm,
                 alarm_box,
-                hours_entry.entry.get(),
                 description_entry.entry.get(),
                 self.selected_snd.get(),
                 snooze_time_entry.entry.get(),
@@ -440,12 +469,14 @@ class EditAlarm(tk.Tk):
         )
         checkbox_days_frame = self.create_checkbox_days(alarm_format)
 
-        description_entry.grid(column=1, row=1, sticky=tk.NSEW)
-        hours_entry.grid(column=1, row=2, sticky=tk.NSEW)
-        snooze_time_entry.grid(column=1, row=3, sticky=tk.NSEW)
+        description_entry.grid(column=0, row=1, sticky=tk.NSEW)
+        for entr in self.hours_entry:
+            entr.pack(side=tk.LEFT)
+        time_frame.grid(column=0, row=2, sticky=tk.NSEW)
+        snooze_time_entry.grid(column=0, row=3, sticky=tk.NSEW)
         cancel_btn.grid(column=0, row=5, sticky=tk.NSEW)
         save_btn.grid(column=1, row=5, sticky=tk.NSEW)
-        choose_music.grid(column=0, row=0)
+        choose_music.grid(column=1, row=0)
 
         checkbox_days_frame.grid(
             row=4, column=0, columnspan=len(self.day_names), sticky=tk.NSEW
@@ -465,8 +496,15 @@ class EditAlarm(tk.Tk):
                                     *self.create_sound_list_from_dir())
         return choose_music
 
-    def save_alarm(self, alarm_json, alarm_box, hour, descr, snd_save, snooze_time):
+    def from_entries_to_hour(self):
+        alarm_format = ''
+        for entr in self.hours_entry:
+            alarm_format += entr.entry.get()+":"
+        return alarm_format[:-1]
+
+    def save_alarm(self, alarm_json, alarm_box, descr, snd_save, snooze_time):
         new_days = []
+        hour = self.from_entries_to_hour()
         new_sound = snd_save.split("\\")[1]
         for day_check in self.checkbox_days:
             if "selected" in day_check.state():
