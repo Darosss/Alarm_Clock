@@ -1,5 +1,6 @@
 import multiprocessing
 import random
+import re
 from my_widgets import *
 from app_properties import *
 import tkinter as tk
@@ -31,7 +32,7 @@ class Timer(tk.Frame):
         self.stop_btn = None
         self.entry_desc = None
         self.delay_entry = None
-        self.time_entry = None
+        self.time_entry = []
         self.timer_delay = None
         self.selected_snd = tk.StringVar()
         self.saved_frame = tk.Frame(
@@ -118,14 +119,46 @@ class Timer(tk.Frame):
         self.saved_times.pop_section(AppProperties.TIMER_PREFIX, sect_name)
         self.refresh_saved_times()
 
-    def create_entry(self, title='', value=''):
+    def create_entry(self, title='', value='', **options):
         entry = MyEntry(
             self.timer_frame,
             self.fg_timer, self.bg_timer,
             title, self.btn_title,
             value,
+            justify='center',
+            **options
         )
         return entry
+
+    def int_validation(self, value):
+        pattern = r'^[-+]?[0-9]+$'
+        if re.fullmatch(pattern, value) is None:
+            return False
+        return True
+
+    def time_validation(self, value):
+        pattern = r'^[-+]?[0-9]+$'
+        if re.fullmatch(pattern, value) is None:
+            return False
+        return True
+
+    def sec_min_validation(self, value):
+        pattern = r'(0?[0-9]|[1-5][0-9])'
+        if re.fullmatch(pattern, value) is None:
+            return False
+        return True
+
+    def hours_validation(self, value):
+        pattern = r'(0?[0-9]|1[0-9]|2[0-3])'
+        if re.fullmatch(pattern, value) is None:
+            return False
+        return True
+
+    def ms_validation(self, value):
+        pattern = r'\d{0,3}'
+        if re.fullmatch(pattern, value) is None:
+            return False
+        return True
 
     def create_timer_btn(self, text, name):
         button = MyButton(
@@ -142,10 +175,33 @@ class Timer(tk.Frame):
             self.fg_timer, self.bg_timer, image=self.btn_default,
             font=(self.font_timer, self.f_s_timer)
         )
-        self.time_entry = self.create_entry(
-            'Timer', ":".join(str(x) for x in self.timer_time))
+        int_valid = (self.register(self.int_validation), '%S')
+        sec_min_valid = (self.register(self.sec_min_validation), '%S')
+        hours_valid = (self.register(self.hours_validation), '%S')
+        ms_valid = (self.register(self.ms_validation), '%P')
+        self.time_entry.append(self.create_entry(
+            'Days', '00',
+            validate="key", validatecommand=int_valid)
+        )
+        self.time_entry.append(self.create_entry(
+            'Hours', '00',
+            validate="key", validatecommand=hours_valid)
+        )
+        self.time_entry.append(self.create_entry(
+            'Minutes', '00',
+            validate="key", validatecommand=sec_min_valid)
+        )
+        self.time_entry.append(self.create_entry(
+            'Seconds', '00',
+            validate="key", validatecommand=sec_min_valid)
+        )
+        self.time_entry.append(self.create_entry(
+            'Miliseconds', '00',
+            validate="key", validatecommand=ms_valid)
+        )
 
-        self.delay_entry = self.create_entry('Delay')
+        self.delay_entry = self.create_entry(
+            'Delay', "0", validate="key", validatecommand=int_valid)
 
         self.entry_desc = self.create_entry('Description')
 
@@ -156,13 +212,15 @@ class Timer(tk.Frame):
             AppProperties.START_TXT, f"{AppProperties.START_TXT.lower()}/{AppProperties.PAUSE_TXT.lower()}")
 
         self.btn_stop_delay = self.create_timer_btn(
-            AppProperties.STOP_TXT + " delay", name='stop_delay')
+            AppProperties.STOP_TXT + " delay", name=f"{AppProperties.STOP_TXT.lower()}_delay")
 
-        self.start_pause_btn.config(command=lambda: self.toggle_start_pause())
+        self.start_pause_btn.config(
+            command=lambda: self.toggle_start_pause())
         self.stop_btn.config(command=lambda: self.stop_timer())
         self.btn_stop_delay.config(command=lambda: self.stop_delay())
         timer_title_lbl.pack(side=tk.TOP)
-        self.time_entry.pack(expand=True)
+        for entry in self.time_entry:
+            entry.pack(side=tk.TOP)
         self.entry_desc.pack(side=tk.LEFT)
         self.delay_entry.pack(side=tk.RIGHT)
         self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
@@ -198,6 +256,13 @@ class Timer(tk.Frame):
         self.start_pause_btn['text'] = AppProperties.START_TXT
         self.btn_stop_delay.pack_forget()
 
+    def start_counting(self):
+        self.delay_condition()
+        self.timer_start_value = self.format_time_array()
+        self.start_pause_btn['text'] = AppProperties.PAUSE_TXT
+        self.countdown_time(True)
+        self.stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
+
     def delay_condition(self, no_delay=True):
         if no_delay:
             self.btn_stop_delay.pack_forget()
@@ -207,20 +272,17 @@ class Timer(tk.Frame):
             self.start_pause_btn["state"] = "disabled"
             self.start_pause_btn["text"] = AppProperties.START_TXT + " delay"
 
-    def start_counting(self):
-        self.delay_condition()
-        self.timer_start_value = self.format_time_array()
-        self.start_pause_btn['text'] = AppProperties.PAUSE_TXT
-        self.countdown_time(True)
-        self.stop_btn.pack(side=tk.TOP, fill=tk.BOTH)
-
     def toggle_start_pause(self):
         if self.start_pause_btn["text"] == AppProperties.START_TXT:
+            self.timer_time.clear()
+            for entr in self.time_entry:
+                if (len(entr.entry.get()) <= 0):
+                    # must be at least 0
+                    return
+                self.timer_time.append(int(entr.entry.get()))
 
-            if sum(int(w) for w in self.time_entry.entry.get().split(":")) > 0:
+            if sum(w for w in self.timer_time) > 0:
                 self.delay_condition(False)
-
-                self.timer_time = self.time_entry.entry.get().split(":")
                 self.timer_time = list(map(int, self.timer_time))
                 if self.delay_entry.entry.get().isdigit() and int(self.delay_entry.entry.get()) > 0:
                     delay_int = int(self.delay_entry.entry.get())
@@ -245,20 +307,30 @@ class Timer(tk.Frame):
         )
         self.countdown_time()
         self.start_pause_btn.config(text=AppProperties.START_TXT)
-        self.time_entry.entry.delete(0, "end")
+        # self.time_entry.entry.delete(0, "end")
         self.timer_time = [0] * len(self.timer_time)
-        self.time_entry.entry.insert(1, ":".join(str(x)
-                                     for x in self.timer_time))
+        # self.time_entry.entry.insert(1, ":".join(str(x)
+        #  for x in self.timer_time))
         self.stop_btn.pack_forget()
         self.refresh_saved_times()
 
+    def insert_to_entries(self):
+        for index, entr in enumerate(self.time_entry):
+            entr.entry.delete(0, "end")
+            print(self.format_time_array().split(":"))
+            entr.entry.insert(1, self.timer_time[index])
+
     def countdown_time(self, start=False):
+        ms_entry = self.time_entry[len(self.time_entry)-1]
+        # last entry = miliseconds entry
+
         def time():
-            self.time_entry.entry.delete(0, "end")
-            self.time_entry.entry.insert(1, self.format_time_array())
+            self.insert_to_entries()
+            # self.time_entry.entry.delete(0, "end")
+            # self.time_entry.entry.insert(1, self.format_time_array())
 
             if sum(t for t in self.timer_time) > 0:
-                self.is_counting = self.time_entry.entry.after(1, time)
+                self.is_counting = ms_entry.entry.after(1, time)
                 self.timer_time[4] = self.timer_time[4] - 1
                 return
             else:
@@ -268,7 +340,7 @@ class Timer(tk.Frame):
                 return
 
         if not start:
-            self.time_entry.after_cancel(self.is_counting)
+            ms_entry.after_cancel(self.is_counting)
             return
 
         time()
