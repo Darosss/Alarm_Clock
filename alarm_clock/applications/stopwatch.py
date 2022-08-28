@@ -1,4 +1,3 @@
-
 from re import A
 import re
 import tkinter as tk
@@ -62,47 +61,24 @@ class Stopwatch(tk.Frame):
             sorted(
                 self.saved_times.section[AppProperties.STOPWATCH_PREFIX], reverse=True)
         ):
-            sec_lbl = MyLabel(
-                self.time_frame,
-                str(index + 1) + ". " + section,
-                self.fg_stopwatch,
-                self.bg_stopwatch,
-                name=section + "/time_value_data",
-                borderwidth=2,
-                relief="raised",
-                font=(self.font_stopwatch, self.f_s_stopwatch),
-            )
-            # Data and index
+            sec_lbl = self.create_label(self.time_frame,
+                                        str(index + 1) + ". " +
+                                        section, name=section + "/time_value_data",
+                                        borderwidth=2, relief="raised")
             sec_lbl.grid(column=0, row=index + 1, sticky=tk.NSEW)
-            MyLabel(
-                self.time_frame,
-                self.saved_times.section[AppProperties.STOPWATCH_PREFIX][section][
-                    "value"
-                ],
-                self.fg_stopwatch,
-                self.bg_stopwatch,
-                borderwidth=2,
-                relief="raised",
-                font=(self.font_stopwatch, self.f_s_stopwatch),
-                name="time_value_time" + str(index),
-            ).grid(column=1, row=index + 1, sticky=tk.NSEW)
-            # Time
-
-            MyLabel(
-                self.time_frame,
-                self.saved_times.section[AppProperties.STOPWATCH_PREFIX][section][
-                    "description"
-                ],
-                self.fg_stopwatch,
-                self.bg_stopwatch,
-                font=(self.font_stopwatch, self.f_s_stopwatch),
-                name="time_value_description" + str(index),
-                borderwidth=2,
-                relief="raised",
-                wraplength=100,
-                justify=tk.LEFT,
-            ).grid(column=2, row=index + 1, sticky=tk.NSEW)
-            # Description
+            # Data and index here
+            self.create_label(self.time_frame,
+                              self.saved_times.section[AppProperties.STOPWATCH_PREFIX][section]["value"],
+                              name="time_value_time" + str(index),
+                              borderwidth=2, relief="raised",
+                              ).grid(column=1, row=index + 1, sticky=tk.NSEW)
+            # Time here
+            self.create_label(self.time_frame,
+                              self.saved_times.section[AppProperties.STOPWATCH_PREFIX][section]["description"],
+                              name="time_value_description" + str(index),
+                              borderwidth=2, relief="raised"
+                              ).grid(column=2, row=index + 1, sticky=tk.NSEW)
+            # Descirpition
             MyButton(
                 self.time_frame,
                 "x",
@@ -181,13 +157,14 @@ class Stopwatch(tk.Frame):
         self.delay_entry.pack(side=tk.RIGHT)
         self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
-    def create_label(self, text):
+    def create_label(self, append, text='', **options):
         label = MyLabel(
-            self.time_frame,
+            append,
             text,
             self.fg_stopwatch,
             self.bg_stopwatch,
             font=(self.font_stopwatch, self.f_s_stopwatch),
+            **options
         )
         return label
 
@@ -200,9 +177,10 @@ class Stopwatch(tk.Frame):
             image=self.btn_default,
             font=(self.font_stopwatch, self.f_s_stopwatch),
         ).pack()
-        self.saved_times_date = self.create_label("Data")
-        self.saved_times_time = self.create_label("Time")
-        self.saved_times_descript = self.create_label("Description")
+        self.saved_times_date = self.create_label(self.time_frame, "Data")
+        self.saved_times_time = self.create_label(self.time_frame, "Time")
+        self.saved_times_descript = self.create_label(
+            self.time_frame, "Description")
 
         self.saved_times_date.grid(column=0, row=0)
         self.saved_times_time.grid(column=1, row=0)

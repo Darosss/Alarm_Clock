@@ -20,7 +20,7 @@ class Timer(tk.Frame):
         self.f_s_timer = self.config_timer["font_size_timer"]["value"]
         self.font_timer = self.config_timer["font_timer"]["value"]
         self.sound_timer = self.config_timer["sound_timer"]["value"]
-        tk.Frame.__init__(self, root, borderwidth=2, *args, **kwargs)
+        tk.Frame.__init__(self, root, *args, **kwargs)
         self.btn_default = PhotoImage(file=AppProperties.TIMER_IMG)
         self.low_height_widgets = self.btn_default.subsample(3, 2)
         self.btn_title = PhotoImage(file=AppProperties.TITLE_IMG)
@@ -36,7 +36,7 @@ class Timer(tk.Frame):
         self.timer_delay = None
         self.selected_snd = tk.StringVar()
         self.saved_frame = tk.Frame(
-            self, borderwidth=1, background=self.bg_timer, relief="sunken"
+            self, background=self.bg_timer, borderwidth=1,  relief="sunken"
         )
 
         self.timer_frame.pack(side=tk.RIGHT, expand=True, fill=tk.BOTH)
@@ -64,43 +64,20 @@ class Timer(tk.Frame):
             sorted(
                 self.saved_times.section[AppProperties.TIMER_PREFIX], reverse=True)
         ):
-            sec_lbl = MyLabel(
-                self.time_frame,
-                str(index + 1) + ". " + section,
-                self.fg_timer,
-                self.bg_timer,
-                name=section + "/time_value_data",
-                borderwidth=2,
-                relief="raised",
-                font=(self.font_timer, self.f_s_timer),
-            )
+            sec_lbl = self.create_label(self.time_frame, str(index + 1) + ". " + section,
+                                        name=section + "/time_value_data", borderwidth=2, relief="raised")
             # Data and index
             sec_lbl.grid(column=0, row=index + 1, sticky=tk.NSEW)
-            MyLabel(
-                self.time_frame,
-                self.saved_times.section[AppProperties.TIMER_PREFIX][section]["value"],
-                self.fg_timer,
-                self.bg_timer,
-                borderwidth=2,
-                relief="raised",
-                font=(self.font_timer, self.f_s_timer),
-                name="time_value_time" + str(index),
-            ).grid(column=1, row=index + 1, sticky=tk.NSEW)
+            self.create_label(self.time_frame,
+                              self.saved_times.section[AppProperties.TIMER_PREFIX][section]["value"],
+                              name="time_value_time" + str(index), borderwidth=2, relief="raised"
+                              ).grid(column=1, row=index + 1, sticky=tk.NSEW)
             # Time
-            MyLabel(
-                self.time_frame,
-                self.saved_times.section[AppProperties.TIMER_PREFIX][section][
-                    "description"
-                ],
-                self.fg_timer,
-                self.bg_timer,
-                font=(self.font_timer, self.f_s_timer),
-                name="time_value_description" + str(index),
-                borderwidth=2,
-                relief="raised",
-                wraplength=100,
-                justify=tk.LEFT,
-            ).grid(column=2, row=index + 1, sticky=tk.NSEW)
+            self.create_label(self.time_frame,
+                              self.saved_times.section[AppProperties.TIMER_PREFIX][section]["description"],
+                              name="time_value_description" + str(index), borderwidth=2, relief="raised",
+                              wraplength=100, justify=tk.LEFT,
+                              ).grid(column=2, row=index + 1, sticky=tk.NSEW)
             # Description
             MyButton(
                 self.time_frame,
@@ -225,11 +202,12 @@ class Timer(tk.Frame):
         self.delay_entry.pack(side=tk.RIGHT)
         self.start_pause_btn.pack(side=tk.TOP, fill=tk.BOTH)
 
-    def create_label(self, text):
+    def create_label(self, append, text='', **options):
         label = MyLabel(
-            self.time_frame, text,
+            append, text,
             self.fg_timer, self.bg_timer,
-            font=(self.font_timer, self.f_s_timer)
+            font=(self.font_timer, self.f_s_timer),
+            **options
         )
         return label
 
@@ -241,10 +219,11 @@ class Timer(tk.Frame):
             font=(self.font_timer, self.f_s_timer)
         ).pack()
 
-        self.saved_times_date = self.create_label('Data')
+        self.saved_times_date = self.create_label(self.time_frame, 'Data')
 
-        self.saved_times_time = self.create_label('Time')
-        self.saved_times_descript = self.create_label('Description')
+        self.saved_times_time = self.create_label(self.time_frame, 'Time')
+        self.saved_times_descript = self.create_label(
+            self.time_frame, 'Description')
 
         self.saved_times_date.grid(column=0, row=0)
         self.saved_times_time.grid(column=1, row=0)
