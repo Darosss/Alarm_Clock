@@ -15,7 +15,6 @@ class MyButton(tk.Button):
             background=bg,
             activebackground=bg,
             compound='center',
-            wraplength=200,
             **options
         )
 
@@ -76,7 +75,7 @@ class MyOptionMenu(tk.Frame):
             background=bg,
             foreground=fg,
             compound=tk.CENTER,
-            wraplength=200
+            **options
         )
         self.option_menu = ttk.OptionMenu(
             self,
@@ -88,20 +87,19 @@ class MyOptionMenu(tk.Frame):
         self.option_menu.pack()
 
 
-class MyScrollableFrame(ttk.Frame):
+class MyScrollableFrame(tk.Frame):
     def __init__(self, container, bg='white', orient='vertical', * args, **kwargs):
         super().__init__(container, *args, **kwargs)
 
         canvas = tk.Canvas(self, bg=bg, bd=0, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(
-            self, orient=orient)
+        # scrollbar = ttk.Scrollbar(
+        #     self, orient=orient)
+        scrollbar = AutoScrollbar(self)
         if orient == 'vertical':
             scrollbar.config(command=canvas.yview)
-            scrollbar.pack(side="right", fill="y")
             canvas.configure(yscrollcommand=scrollbar.set)
         else:
             scrollbar.config(command=canvas.xview)
-            scrollbar.pack(side=tk.TOP, fill="x")
             canvas.configure(xscrollcommand=scrollbar.set)
 
         self.frame = tk.Frame(canvas, background=bg)
@@ -115,3 +113,12 @@ class MyScrollableFrame(ttk.Frame):
         canvas.create_window((0, 0), window=self.frame, anchor="nw")
 
         canvas.pack(side="left", fill="both", expand=True)
+
+
+class AutoScrollbar(tk.Scrollbar):
+    def set(self, low, high):
+        if float(low) <= 0.0 and float(high) >= 1.0:
+            self.tk.call("pack", "forget", self)
+        else:
+            self.pack(side=tk.RIGHT, fill="y")
+        tk.Scrollbar.set(self, low, high)
