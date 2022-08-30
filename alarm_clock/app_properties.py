@@ -32,6 +32,7 @@ class AppProperties:
     PAUSE_TXT = ConfigProperties.APP_SETTINGS["pause_txt"]["value"]
     RESUME_TXT = ConfigProperties.APP_SETTINGS["resume_txt"]["value"]
     ALARMS_IMG = f"{IMAGES_DIR}/alarms.png"
+    ALARMS_IMG = f"{IMAGES_DIR}/edit_alarm.png"
     SETTINGS_IMG = f"{IMAGES_DIR}/settings.png"
     MENU_IMG = f"{IMAGES_DIR}/menu.png"
     FOOTER_TIMER_IMG = f"{IMAGES_DIR}/footer_timer.png"
