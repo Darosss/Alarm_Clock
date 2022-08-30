@@ -35,12 +35,10 @@ class Timer(tk.Frame):
         self.time_entry = []
         self.timer_delay = None
         self.selected_snd = tk.StringVar()
-        self.saved_frame = tk.Frame(
-            self, background=self.bg_timer, borderwidth=1,  relief="sunken"
-        )
-
+        self.saved_frame_scroll = MyScrollableFrame(self, self.bg_timer)
+        self.saved_frame = self.saved_frame_scroll.frame
         self.timer_frame.pack(side=tk.RIGHT, expand=True, fill=tk.BOTH)
-        self.saved_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        self.saved_frame_scroll.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
         self.is_counting = None
         self.timer_time = [0, 0, 0, 0, 0]

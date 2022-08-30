@@ -34,13 +34,11 @@ class Stopwatch(tk.Frame):
         self.timer_delay = None
         self.entry_desc = None
         self.delay_entry = None
-
-        self.saved_frame = tk.Frame(
-            self, borderwidth=1, background=self.bg_stopwatch, relief="sunken"
-        )
+        self.saved_frame_scroll = MyScrollableFrame(self, self.bg_stopwatch)
+        self.saved_frame = self.saved_frame_scroll.frame
 
         self.stopwatch_frame.pack(side=tk.RIGHT, expand=True, fill=tk.BOTH)
-        self.saved_frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        self.saved_frame_scroll.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
         self.time_frame = tk.Frame(
             self.saved_frame, background=self.bg_stopwatch)
