@@ -15,9 +15,6 @@ import shutil
 # It's first interract with tkinter
 
 
-# TODO scrollable settings
-
-
 class AlarmApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
