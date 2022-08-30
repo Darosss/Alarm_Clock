@@ -12,7 +12,7 @@ class ConfigJSON:
     def section(self):
         return self.json_conf
 
-    def add_alarm(self, alarm, time, days, sound, snooze_time, description):
+    def add_alarm(self, alarm, time, days, sound, snooze_time, volume_alarm, description):
         with open(self.config, 'r+') as config_json:
             self.json_conf.update(
                 {
@@ -22,6 +22,7 @@ class ConfigJSON:
                         "sound": sound,
                         "state": "disabled",
                         "snooze_time": snooze_time,
+                        "volume_alarm": volume_alarm,
                         "description": description
                     }
                 })
