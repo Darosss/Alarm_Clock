@@ -89,17 +89,21 @@ class MyOptionMenu(tk.Frame):
 
 
 class MyScrollableFrame(ttk.Frame):
-    def __init__(self, container, bg='white', fg='black', * args, **kwargs):
+    def __init__(self, container, bg='white', orient='vertical', * args, **kwargs):
         super().__init__(container, *args, **kwargs)
-        style = ttk.Style()
-        style.theme_use('classic')
-        style.configure("Vertical.TScrollbar", background=bg,
-                        troughcolor=bg, bordercolor=bg, foreground=fg)
-        style.map('Vertical.TScrollbar', background=[('active', fg)])
+
         canvas = tk.Canvas(self, bg=bg, bd=0, highlightthickness=0)
         scrollbar = ttk.Scrollbar(
-            self, orient="vertical",
-            command=canvas.yview)
+            self, orient=orient)
+        if orient == 'vertical':
+            scrollbar.config(command=canvas.yview)
+            scrollbar.pack(side="right", fill="y")
+            canvas.configure(yscrollcommand=scrollbar.set)
+        else:
+            scrollbar.config(command=canvas.xview)
+            scrollbar.pack(side=tk.TOP, fill="x")
+            canvas.configure(xscrollcommand=scrollbar.set)
+
         self.frame = tk.Frame(canvas, background=bg)
 
         self.frame.bind(
@@ -108,10 +112,6 @@ class MyScrollableFrame(ttk.Frame):
                 scrollregion=canvas.bbox("all")
             )
         )
-
         canvas.create_window((0, 0), window=self.frame, anchor="nw")
 
-        canvas.configure(yscrollcommand=scrollbar.set)
-
         canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
