@@ -4,12 +4,11 @@ import glob
 import random
 import re
 import tkinter as tk
-from tkinter import PhotoImage
+from tkinter import PhotoImage, XView
 import vlc
 from my_widgets import *
 from app_properties import *
 
-# TODO Volume of alarm(probbaly not with playsound )
 # TODO Random alarm from list? (could be done, not necessary for now)
 # TODO scrollable alarms
 
@@ -26,7 +25,9 @@ class Alarms(tk.Frame):
         self.fg_alarms = self.config_alarm["fg_color_alarms"]["value"]
         self.snooze_time = self.config_alarm["snooze_time"]["value"]
         self.day_names = self.config_alarm["day_name"]["value"].split(",")
-        self.alarms_frame = tk.Frame(self, background=self.bg_alarms)
+        alarms = MyScrollableFrame(self, self.bg_alarms, self.fg_alarms)
+        self.alarms_frame = alarms.frame
+
         self.edit_alarm_obj = None
         self.alarms_frame.columnconfigure(0, weight=1)
         self.alarms_frame.columnconfigure(1, weight=1)
@@ -43,7 +44,7 @@ class Alarms(tk.Frame):
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
-        self.alarms_frame.grid(row=0, column=0, sticky=tk.NSEW)
+        alarms.grid(row=0, column=0, sticky=tk.NSEW)
         self.config(background=self.bg_alarms)
 
     def __create_alarm_boxes_frame(self):
@@ -150,7 +151,7 @@ V:{alarm_text[ConfigProperties.VOLUME_ALARM]}
         self.refresh_alarms()
 
     def add_alarm(self):
-        now = datetime.now()
+        now = datetime.datetime.now()
         dt_string = now.strftime("%H:%M:%S")
         today_name = self.day_names[int(now.strftime("%w")) - 1]
         row_alarm_box = self.alarms_frame.grid_size()[1]
@@ -160,12 +161,13 @@ V:{alarm_text[ConfigProperties.VOLUME_ALARM]}
             [today_name],
             "none",
             self.snooze_time,
+            50,
             "",
         )
         self.refresh_alarms()
 
     def debug_alarm_add(self, frame):
-        now = datetime.now() + datetime.timedelta(seconds=2)
+        now = datetime.datetime.now() + datetime.timedelta(seconds=2)
         dt_string = now.strftime("%H:%M:%S")
         today_name = now.strftime("%a")
         row_alarm_box = frame.grid_size()[1]
