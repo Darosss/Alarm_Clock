@@ -5,12 +5,12 @@ import random
 import re
 import tkinter as tk
 from tkinter import PhotoImage, XView
+from turtle import width
 import vlc
 from my_widgets import *
 from app_properties import *
 
 # TODO Random alarm from list? (could be done, not necessary for now)
-# TODO scrollable alarms
 
 
 class Alarms(tk.Frame):
@@ -33,7 +33,7 @@ class Alarms(tk.Frame):
         self.edit_alarm_obj = None
         self.alarms_frame.columnconfigure(0, weight=1)
         self.alarms_frame.columnconfigure(1, weight=1)
-
+        self.alarms_frame.columnconfigure(2, weight=1)
         self.btn_default = PhotoImage(file=AppProperties.ALARMS_IMG)
         self.btn_subsampl52 = self.btn_default.subsample(5, 2)
         self.small_widgets = self.btn_default.subsample(3, 2)
@@ -69,7 +69,7 @@ class Alarms(tk.Frame):
 
         add_button.config(command=lambda: self.add_alarm())
         alarm_title_lbl.grid(column=0, row=0, sticky=tk.NSEW)
-        add_button.grid(column=1, row=0, padx=5, pady=1, sticky=tk.W)
+        add_button.grid(column=4, row=0, padx=5, pady=1, sticky=tk.W)
 
     def refresh_alarms(self):
         self.alarms_frame.grid_slaves().clear()
@@ -102,6 +102,7 @@ V:{alarm_text[ConfigProperties.VOLUME_ALARM]}
             self.fg_alarms,
             self.bg_alarms,
             image=self.btn_default,
+            wraplength=self.btn_default.width(),
             name=f"{AppProperties.ALARM_PREFIX}_{row_alarm}",
         )
         delete_alarm = MyButton(
@@ -134,8 +135,8 @@ V:{alarm_text[ConfigProperties.VOLUME_ALARM]}
             ),
         )
 
-        alarm_box.grid(column=0, row=row_alarm + 2)
-        delete_alarm.grid(column=1, row=row_alarm + 2,
+        alarm_box.grid(column=0, columnspan=4, row=row_alarm + 2)
+        delete_alarm.grid(column=5, row=row_alarm + 2,
                           padx=5, pady=1, sticky=tk.W)
         return alarm_box
 
@@ -345,7 +346,7 @@ class EditAlarm(tk.Tk):
         self.img_edit = PhotoImage(file=AppProperties.ALARMS_IMG)
         self.img_check_day = self.img_edit.subsample(5, 4)
         self.btn_title = PhotoImage(file=AppProperties.TITLE_IMG)
-
+        self.btn_action = self.img_edit.subsample(3, 2)
         self.config_edit = ConfigProperties.ALARMS_OPTIONS
         self.alarms_list = ConfigProperties.ALARMS
         self.fg_edit = self.config_edit["fg_color_edit"]["value"]
@@ -453,7 +454,7 @@ class EditAlarm(tk.Tk):
             "Save",
             self.fg_edit,
             self.bg_edit,
-            image=self.img_edit,
+            image=self.btn_action,
             name=f"save_alarm",
         )
         cancel_btn = MyButton(
@@ -461,7 +462,7 @@ class EditAlarm(tk.Tk):
             "Cancel",
             self.fg_edit,
             self.bg_edit,
-            image=self.img_edit,
+            image=self.btn_action,
             name=f"cancel_btn",
         )
         choose_music = self.create_sound_selection(
@@ -505,7 +506,9 @@ class EditAlarm(tk.Tk):
         choose_music = MyOptionMenu(self, self.fg_edit, self.bg_edit, 'Select sound',
                                     self.btn_title, self.font_edit, self.f_s_select_snd,
                                     self.img_edit, self.selected_snd,
-                                    *self.create_sound_list_from_dir())
+                                    *self.create_sound_list_from_dir(),
+                                    wraplength=self.img_edit.width()
+                                    )
         return choose_music
 
     def from_entries_to_hour(self):
@@ -521,13 +524,11 @@ class EditAlarm(tk.Tk):
         for day_check in self.checkbox_days:
             if "selected" in day_check.state():
                 new_days.append(day_check["text"])
-        alarm_format = f'''{hour}
-{' '.join([str(elem) for elem in new_days])}
-{new_sound}
-Snooze: {snooze_time}
-V:{volume}
-'''
-
+        alarm_format = f"{hour}\n"
+        alarm_format += f"{new_sound}\n"
+        alarm_format += f"{' '.join([str(elem) for elem in new_days])}\n"
+        alarm_format += f"Snooze: {snooze_time}\n"
+        alarm_format += f"V:{volume}\n"
         alarm_box["text"] = alarm_format
 
         self.alarms_list.modify_alarm(
