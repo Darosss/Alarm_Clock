@@ -25,8 +25,10 @@ class Alarms(tk.Frame):
         self.fg_alarms = self.config_alarm["fg_color_alarms"]["value"]
         self.snooze_time = self.config_alarm["snooze_time"]["value"]
         self.day_names = self.config_alarm["day_name"]["value"].split(",")
-        alarms = MyScrollableFrame(self, self.bg_alarms, self.fg_alarms)
-        self.alarms_frame = alarms.frame
+
+        self.scrollable_alarms = MyScrollableFrame(
+            self, self.bg_alarms)
+        self.alarms_frame = self.scrollable_alarms.frame
 
         self.edit_alarm_obj = None
         self.alarms_frame.columnconfigure(0, weight=1)
@@ -44,7 +46,7 @@ class Alarms(tk.Frame):
         self.rowconfigure(0, weight=1)
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
-        alarms.grid(row=0, column=0, sticky=tk.NSEW)
+        self.scrollable_alarms.grid(row=0, column=0, sticky=tk.NSEW)
         self.config(background=self.bg_alarms)
 
     def __create_alarm_boxes_frame(self):
