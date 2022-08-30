@@ -44,6 +44,7 @@ class AlarmApp(tk.Tk):
 
         self._footer_frame.grid(column=0, row=2, columnspan=2, sticky=tk.NSEW)
         self._menu_frame.grid(column=0, row=0, columnspan=2, sticky=tk.NSEW)
+        self.update()
 
     def show_frame(self, show_what):
         show_what.grid(column=0, row=1, columnspan=2, sticky=tk.NSEW)

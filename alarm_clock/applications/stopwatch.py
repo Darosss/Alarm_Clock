@@ -11,6 +11,8 @@ import threading
 class Stopwatch(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
+        self._root.update()
+
         self.config_stpwch = ConfigProperties.STOPWATCH_OPTIONS
         self.saved_times = ConfigProperties.SAVED_TIMES
         self.bg_stopwatch = self.config_stpwch["bg_color_stopwatch"]["value"]
@@ -51,6 +53,7 @@ class Stopwatch(tk.Frame):
         self.create_stopwatch_widgets()
 
     def refresh_saved_times(self):
+        root_res = self._root.winfo_width()
         for slave in self.time_frame.grid_slaves():
             if "time_value" in slave.winfo_name():
                 slave.destroy()
@@ -62,7 +65,10 @@ class Stopwatch(tk.Frame):
             sec_lbl = self.create_label(self.time_frame,
                                         str(index + 1) + ". " +
                                         section, name=section + "/time_value_data",
-                                        borderwidth=2, relief="raised")
+                                        borderwidth=2, relief="raised",
+                                        width=root_res//60,
+                                        )
+
             sec_lbl.grid(column=0, row=index + 1, sticky=tk.NSEW)
             # Data and index here
             self.create_label(self.time_frame,
@@ -74,9 +80,10 @@ class Stopwatch(tk.Frame):
             self.create_label(self.time_frame,
                               self.saved_times.section[AppProperties.STOPWATCH_PREFIX][section]["description"],
                               name="time_value_description" + str(index),
-                              borderwidth=2, relief="raised"
+                              borderwidth=2, relief="raised", width=root_res//35,
                               ).grid(column=2, row=index + 1, sticky=tk.NSEW)
             # Descirpition
+
             MyButton(
                 self.time_frame,
                 "x",

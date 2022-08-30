@@ -13,6 +13,7 @@ import vlc
 class Timer(tk.Frame):
     def __init__(self, root, *args, **kwargs):
         self._root = root
+        self._root.update()
         self.config_timer = ConfigProperties.TIMER_OPTIONS
         self.saved_times = ConfigProperties.SAVED_TIMES
         self.bg_timer = self.config_timer["bg_color_timer"]["value"]
@@ -54,6 +55,7 @@ class Timer(tk.Frame):
         self.create_timer_widgets()
 
     def refresh_saved_times(self):
+        root_res = self._root.winfo_width()
         for slave in self.time_frame.grid_slaves():
             if "time_value" in slave.winfo_name():
                 slave.destroy()
@@ -63,18 +65,23 @@ class Timer(tk.Frame):
                 self.saved_times.section[AppProperties.TIMER_PREFIX], reverse=True)
         ):
             sec_lbl = self.create_label(self.time_frame, str(index + 1) + ". " + section,
-                                        name=section + "/time_value_data", borderwidth=2, relief="raised")
+                                        name=section + "/time_value_data",
+                                        borderwidth=2,
+                                        width=root_res//60,
+                                        relief="raised")
             # Data and index
             sec_lbl.grid(column=0, row=index + 1, sticky=tk.NSEW)
             self.create_label(self.time_frame,
                               self.saved_times.section[AppProperties.TIMER_PREFIX][section]["value"],
-                              name="time_value_time" + str(index), borderwidth=2, relief="raised"
+                              name="time_value_time" + str(index), borderwidth=2,
+                              relief="raised"
                               ).grid(column=1, row=index + 1, sticky=tk.NSEW)
             # Time
             self.create_label(self.time_frame,
                               self.saved_times.section[AppProperties.TIMER_PREFIX][section]["description"],
                               name="time_value_description" + str(index), borderwidth=2, relief="raised",
                               justify=tk.LEFT,
+                              width=root_res//35,
                               ).grid(column=2, row=index + 1, sticky=tk.NSEW)
             # Description
             MyButton(
@@ -203,7 +210,7 @@ class Timer(tk.Frame):
     def create_label(self, append, text='', **options):
         label = MyLabel(
             append, text,
-            self.fg_timer, self.bg_timer, 100,
+            self.fg_timer, self.bg_timer, 150,
             font=(self.font_timer, self.f_s_timer),
             **options
         )
