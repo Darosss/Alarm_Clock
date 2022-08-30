@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import PhotoImage, colorchooser, messagebox
 from tkinter.filedialog import askopenfilenames
 from datetime import datetime
-from my_widgets import MyButton, MyLabel
+from my_widgets import MyButton, MyLabel, MyScrollableFrame
 from app_properties import *
 from applications.alarms import Alarms
 from applications.timer import Timer
@@ -87,11 +87,13 @@ class SettingsWindow(tk.Tk):
         self.btn_default = PhotoImage(file=AppProperties.SETTINGS_IMG)
         self.img_section = self.btn_default.subsample(2, 2)
         self.img_description = self.btn_default.subsample(1, 2)
-
         tk.Toplevel.__init__(self, background=self.bg, *args, **kwargs)
         self.geometry(self.resolution)
         self.title("Settings")
         self.attributes("-topmost", "true")
+        self.sect_btns = MyScrollableFrame(self, self.bg)
+        self.rowconfigure(3, weight=1)
+        self.sect_btns.grid(column=0, row=3, sticky=tk.NSEW)
         self.create_settings_widgets()
         self.create_save_btn()
         self.create_default_button()
@@ -111,12 +113,20 @@ class SettingsWindow(tk.Tk):
         default_btn.config(command=lambda: self.restore_default())
 
     def create_settings_widgets(self):
-
+        sect_btns_frame = self.sect_btns.frame
         for index, section in enumerate(self.all_sections):
-
-            sectionFrame = tk.Frame(
-                self, background=self.bg, name="section_frame_" + str(index)
-            )
+            section_formated = section.title().replace("_", " ")
+            scroll_frame = MyScrollableFrame(
+                self, self.bg, name="section_frame_" + str(index))
+            sectionFrame = scroll_frame.frame
+            MyLabel(
+                sectionFrame,
+                section_formated,
+                self.fg,
+                self.bg,
+                image=self.img_description,
+                font=(self.settings_font, self.font_size),
+            ).grid(column=0, row=0, columnspan=2, sticky=tk.NSEW)
             for index, subsect in enumerate(self.all_sections[section]):
                 self.add_setting(
                     sectionFrame,
@@ -128,16 +138,16 @@ class SettingsWindow(tk.Tk):
                 )
 
             MyButton(
-                self,
-                section.capitalize(),
+                sect_btns_frame,
+                section_formated,
                 self.fg,
                 self.bg,
                 image=self.img_section,
                 font=(self.settings_font, int(self.font_size**1.2)),
                 name=section + "_btn",
-                command=lambda secFram=sectionFrame: self.show_settings(
+                command=lambda secFram=scroll_frame: self.show_settings(
                     secFram),
-            ).grid(column=self.grid_size()[0] + 1, row=1, sticky=tk.W)
+            ).pack(side=tk.TOP)
 
     def choose_color(self, entry):
         color_code = colorchooser.askcolor(title="Choose color", parent=self)
@@ -183,12 +193,12 @@ class SettingsWindow(tk.Tk):
         for s in self.grid_slaves():
             if "section_frame" in s.winfo_name():
                 s.grid_forget()
-        show.grid(column=0, row=3)
+        show.grid(column=1, row=3, sticky=tk.NSEW)
 
     def save_settings(self):
         for s in self.winfo_children():
             if "section_frame" in s.winfo_name():
-                for option in s.grid_slaves():
+                for option in s.frame.grid_slaves():
                     if option.widgetName == "entry":
                         option_value = option.get()
                         if option_value.isdigit():
