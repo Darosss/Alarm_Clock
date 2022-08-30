@@ -51,18 +51,14 @@ class Alarms(tk.Frame):
 
     def __create_alarm_boxes_frame(self):
         alarm_title_lbl = MyLabel(
-            self.alarms_frame,
-            "Alarms",
-            self.fg_alarms,
-            self.bg_alarms,
+            self.alarms_frame, "Alarms",
+            self.fg_alarms, self.bg_alarms,
             image=self.small_widgets,
         )
 
         add_button = MyButton(
-            self.alarms_frame,
-            "Add",
-            self.fg_alarms,
-            self.bg_alarms,
+            self.alarms_frame, "Add",
+            self.fg_alarms,  self.bg_alarms,
             image=self.small_widgets,
             name="add_alarm_btn",
         )
@@ -245,7 +241,6 @@ class AlarmPopup(tk.Tk):
         self.iconify()
 
     def create_popup_widgets(self):
-
         music_to_play = (
             f"{AppProperties.SOUND_DIR}/{self.alarm_popup[ConfigProperties.SOUND]}"
         )
@@ -262,28 +257,21 @@ class AlarmPopup(tk.Tk):
                 row=index, column=0
             )
         mute_sound_btn = MyButton(
-            self,
-            self.mute_sound_txt,
-            self.fg,
-            self.bg,
+            self, self.mute_sound_txt,
+            self.fg, self.bg,
             image=self.img_button,
             name=f"mute_alarm",
         )
         MyButton(
-            self,
-            "Stop alarm",
-            self.fg,
-            self.bg,
-            image=self.img_button,
-            name=f"stop_alarm",
+            self, "Stop alarm",
+            self.fg, self.bg,
+            image=self.img_button, name=f"stop_alarm",
             command=lambda: self.stop_alarm(),
         ).grid(row=0, column=1)
 
         self.snooze_btn = MyButton(
-            self,
-            "Snooze alarm",
-            self.fg,
-            self.bg,
+            self, "Snooze alarm",
+            self.fg, self.bg,
             image=self.img_button,
             name=f"snooze_alarm",
         )
